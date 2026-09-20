@@ -1,0 +1,167 @@
+{
+  "days": [
+    {
+      "day": "Monday",
+      "title": "LEGS",
+      "notes": [
+        "FOCUS ON TEMPO 2-1-2 (ECCENTRIC-PAUSE-CONCENTRIC)"
+      ],
+      "warmup": [
+        "body weight squats 2 sets x 10",
+        "Hip airplanes 2x12",
+        "(REVERSE SNOW ANGELS) (SCAPULAR RETRACTION)",
+        "-Hip mobility drills, dynamic stretches",
+        "DO PLANK 2 MIN /wall sit 60sec / split stance squat hold 60sec"
+      ],
+      "table": {
+        "day_label": "MONDAY",
+        "columns": ["SETS", "REPS", "SPEED", "1RM", "REST"],
+        "exercises": [
+          { "name": "LEG CURL (Seated or Lying)", "sets": "2", "reps": "10", "speed": "1/2/2", "1rm": "75%", "rest": "60sec" },
+          { "name": "HACK squats", "sets": "2", "reps": "12", "speed": "2/1/1", "1rm": "75%", "rest": "120sec" },
+          { "name": "Sumo squat", "sets": "2", "reps": "15", "speed": "2/1/2", "1rm": "70%", "rest": "120SEC" },
+          { "name": "Leg press wide stance superset narrow stance", "sets": "2", "reps": "12", "speed": "1/1/1", "1rm": "75%", "rest": "180SEC" },
+          { "name": "Legs extension", "sets": "2", "reps": "15", "speed": "2/1/3", "1rm": "75%", "rest": "90SEC" },
+          { "name": "Lying leg raises", "sets": "3", "reps": "15", "speed": "2/1/2", "1rm": null, "rest": "60sec" },
+          { "name": "STANDING CALF RAISES", "sets": "2", "reps": "15", "speed": "BOTTOM HALF 3SEC IN STRETCH", "1rm": "IN THE BOTTOM HALF", "rest": "60sec" }
+        ]
+      },
+      "cardio": {
+        "day_label": "Monday",
+        "time": "10 MIN +5MIN COOL DOWN",
+        "hrm": "135BPM incline 8"
+      }
+    },
+    {
+      "day": "Tuesday",
+      "title": "PUSH DAY",
+      "notes": [],
+      "warmup": [
+        "-10 MIN TREDMILL 140BPM WARMUP",
+        "(REVERSE SNOW ANGELS)(WALL ANGELS)",
+        "-DYNAMIC STRTCH (ARM CIRCLE FORWARM AND BACKWARD)",
+        "-BAND SHOULDER DISLOCATES 10 REP X 3",
+        "-face pulls 2x 20 / light DB lateral raises",
+        "-DO NOT FORGET TO STRETCH AT THE END (STATIC) OF EVERY SEESION",
+        "DO PLANK 1 MIN constant"
+      ],
+      "table": {
+        "day_label": "TUESDAY",
+        "columns": ["SETS", "REPS", "SPEED", "1RM", "REST"],
+        "exercises": [
+          { "name": "Incline smith machine press", "sets": "2", "reps": "10", "speed": "NEGATIVE CONTROL", "1rm": "75% 85%", "rest": "120SEC" },
+          { "name": "Shoulder machine press", "sets": "2", "reps": "10", "speed": "2/1/2", "1rm": "70%", "rest": "120SEC" },
+          { "name": "Dumbbell press soft decline with plate", "sets": "2", "reps": "10", "speed": "2/1/2", "1rm": "70%", "rest": "120SEC" },
+          { "name": "Incline dumbbell Y raise", "sets": "2", "reps": "15", "speed": "2/1/2", "1rm": "65%", "rest": "90SEC" },
+          { "name": "Machine fly", "sets": "2", "reps": "10", "speed": "2/1/2", "1rm": "75%", "rest": "90SEC" },
+          { "name": "V-BAR PUSH DOWN", "sets": "3", "reps": "15", "speed": "2/2/2", "1rm": "70%", "rest": "90SEC" },
+          { "name": "REVERS Barbell curl", "sets": "3", "reps": "10", "speed": "2/1/4", "1rm": "75%", "rest": "90SEC" },
+          { "name": "UPPER ABS PLATED", "sets": "4", "reps": "25", "speed": null, "1rm": null, "rest": "60SEC" }
+        ]
+      },
+      "cardio": {
+        "day_label": "TUESDAY",
+        "time": "20MIN +5MIN COOL DOWN",
+        "hrm": "140BPM"
+      }
+    },
+    {
+      "day": "Wednesday",
+      "title": "PULL DAY",
+      "notes": [],
+      "warmup": [
+        "WARM UP : 5MIN WITH 5MIN HITT TREDMILL AND 5 MIN COOLDOWN",
+        "DEAD HANG/ SCAP PULUPS 2X12/BAND PULL APARTS 2X20",
+        "_CAT COW STRETCH",
+        "_COBRA STRETCH",
+        "_JEFFERSON CURL 10KG",
+        "PLANK 2 MIN"
+      ],
+      "table": {
+        "day_label": "WEDNESSDAY",
+        "columns": ["SETS", "REPS", "SPEED", "1RM", "REST"],
+        "exercises": [
+          { "name": "T BAR ROW WIDE GRIPE", "sets": "3", "reps": "10", "speed": "1/2/2", "1rm": "75%", "rest": "120 SEC" },
+          { "name": "Seated row NARROW GRIP", "sets": "2", "reps": "12", "speed": "1/2/2", "1rm": "75%", "rest": "120 SEC" },
+          { "name": "LAT PULL DOWN WIDE GRIP", "sets": "2", "reps": "10", "speed": "2/1/2", "1rm": "75%", "rest": "120 SEC" },
+          { "name": "Seated face pull", "sets": "2", "reps": "10", "speed": "1/3/2", "1rm": "75%", "rest": "60 SEC" },
+          { "name": "INCLINE DB SHRUGE ROW", "sets": "2", "reps": "15", "speed": "1/3/1", "1rm": "75%", "rest": "90sec" },
+          { "name": "Hyper extension WEIGHTED", "sets": "2", "reps": "15", "speed": "2/0/2", "1rm": "75%", "rest": "60 SEC" },
+          { "name": "Preacher curl MACHINE", "sets": "3", "reps": "15", "speed": "2/0/2", "1rm": "75%", "rest": "120 SEC" },
+          { "name": "PLANK", "sets": "3", "reps": "1MIN", "speed": null, "1rm": null, "rest": "90 SEC" },
+          { "name": "LEG RAISES LYING", "sets": "4", "reps": "15", "speed": null, "1rm": null, "rest": "60 SEC" }
+        ]
+      },
+      "cardio": {
+        "day_label": "WEDNESS DAY",
+        "time": "25 MIN +5MIN COOL DOWN",
+        "hrm": "140BPM incline 8"
+      }
+    },
+    {
+      "day": "Thursday",
+      "title": "PUSH DAY",
+      "notes": [],
+      "warmup": [
+        "-10 MIN TREDMILL 120BPM WARMUP",
+        "(REVERSE SNOW ANGELS)(WALL ANGELS)",
+        "-DYNAMIC STRTCH (ARM CIRCLE FORWARM AND BACKWARD)",
+        "-BAND SHOULDER DISLOCATES 10 REP X 3",
+        "-face pulls 2x 20 / light DB lateral raises",
+        "-DO NOT FORGET TO STRETCH AT THE END (STATIC) OF EVERY SEESION",
+        "DO PLANK 1 MIN constant"
+      ],
+      "table": {
+        "day_label": "Thursday",
+        "columns": ["SETS", "REPS", "SPEED", "1RM", "REST"],
+        "exercises": [
+          { "name": "INCLINE SMITH MACHINE PRESS", "sets": "3", "reps": "10", "speed": "2/0/2", "1rm": "75%", "rest": "90SEC" },
+          { "name": "INCLINE CABLE FLY", "sets": "2", "reps": "10", "speed": "2/2/2", "1rm": "75%", "rest": "120 SEC" },
+          { "name": "SHOULDER DUMBBELL PRESS", "sets": "2", "reps": "10", "speed": "1/1/2", "1rm": null, "rest": "60 SEC" },
+          { "name": "LATERAL RAISES", "sets": "2", "reps": "10", "speed": null, "1rm": "70%", "rest": "90SEC" },
+          { "name": "FRONT ROPE RAISE", "sets": "2", "reps": "12", "speed": "1/2/2", "1rm": "75%", "rest": "60 SEC" },
+          { "name": "INCLINE DUMBELL CURL", "sets": "3", "reps": "12", "speed": "2/0/2", "1rm": "60%", "rest": "90 SEC" },
+          { "name": "ROPE OVER HEAD ENTENSION", "sets": "3", "reps": "12", "speed": "2/2/2", "1rm": "75%", "rest": "90 SEC" },
+          { "name": "SINGLE ARM PUSH DOWN", "sets": "3", "reps": "10", "speed": "2/2/2", "1rm": "75%", "rest": "60SEC" }
+        ]
+      },
+      "cardio": {
+        "day_label": "THURSDAY",
+        "time": "25 MIN +5MIN COOL DOWN",
+        "hrm": "140 BPM INCLINE 8"
+      }
+    },
+    {
+      "day": "Friday",
+      "title": "LEGS DAY",
+      "notes": [],
+      "warmup": [
+        "10 MIN GENERAL WARM UP (bike) spinner",
+        "body weight squats 2 sets x 10",
+        "Hip airplanes 2x12",
+        "(REVERSE SNOW ANGELS) (SCAPULAR RETRACTION)",
+        "-Hip mobility drills, dynamic stretches",
+        "DO PLANK 3 MIN /wall sit 90sec / split stance squat hold"
+      ],
+      "table": {
+        "day_label": "FRIDAY",
+        "columns": ["SETS", "REPS", "SPEED", "1RM", "REST"],
+        "exercises": [
+          { "name": "LEG CURL", "sets": "3", "reps": "12", "speed": "1/2/2", "1rm": "75%", "rest": "60SEC" },
+          { "name": "SQUATS", "sets": "2", "reps": "15", "speed": "2/1/2", "1rm": "75%", "rest": "60SEC" },
+          { "name": "WALKING LUNGES", "sets": "2", "reps": "12", "speed": "2/1/1", "1rm": "70%", "rest": "120SEC" },
+          { "name": "SINGLE LEG HIP THRUST", "sets": "2", "reps": "15", "speed": "1/1/2", "1rm": "70%", "rest": "90SEC" },
+          { "name": "LEG EXTENSION", "sets": "2", "reps": "15", "speed": "2/2/2", "1rm": "75%", "rest": "60SEC" },
+          { "name": "STANDING CALF RAISE", "sets": "3", "reps": "15", "speed": "2/2/2", "1rm": "75%", "rest": "60SEC" },
+          { "name": "LEG RAISES LYING", "sets": "3", "reps": "20", "speed": null, "1rm": null, "rest": "45SEC" },
+          { "name": "SIT UPS", "sets": "3", "reps": "15", "speed": null, "1rm": null, "rest": "45SEC" }
+        ]
+      },
+      "cardio": {
+        "day_label": "FRIDAYDAY",
+        "time": "15MIN + 5MIN COOL DOWN",
+        "hrm": "140 BPM"
+      }
+    }
+  ]
+}
