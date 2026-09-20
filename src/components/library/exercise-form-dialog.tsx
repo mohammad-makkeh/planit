@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Trash2 } from 'lucide-react'
@@ -39,8 +39,9 @@ export function ExerciseFormDialog({
   const { register, handleSubmit, reset, watch, setValue, setError, formState } =
     useForm<FormValues>({ resolver: zodResolver(exerciseSchema) })
 
+  const wasOpen = useRef(false)
   useEffect(() => {
-    if (open) {
+    if (open && !wasOpen.current) {
       setLocalTags(tagOptions)
       reset({
         name: exercise?.name ?? '',
@@ -49,6 +50,7 @@ export function ExerciseFormDialog({
         tagIds: exercise?.tags.map((t) => t.id) ?? [],
       })
     }
+    wasOpen.current = open
   }, [open, exercise, tagOptions, reset])
 
   const imageUrl = watch('imageUrl')

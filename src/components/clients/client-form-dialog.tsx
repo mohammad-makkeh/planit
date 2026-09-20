@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -39,8 +39,9 @@ export function ClientFormDialog({
   const form = useForm<FormValues>({ resolver: zodResolver(clientSchema) })
   const { register, handleSubmit, reset, setError, formState } = form
 
+  const wasOpen = useRef(false)
   useEffect(() => {
-    if (open) {
+    if (open && !wasOpen.current) {
       reset({
         name: client?.name ?? '',
         phone: client?.phone ?? '',
@@ -50,6 +51,7 @@ export function ClientFormDialog({
         notes: client?.notes ?? '',
       } as FormValues)
     }
+    wasOpen.current = open
   }, [open, client, reset])
 
   const onSubmit = handleSubmit(async (values) => {
