@@ -35,11 +35,13 @@ export function ClientActionsMenu({ client }: { client: ClientFormClient }) {
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger>
-          <Button variant="ghost" size="icon" aria-label="Client actions">
-            <MoreVertical className="size-5" />
-          </Button>
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger
+          render={
+            <Button variant="ghost" size="icon" aria-label="Client actions">
+              <MoreVertical className="size-5" />
+            </Button>
+          }
+        />
         <DropdownMenuContent align="end">
           <DropdownMenuItem onSelect={() => setEditOpen(true)}>
             <Pencil className="size-4" /> Edit details
