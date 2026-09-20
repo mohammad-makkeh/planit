@@ -1,3 +1,4 @@
+import { unstable_rethrow } from 'next/navigation'
 import type { ZodError } from 'zod'
 
 export type ActionErrorCode = 'validation' | 'not_found' | 'unauthorized' | 'conflict' | 'unknown'
@@ -37,6 +38,7 @@ export async function tryAction<T>(
   try {
     return await fn()
   } catch (e) {
+    unstable_rethrow(e)
     console.error(e)
     return err('unknown', 'Something went wrong. Please try again.')
   }

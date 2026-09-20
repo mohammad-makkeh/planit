@@ -24,16 +24,21 @@ export function ImageUploadField({
 
   async function onFile(file: File) {
     setUploading(true)
-    const formData = new FormData()
-    formData.set('file', file)
-    formData.set('folder', folder)
-    const result = await uploadImageAction(formData)
-    setUploading(false)
-    if (!result.ok) {
-      toast.error(result.error.message)
-      return
+    try {
+      const formData = new FormData()
+      formData.set('file', file)
+      formData.set('folder', folder)
+      const result = await uploadImageAction(formData)
+      if (!result.ok) {
+        toast.error(result.error.message)
+        return
+      }
+      onChange(result.data.url)
+    } catch {
+      toast.error('Upload failed — try a smaller image.')
+    } finally {
+      setUploading(false)
     }
-    onChange(result.data.url)
   }
 
   return (
