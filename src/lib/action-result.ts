@@ -30,3 +30,14 @@ export function fromZod(error: ZodError): { ok: false; error: ActionError } {
   }
   return err('validation', 'Please fix the highlighted fields.', fieldErrors)
 }
+
+export async function tryAction<T>(
+  fn: () => Promise<ActionResult<T>>,
+): Promise<ActionResult<T>> {
+  try {
+    return await fn()
+  } catch (e) {
+    console.error(e)
+    return err('unknown', 'Something went wrong. Please try again.')
+  }
+}
