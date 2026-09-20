@@ -1,13 +1,19 @@
 import { LibraryMovesTab } from '@/components/library/library-moves-tab'
+import { WarmupsTab } from '@/components/library/warmups-tab'
 import { PageHeader } from '@/components/shell/page-header'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { requireCoachId } from '@/lib/session'
 import { listExercises } from '@/services/exercises'
 import { listTags } from '@/services/tags'
+import { listWarmups } from '@/services/warmups'
 
 export default async function LibraryPage() {
   const coachId = await requireCoachId()
-  const [exerciseList, tagList] = await Promise.all([listExercises(coachId), listTags(coachId)])
+  const [exerciseList, tagList, warmupList] = await Promise.all([
+    listExercises(coachId),
+    listTags(coachId),
+    listWarmups(coachId),
+  ])
 
   return (
     <>
@@ -22,7 +28,7 @@ export default async function LibraryPage() {
             <LibraryMovesTab exercises={exerciseList} tags={tagList} />
           </TabsContent>
           <TabsContent value="warmups">
-            <p className="pt-4 text-sm text-muted-foreground">Warm-ups arrive in the next task.</p>
+            <WarmupsTab warmups={warmupList} />
           </TabsContent>
         </Tabs>
       </div>
