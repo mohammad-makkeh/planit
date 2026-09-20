@@ -20,7 +20,7 @@ export async function listExercises(coachId: string): Promise<ExerciseWithTags[]
     .select({ exerciseId: exerciseTags.exerciseId, id: tags.id, name: tags.name })
     .from(exerciseTags)
     .innerJoin(tags, eq(exerciseTags.tagId, tags.id))
-    .where(inArray(exerciseTags.exerciseId, rows.map((r) => r.id)))
+    .where(and(eq(tags.coachId, coachId), inArray(exerciseTags.exerciseId, rows.map((r) => r.id))))
 
   const byExercise = new Map<string, { id: string; name: string }[]>()
   for (const link of links) {
@@ -43,10 +43,14 @@ export async function createExercise(coachId: string, input: ExerciseInput): Pro
   return db.transaction(async (tx) => {
     const [created] = await tx.insert(exercises).values({ coachId, ...toRow(input) }).returning()
     if (!created) throw new Error('Insert returned no row')
-    if (input.tagIds.length > 0) {
+    const ownedTagIds = input.tagIds.length > 0
+      ? (await tx.select({ id: tags.id }).from(tags)
+          .where(and(eq(tags.coachId, coachId), inArray(tags.id, input.tagIds)))).map((t) => t.id)
+      : []
+    if (ownedTagIds.length > 0) {
       await tx
         .insert(exerciseTags)
-        .values(input.tagIds.map((tagId) => ({ exerciseId: created.id, tagId })))
+        .values(ownedTagIds.map((tagId) => ({ exerciseId: created.id, tagId })))
         .onConflictDoNothing()
     }
     return created
@@ -66,10 +70,14 @@ export async function updateExercise(
       .returning()
     if (!updated) return undefined
     await tx.delete(exerciseTags).where(eq(exerciseTags.exerciseId, exerciseId))
-    if (input.tagIds.length > 0) {
+    const ownedTagIds = input.tagIds.length > 0
+      ? (await tx.select({ id: tags.id }).from(tags)
+          .where(and(eq(tags.coachId, coachId), inArray(tags.id, input.tagIds)))).map((t) => t.id)
+      : []
+    if (ownedTagIds.length > 0) {
       await tx
         .insert(exerciseTags)
-        .values(input.tagIds.map((tagId) => ({ exerciseId, tagId })))
+        .values(ownedTagIds.map((tagId) => ({ exerciseId, tagId })))
         .onConflictDoNothing()
     }
     return updated
