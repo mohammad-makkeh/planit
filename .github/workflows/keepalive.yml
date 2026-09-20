@@ -1,0 +1,12 @@
+name: DB keep-alive
+on:
+  schedule:
+    - cron: '0 8 * * 1,4' # Mon + Thu 08:00 UTC
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - run: psql "$DATABASE_URL" -c "select 1"
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
