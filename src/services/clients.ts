@@ -24,7 +24,7 @@ export async function listClients(coachId: string, search?: string): Promise<Cli
     .where(and(...filters))
     .groupBy(clients.id)
     .orderBy(desc(lastActivity))
-  return rows.map((r) => ({ ...r.client, planCount: r.planCount, lastActivityAt: r.lastActivityAt }))
+  return rows.map((r) => ({ ...r.client, planCount: r.planCount, lastActivityAt: new Date(r.lastActivityAt) }))
 }
 
 export function getClient(coachId: string, clientId: string): Promise<Client | undefined> {
