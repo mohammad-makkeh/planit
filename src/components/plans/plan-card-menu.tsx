@@ -41,46 +41,72 @@ export function PlanCardMenu({
   const [busy, setBusy] = useState(false)
 
   async function duplicateInPlace() {
-    const result = await duplicatePlanAction(plan.id)
-    if (!result.ok) {
-      toast.error(result.error.message)
-      return
+    setBusy(true)
+    try {
+      const result = await duplicatePlanAction(plan.id)
+      if (!result.ok) {
+        toast.error(result.error.message)
+        return
+      }
+      toast.success('Plan duplicated')
+      router.refresh()
+    } catch {
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      setBusy(false)
     }
-    toast.success('Plan duplicated')
-    router.refresh()
   }
 
   async function duplicateTo(clientId: string) {
     setPickerOpen(false)
-    const result = await duplicatePlanAction(plan.id, clientId)
-    if (!result.ok) {
-      toast.error(result.error.message)
-      return
+    setBusy(true)
+    try {
+      const result = await duplicatePlanAction(plan.id, clientId)
+      if (!result.ok) {
+        toast.error(result.error.message)
+        return
+      }
+      toast.success('Plan copied')
+      router.push(`/clients/${clientId}`)
+    } catch {
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      setBusy(false)
     }
-    toast.success('Plan copied')
-    router.push(`/clients/${clientId}`)
   }
 
   async function cycleStatus() {
-    const result = await updatePlanMetaAction(plan.id, { status: NEXT_STATUS[plan.status] })
-    if (!result.ok) {
-      toast.error(result.error.message)
-      return
+    setBusy(true)
+    try {
+      const result = await updatePlanMetaAction(plan.id, { status: NEXT_STATUS[plan.status] })
+      if (!result.ok) {
+        toast.error(result.error.message)
+        return
+      }
+      router.refresh()
+    } catch {
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      setBusy(false)
     }
-    router.refresh()
   }
 
   async function onDelete() {
     setBusy(true)
-    const result = await deletePlanAction(plan.id)
-    setBusy(false)
-    if (!result.ok) {
-      toast.error(result.error.message)
-      return
+    try {
+      const result = await deletePlanAction(plan.id)
+      if (!result.ok) {
+        toast.error(result.error.message)
+        return
+      }
+      toast.success('Plan deleted')
+      setDeleteOpen(false)
+      router.refresh()
+    } catch {
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      setBusy(false)
     }
-    toast.success('Plan deleted')
-    setDeleteOpen(false)
-    router.refresh()
   }
 
   return (

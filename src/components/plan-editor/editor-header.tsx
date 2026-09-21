@@ -50,27 +50,41 @@ export function EditorHeader({
   const [busy, setBusy] = useState(false)
 
   async function duplicate() {
-    await onFlushPending()
-    const result = await duplicatePlanAction(plan.id)
-    if (!result.ok) {
-      toast.error(result.error.message)
-      return
+    if (busy) return
+    setBusy(true)
+    try {
+      await onFlushPending()
+      const result = await duplicatePlanAction(plan.id)
+      if (!result.ok) {
+        toast.error(result.error.message)
+        return
+      }
+      toast.success('Duplicated — you are now editing the copy')
+      router.push(`/clients/${plan.clientId}/plans/${result.data.id}`)
+    } catch {
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      setBusy(false)
     }
-    toast.success('Duplicated — you are now editing the copy')
-    router.push(`/clients/${plan.clientId}/plans/${result.data.id}`)
   }
 
   async function onDelete() {
+    if (busy) return
     setBusy(true)
-    await onFlushPending()
-    const result = await deletePlanAction(plan.id)
-    setBusy(false)
-    if (!result.ok) {
-      toast.error(result.error.message)
-      return
+    try {
+      await onFlushPending()
+      const result = await deletePlanAction(plan.id)
+      if (!result.ok) {
+        toast.error(result.error.message)
+        return
+      }
+      toast.success('Plan deleted')
+      router.push(`/clients/${plan.clientId}`)
+    } catch {
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      setBusy(false)
     }
-    toast.success('Plan deleted')
-    router.push(`/clients/${plan.clientId}`)
   }
 
   return (
@@ -120,6 +134,7 @@ export function EditorHeader({
           value={plan.title}
           onChange={(e) => onTitleChange(e.target.value)}
           aria-label="Plan title"
+          maxLength={200}
           className="min-w-0 flex-1 bg-transparent text-xl font-bold tracking-tight outline-none placeholder:text-muted-foreground"
           placeholder="Plan title"
         />

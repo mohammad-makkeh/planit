@@ -54,6 +54,7 @@ export function WarmupPickerSheet({
               value={freeText}
               onChange={(e) => setFreeText(e.target.value)}
               placeholder="Write a warm-up line…"
+              maxLength={300}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault()

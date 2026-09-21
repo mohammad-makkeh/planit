@@ -32,25 +32,35 @@ export function ShareSheet({
 
   async function generate() {
     setBusy(true)
-    const result = await generateShareSlugAction(planId)
-    setBusy(false)
-    if (!result.ok) {
-      toast.error(result.error.message)
-      return
+    try {
+      const result = await generateShareSlugAction(planId)
+      if (!result.ok) {
+        toast.error(result.error.message)
+        return
+      }
+      onChanged(result.data.slug)
+    } catch {
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      setBusy(false)
     }
-    onChanged(result.data.slug)
   }
 
   async function revoke() {
     setBusy(true)
-    const result = await revokeShareSlugAction(planId)
-    setBusy(false)
-    if (!result.ok) {
-      toast.error(result.error.message)
-      return
+    try {
+      const result = await revokeShareSlugAction(planId)
+      if (!result.ok) {
+        toast.error(result.error.message)
+        return
+      }
+      onChanged(null)
+      toast.success('Link revoked')
+    } catch {
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      setBusy(false)
     }
-    onChanged(null)
-    toast.success('Link revoked')
   }
 
   async function copy() {

@@ -13,13 +13,18 @@ export function NewPlanButton({ clientId }: { clientId: string }) {
   async function create() {
     if (busy) return
     setBusy(true)
-    const result = await createPlanAction(clientId)
-    setBusy(false)
-    if (!result.ok) {
-      toast.error(result.error.message)
-      return
+    try {
+      const result = await createPlanAction(clientId)
+      if (!result.ok) {
+        toast.error(result.error.message)
+        return
+      }
+      router.push(`/clients/${clientId}/plans/${result.data.id}`)
+    } catch {
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      setBusy(false)
     }
-    router.push(`/clients/${clientId}/plans/${result.data.id}`)
   }
 
   return <Fab label={busy ? 'Creating…' : 'New plan'} onClick={() => void create()} />

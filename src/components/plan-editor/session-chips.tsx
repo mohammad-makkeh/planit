@@ -1,6 +1,6 @@
 'use client'
 
-import { DndContext, PointerSensor, TouchSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
+import { DndContext, MouseSensor, TouchSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, arrayMove, horizontalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Plus } from 'lucide-react'
@@ -26,7 +26,7 @@ function SessionChip({
       onClick={onSelect}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        'shrink-0 touch-none rounded-full border px-4 py-1.5 text-sm font-medium transition-colors',
+        'shrink-0 touch-manipulation rounded-full border px-4 py-1.5 text-sm font-medium transition-colors',
         active ? 'border-brand bg-brand text-brand-foreground' : 'bg-card text-muted-foreground',
         isDragging && 'z-10 opacity-80',
       )}
@@ -54,7 +54,7 @@ export function SessionChips({
   adding: boolean
 }) {
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
   )
 

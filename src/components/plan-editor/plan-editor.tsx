@@ -62,6 +62,8 @@ export function PlanEditor({
       try {
         const result = await runStructural(fn)
         applyResult(result)
+      } catch {
+        toast.error('Something went wrong. Please try again.')
       } finally {
         setStructuralBusy(false)
       }
@@ -72,7 +74,8 @@ export function PlanEditor({
   const setTitle = useCallback(
     (title: string) => {
       setDoc((d) => ({ ...d, title }))
-      queueField('plan', initial.id, { title })
+      // an empty title fails schema validation (min 1) — don't poison the buffer with it
+      if (title.trim() !== '') queueField('plan', initial.id, { title })
     },
     [initial.id, queueField],
   )
@@ -90,7 +93,10 @@ export function PlanEditor({
         ...d,
         sessions: d.sessions.map((s) => (s.id === sessionId ? { ...s, ...fields } : s)),
       }))
-      queueField('session', sessionId, fields)
+      // an empty label fails schema validation (min 1) — keep it local-only until it's non-empty
+      const queued: SessionFieldPatch = { ...fields }
+      if ('label' in queued && !queued.label?.trim()) delete queued.label
+      if (Object.keys(queued).length > 0) queueField('session', sessionId, queued)
     },
     [queueField],
   )

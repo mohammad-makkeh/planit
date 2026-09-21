@@ -38,24 +38,33 @@ export function useAutosave(planId: string) {
   }, [])
 
   const flush = useCallback(async (): Promise<boolean> => {
-    if (inFlight.current) return inFlight.current
-    if (!hasPending()) return true
-    const b = buffer.current
-    const patch: PlanPatch = {
-      plan: Object.keys(b.plan).length > 0 ? (b.plan as PlanPatch['plan']) : undefined,
-      sessions: b.sessions.size > 0 ? (Object.fromEntries(b.sessions) as PlanPatch['sessions']) : undefined,
-      rows: b.rows.size > 0 ? (Object.fromEntries(b.rows) as PlanPatch['rows']) : undefined,
-    }
-    buffer.current = emptyBuffer()
-    if (timer.current) {
-      clearTimeout(timer.current)
-      timer.current = null
-    }
-    setStatus('saving')
-    const run = (async () => {
-      const result = await applyPlanPatchAction(planId, patch)
-      if (!result.ok) {
-        // put the failed patch back UNDER any edits made meanwhile (newest wins)
+    // Bounded loop instead of recursion: each iteration either (a) waits out an
+    // in-flight cycle and loops again if new work piled up meanwhile, or (b) runs
+    // one flush cycle to completion and returns.
+    for (;;) {
+      if (inFlight.current) {
+        // the in-flight promise doesn't cover edits queued after it started — once it
+        // settles, check whether new work piled up and start a fresh cycle if so.
+        const prior = await inFlight.current.catch(() => false)
+        if (!hasPending()) return prior
+        continue
+      }
+      if (!hasPending()) return true
+      const b = buffer.current
+      const patch: PlanPatch = {
+        plan: Object.keys(b.plan).length > 0 ? (b.plan as PlanPatch['plan']) : undefined,
+        sessions: b.sessions.size > 0 ? (Object.fromEntries(b.sessions) as PlanPatch['sessions']) : undefined,
+        rows: b.rows.size > 0 ? (Object.fromEntries(b.rows) as PlanPatch['rows']) : undefined,
+      }
+      buffer.current = emptyBuffer()
+      if (timer.current) {
+        clearTimeout(timer.current)
+        timer.current = null
+      }
+      setStatus('saving')
+
+      // put the failed patch back UNDER any edits made meanwhile (newest wins)
+      const requeueFailedPatch = () => {
         const later = buffer.current
         buffer.current = {
           plan: { ...(patch.plan ?? {}), ...later.plan },
@@ -63,16 +72,44 @@ export function useAutosave(planId: string) {
           rows: mergeMaps(patch.rows, later.rows),
         }
         setStatus('dirty')
-        toast.error('Could not save — will retry. Check your connection.')
-        return false
       }
-      setStatus(hasPending() ? 'dirty' : 'saved')
-      return true
-    })()
-    inFlight.current = run
-    const outcome = await run
-    inFlight.current = null
-    return outcome
+
+      const scheduleRetry = () => {
+        if (timer.current) clearTimeout(timer.current)
+        timer.current = setTimeout(() => void flush(), DEBOUNCE_MS)
+      }
+
+      const run = (async () => {
+        try {
+          const result = await applyPlanPatchAction(planId, patch)
+          if (!result.ok) {
+            requeueFailedPatch()
+            if (result.error.code === 'validation') {
+              // retrying identical invalid content is pointless — the next edit reschedules naturally
+              toast.error('Could not save — a field is empty or too long.')
+            } else {
+              toast.error('Could not save — will retry. Check your connection.')
+              scheduleRetry()
+            }
+            return false
+          }
+          setStatus(hasPending() ? 'dirty' : 'saved')
+          return true
+        } catch {
+          // network-level rejection — treat exactly like a !result.ok failure
+          requeueFailedPatch()
+          toast.error('Could not save — will retry. Check your connection.')
+          scheduleRetry()
+          return false
+        }
+      })()
+      inFlight.current = run
+      try {
+        return await run
+      } finally {
+        inFlight.current = null
+      }
+    }
   }, [planId, hasPending])
 
   const queueField = useCallback(

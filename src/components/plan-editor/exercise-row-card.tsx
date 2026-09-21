@@ -14,11 +14,11 @@ import { cn } from '@/lib/utils'
 import type { EditorRow } from '@/services/plans'
 
 const FIELDS = [
-  { key: 'sets', label: 'Sets' },
-  { key: 'reps', label: 'Reps' },
-  { key: 'speed', label: 'Speed' },
-  { key: 'oneRm', label: '1RM' },
-  { key: 'rest', label: 'Rest' },
+  { key: 'sets', label: 'Sets', maxLength: 40 },
+  { key: 'reps', label: 'Reps', maxLength: 40 },
+  { key: 'speed', label: 'Speed', maxLength: 120 },
+  { key: 'oneRm', label: '1RM', maxLength: 120 },
+  { key: 'rest', label: 'Rest', maxLength: 60 },
 ] as const
 
 export function ExerciseRowCard({
@@ -103,7 +103,7 @@ export function ExerciseRowCard({
         </DropdownMenu>
       </div>
       <div className="grid grid-cols-5 gap-1.5">
-        {FIELDS.map(({ key, label }) => (
+        {FIELDS.map(({ key, label, maxLength }) => (
           <div key={key} className="space-y-0.5">
             <p className="text-center text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
               {label}
@@ -111,6 +111,7 @@ export function ExerciseRowCard({
             <Input
               value={row[key] ?? ''}
               onChange={(e) => onField({ [key]: e.target.value })}
+              maxLength={maxLength}
               className="h-8 px-1 text-center text-xs"
               aria-label={`${row.exercise.name} ${label}`}
             />
@@ -123,6 +124,7 @@ export function ExerciseRowCard({
           onChange={(e) => onField({ note: e.target.value })}
           placeholder="Note for this move…"
           rows={2}
+          maxLength={500}
           className="text-sm"
         />
       )}

@@ -300,29 +300,31 @@ export async function applyPlanPatch(
   })
   const sessionIds = new Set(sessionRecords.map((s) => s.id))
 
-  const patchedSessionIds = Object.keys(patch.sessions ?? {})
-  if (patchedSessionIds.some((id) => !sessionIds.has(id))) return false
+  // unknown ids (e.g. a row/session deleted after a failed flush) are dropped rather than
+  // rejecting the whole patch — last-write-wins makes dropping the correct behavior
+  const validSessionEntries = Object.entries(patch.sessions ?? {}).filter(([id]) => sessionIds.has(id))
 
   const patchedRowIds = Object.keys(patch.rows ?? {})
-  if (patchedRowIds.length > 0) {
-    if (sessionIds.size === 0) return false
+  let ownedRowIds = new Set<string>()
+  if (patchedRowIds.length > 0 && sessionIds.size > 0) {
     const ownedRows = await db
       .select({ id: planRows.id })
       .from(planRows)
       .where(and(inArray(planRows.id, patchedRowIds), inArray(planRows.sessionId, [...sessionIds])))
-    if (ownedRows.length !== patchedRowIds.length) return false
+    ownedRowIds = new Set(ownedRows.map((r) => r.id))
   }
+  const validRowEntries = Object.entries(patch.rows ?? {}).filter(([id]) => ownedRowIds.has(id))
 
   await db.transaction(async (tx) => {
     if (patch.plan && Object.keys(patch.plan).length > 0) {
       await tx.update(plans).set(patch.plan).where(eq(plans.id, planId))
     }
-    for (const [id, fields] of Object.entries(patch.sessions ?? {})) {
+    for (const [id, fields] of validSessionEntries) {
       if (Object.keys(fields).length > 0) {
         await tx.update(planSessions).set(fields).where(eq(planSessions.id, id))
       }
     }
-    for (const [id, fields] of Object.entries(patch.rows ?? {})) {
+    for (const [id, fields] of validRowEntries) {
       if (Object.keys(fields).length > 0) {
         await tx.update(planRows).set(fields).where(eq(planRows.id, id))
       }

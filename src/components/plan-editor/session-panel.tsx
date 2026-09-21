@@ -47,6 +47,7 @@ export function SessionPanel({
           value={session.label}
           onChange={(e) => onField({ label: e.target.value })}
           aria-label="Session label"
+          maxLength={120}
           className="flex-1 font-semibold"
         />
         <Select
@@ -78,6 +79,7 @@ export function SessionPanel({
             onChange={(e) => onField({ focusNote: e.target.value })}
             placeholder="Session focus…"
             rows={2}
+            maxLength={500}
             className="min-h-0 flex-1 resize-none border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
           />
           <Button
@@ -124,11 +126,13 @@ export function SessionPanel({
               value={session.cardioTime ?? ''}
               onChange={(e) => onField({ cardioTime: e.target.value })}
               placeholder="Time — e.g. 20 min + 5 cool down"
+              maxLength={120}
             />
             <Input
               value={session.cardioHrm ?? ''}
               onChange={(e) => onField({ cardioHrm: e.target.value })}
               placeholder="Heart rate — e.g. 140 BPM incline 8"
+              maxLength={120}
             />
           </div>
         </section>
