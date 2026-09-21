@@ -66,41 +66,37 @@ export const planMetaSchema = z
   .partial()
 export type PlanMetaInput = z.infer<typeof planMetaSchema>
 
-const patchText = (max: number) => z.string().max(max).nullable()
+const docText = (max: number) => z.string().max(max).nullable()
 
-export const planPatchSchema = z.object({
-  plan: z.object({ title: z.string().trim().min(1).max(200) }).partial().optional(),
+export const planDocumentSchema = z.object({
+  title: z.string().trim().min(1, 'Title is required').max(200),
+  status: z.enum(['draft', 'active', 'completed']),
   sessions: z
-    .record(
-      z.string().uuid(),
-      z
-        .object({
-          label: z.string().trim().min(1).max(120),
-          weekday: z.string().max(20).nullable(),
-          focusNote: patchText(500),
-          warmupLines: z
-            .array(z.object({ text: z.string().min(1).max(300), highlighted: z.boolean() }))
-            .max(50),
-          cardioTime: patchText(120),
-          cardioHrm: patchText(120),
-        })
-        .partial(),
+    .array(
+      z.object({
+        label: z.string().trim().min(1).max(120),
+        weekday: z.string().max(20).nullable(),
+        focusNote: docText(500),
+        warmupLines: z
+          .array(z.object({ text: z.string().min(1).max(300), highlighted: z.boolean() }))
+          .max(50),
+        cardioTime: docText(120),
+        cardioHrm: docText(120),
+        rows: z
+          .array(
+            z.object({
+              exerciseId: z.string().uuid(),
+              sets: docText(40),
+              reps: docText(40),
+              speed: docText(120),
+              oneRm: docText(120),
+              rest: docText(60),
+              note: docText(500),
+            }),
+          )
+          .max(100),
+      }),
     )
-    .optional(),
-  rows: z
-    .record(
-      z.string().uuid(),
-      z
-        .object({
-          sets: patchText(40),
-          reps: patchText(40),
-          speed: patchText(120),
-          oneRm: patchText(120),
-          rest: patchText(60),
-          note: patchText(500),
-        })
-        .partial(),
-    )
-    .optional(),
+    .max(30),
 })
-export type PlanPatch = z.infer<typeof planPatchSchema>
+export type PlanDocument = z.infer<typeof planDocumentSchema>
