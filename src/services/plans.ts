@@ -423,7 +423,8 @@ export async function reorderSessions(
     columns: { id: true },
   })
   const existingIds = new Set(existing.map((s) => s.id))
-  if (orderedIds.length !== existingIds.size || orderedIds.some((id) => !existingIds.has(id))) {
+  const orderedSet = new Set(orderedIds)
+  if (orderedSet.size !== orderedIds.length || orderedSet.size !== existingIds.size || orderedIds.some((id) => !existingIds.has(id))) {
     return false
   }
   await db.transaction(async (tx) => {
@@ -524,7 +525,8 @@ export async function reorderRows(
     columns: { id: true },
   })
   const existingIds = new Set(existing.map((r) => r.id))
-  if (orderedIds.length !== existingIds.size || orderedIds.some((id) => !existingIds.has(id))) {
+  const orderedSet = new Set(orderedIds)
+  if (orderedSet.size !== orderedIds.length || orderedSet.size !== existingIds.size || orderedIds.some((id) => !existingIds.has(id))) {
     return false
   }
   await db.transaction(async (tx) => {
