@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import {
-  SESSION_COOKIE, sessionCookieOptions, signSession, verifySessionToken,
+  SESSION_COOKIE, sessionCookieOptions, signSession, verifySessionWithAge,
 } from '@/lib/auth'
 
 const PUBLIC_PATHS = [/^\/login$/, /^\/p\//]
@@ -9,7 +9,8 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isPublic = PUBLIC_PATHS.some((re) => re.test(pathname))
   const token = request.cookies.get(SESSION_COOKIE)?.value
-  const coachId = token ? await verifySessionToken(token) : null
+  const session = token ? await verifySessionWithAge(token) : null
+  const coachId = session?.coachId ?? null
 
   if (!coachId && !isPublic) {
     return NextResponse.redirect(new URL('/login', request.url))
@@ -19,9 +20,13 @@ export async function middleware(request: NextRequest) {
   }
 
   const response = NextResponse.next()
-  if (coachId) {
-    // sliding expiry: re-issue the cookie on every authenticated request
-    response.cookies.set(SESSION_COOKIE, await signSession(coachId), sessionCookieOptions)
+  if (session) {
+    // sliding 1-year expiry, refreshed at most once a day — avoids the
+    // set-cookie → router-refetch cascade after every server action
+    const ageSeconds = Math.floor(Date.now() / 1000) - session.issuedAt
+    if (ageSeconds > 60 * 60 * 24) {
+      response.cookies.set(SESSION_COOKIE, await signSession(session.coachId), sessionCookieOptions)
+    }
   }
   return response
 }

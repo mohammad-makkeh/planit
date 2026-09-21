@@ -35,3 +35,15 @@ export async function verifySessionToken(token: string): Promise<string | null> 
     return null
   }
 }
+
+export async function verifySessionWithAge(
+  token: string,
+): Promise<{ coachId: string; issuedAt: number } | null> {
+  try {
+    const { payload } = await jwtVerify(token, secret())
+    if (!payload.sub || typeof payload.iat !== 'number') return null
+    return { coachId: payload.sub, issuedAt: payload.iat }
+  } catch {
+    return null
+  }
+}
