@@ -3,10 +3,11 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { ClientActionsMenu } from '@/components/clients/client-actions-menu'
 import { PlanList } from '@/components/clients/plan-list'
+import { NewPlanButton } from '@/components/plans/new-plan-button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { initials } from '@/lib/format'
 import { requireCoachId } from '@/lib/session'
-import { getClient } from '@/services/clients'
+import { getClient, listClients } from '@/services/clients'
 import { listPlansForClient } from '@/services/plans'
 
 export default async function ClientPage({ params }: { params: Promise<{ id: string }> }) {
@@ -14,7 +15,10 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
   const { id } = await params
   const client = await getClient(coachId, id)
   if (!client) notFound()
-  const clientPlans = await listPlansForClient(coachId, id)
+  const [clientPlans, allClients] = await Promise.all([
+    listPlansForClient(coachId, id),
+    listClients(coachId),
+  ])
 
   const facts = [
     client.age !== null ? `${client.age} yrs` : null,
@@ -50,9 +54,14 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
         )}
         <section className="space-y-3">
           <h2 className="text-lg font-semibold">Plans</h2>
-          <PlanList plans={clientPlans} />
+          <PlanList
+            plans={clientPlans}
+            clients={allClients.map((c) => ({ id: c.id, name: c.name }))}
+            clientId={client.id}
+          />
         </section>
       </div>
+      <NewPlanButton clientId={client.id} />
     </>
   )
 }
