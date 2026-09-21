@@ -39,3 +39,5 @@ Generate a hash, then update the row in Supabase:
 
     node -e "require('bcryptjs').hash('NEW_PASSWORD', 12).then(console.log)"
     -- SQL editor: update coaches set password_hash = '<hash>' where email = '<email>';
+
+THIS IS MVP
