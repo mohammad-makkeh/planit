@@ -125,6 +125,7 @@ export function PlanEditor({
         onStatusChange={setStatus}
         onSave={() => void flush()}
         onShareChanged={(slug) => setDoc((d) => ({ ...d, shareSlug: slug }))}
+        onFlushPending={flush}
       />
       <SessionChips
         sessions={doc.sessions}

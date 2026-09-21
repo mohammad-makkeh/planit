@@ -34,6 +34,7 @@ export function EditorHeader({
   onStatusChange,
   onSave,
   onShareChanged,
+  onFlushPending,
 }: {
   plan: EditorPlan
   saveStatus: SaveStatus
@@ -41,6 +42,7 @@ export function EditorHeader({
   onStatusChange: (status: EditorPlan['status']) => void
   onSave: () => void
   onShareChanged: (slug: string | null) => void
+  onFlushPending: () => Promise<boolean>
 }) {
   const router = useRouter()
   const [shareOpen, setShareOpen] = useState(false)
@@ -48,6 +50,7 @@ export function EditorHeader({
   const [busy, setBusy] = useState(false)
 
   async function duplicate() {
+    await onFlushPending()
     const result = await duplicatePlanAction(plan.id)
     if (!result.ok) {
       toast.error(result.error.message)
@@ -59,6 +62,7 @@ export function EditorHeader({
 
   async function onDelete() {
     setBusy(true)
+    await onFlushPending()
     const result = await deletePlanAction(plan.id)
     setBusy(false)
     if (!result.ok) {
