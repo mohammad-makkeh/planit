@@ -13,7 +13,7 @@ export default function LoginPage() {
     <main className="flex min-h-dvh items-center justify-center p-6">
       <div className="w-full max-w-sm space-y-8">
         <div className="space-y-1 text-center">
-          <h1 className="text-3xl font-bold tracking-tight">Planit</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Plan<span className="text-brand">it</span></h1>
           <p className="text-sm text-muted-foreground">Sign in to your workspace</p>
         </div>
         <form action={formAction} className="space-y-4">

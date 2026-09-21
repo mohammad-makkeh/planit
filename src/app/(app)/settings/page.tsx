@@ -32,7 +32,7 @@ export default async function SettingsPage() {
           />
         </section>
         <form action={logoutAction}>
-          <Button variant="outline" className="w-full" type="submit">
+          <Button variant="outline" className="w-full text-destructive" type="submit">
             Log out
           </Button>
         </form>
