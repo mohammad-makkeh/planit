@@ -80,7 +80,7 @@ export function ExerciseFormSheet({
 
   return (
     <>
-      <BottomSheet open={open} onOpenChange={onOpenChange}>
+      <BottomSheet open={open && !deleteOpen} onOpenChange={onOpenChange}>
         <BottomSheetContent>
           <BottomSheetHeader>
             <BottomSheetTitle>{exercise ? 'Edit move' : 'New move'}</BottomSheetTitle>
