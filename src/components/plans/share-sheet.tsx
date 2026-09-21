@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Check, Copy, Link2, Link2Off } from 'lucide-react'
 import { toast } from 'sonner'
 import { generateShareSlugAction, revokeShareSlugAction } from '@/actions/plan-editor'
@@ -25,7 +25,10 @@ export function ShareSheet({
 }) {
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState(false)
-  const url = shareSlug ? `${window.location.origin}/p/${shareSlug}` : null
+  const [origin, setOrigin] = useState('')
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { setOrigin(window.location.origin) }, [])
+  const url = shareSlug ? `${origin}/p/${shareSlug}` : null
 
   async function generate() {
     setBusy(true)
