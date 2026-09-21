@@ -1,10 +1,9 @@
 'use client'
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Blobatar } from '@blobatar/react'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'
-import { initials } from '@/lib/format'
 
 export type PickerClient = { id: string; name: string }
 
@@ -39,11 +38,9 @@ export function ClientPickerDialog({
                 onClick={() => onPick(c.id)}
                 className="flex w-full items-center gap-3 rounded-xl p-2 text-left hover:bg-accent/50"
               >
-                <Avatar className="size-9">
-                  <AvatarFallback className="bg-brand/10 text-sm font-semibold text-brand">
-                    {initials(c.name)}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="shrink-0">
+                  <Blobatar name={c.name} size={36} />
+                </div>
                 <span className="font-medium">{c.name}</span>
               </button>
             ))}

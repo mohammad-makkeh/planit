@@ -1,11 +1,10 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
+import { Blobatar } from '@blobatar/react'
 import { ClientActionsMenu } from '@/components/clients/client-actions-menu'
 import { PlanList } from '@/components/clients/plan-list'
 import { NewPlanButton } from '@/components/plans/new-plan-button'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { initials } from '@/lib/format'
 import { requireCoachId } from '@/lib/session'
 import { getClient, listClients } from '@/services/clients'
 import { listPlansForClient } from '@/services/plans'
@@ -37,11 +36,9 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
       </header>
       <div className="space-y-6 p-4 md:p-8">
         <div className="flex items-center gap-4">
-          <Avatar className="size-14">
-            <AvatarFallback className="bg-brand/10 text-lg font-semibold text-brand">
-              {initials(client.name)}
-            </AvatarFallback>
-          </Avatar>
+          <div className="shrink-0">
+            <Blobatar name={client.name} size={56} />
+          </div>
           <div className="min-w-0">
             <h1 className="truncate text-2xl font-bold tracking-tight">{client.name}</h1>
             {facts.length > 0 && (

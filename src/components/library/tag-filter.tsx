@@ -1,8 +1,16 @@
 'use client'
 
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import type { TagOption } from './tag-multi-select'
+
+function chipClass(active: boolean): string {
+  return cn(
+    'inline-flex h-9 shrink-0 items-center whitespace-nowrap rounded-full border px-4 text-sm font-medium transition-colors',
+    active
+      ? 'border-transparent bg-brand text-brand-foreground'
+      : 'border-input bg-background text-foreground hover:bg-accent',
+  )
+}
 
 export function TagFilter({
   tags,
@@ -14,23 +22,18 @@ export function TagFilter({
   onSelect: (id: string | null) => void
 }) {
   return (
-    <div className="flex gap-1.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none]">
-      <button type="button" onClick={() => onSelect(null)}>
-        <Badge
-          variant={selected === null ? 'default' : 'outline'}
-          className={cn('whitespace-nowrap', selected === null && 'bg-brand text-brand-foreground')}
-        >
-          All
-        </Badge>
+    <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none]">
+      <button type="button" className={chipClass(selected === null)} onClick={() => onSelect(null)}>
+        All
       </button>
       {tags.map((tag) => (
-        <button key={tag.id} type="button" onClick={() => onSelect(tag.id === selected ? null : tag.id)}>
-          <Badge
-            variant={selected === tag.id ? 'default' : 'outline'}
-            className={cn('whitespace-nowrap', selected === tag.id && 'bg-brand text-brand-foreground')}
-          >
-            {tag.name}
-          </Badge>
+        <button
+          key={tag.id}
+          type="button"
+          className={chipClass(selected === tag.id)}
+          onClick={() => onSelect(tag.id === selected ? null : tag.id)}
+        >
+          {tag.name}
         </button>
       ))}
     </div>
