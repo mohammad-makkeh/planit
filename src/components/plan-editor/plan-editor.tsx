@@ -1,14 +1,10 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import {
-  createRowAction, createSessionAction, deleteRowAction, deleteSessionAction, duplicateRowAction,
-  duplicateSessionAction, reorderRowsAction, reorderSessionsAction, swapRowExerciseAction, updatePlanMetaAction,
-} from '@/actions/plan-editor'
+import { savePlanDocumentAction } from '@/actions/plan-editor'
 import type { TagOption } from '@/components/library/tag-multi-select'
-import { useAutosave } from '@/hooks/use-autosave'
-import type { ActionResult } from '@/lib/action-result'
+import type { PlanDocument } from '@/lib/validation'
 import type { ExerciseWithTags } from '@/services/exercises'
 import type { EditorPlan, EditorRow, EditorSession } from '@/services/plans'
 import type { WarmupPreset } from '@/services/warmups'
@@ -20,6 +16,32 @@ import { SessionPanel } from './session-panel'
 export type SessionFieldPatch = Partial<
   Pick<EditorSession, 'label' | 'weekday' | 'focusNote' | 'warmupLines' | 'cardioTime' | 'cardioHrm'>
 >
+
+export type PickedExercise = { id: string; name: string; imageUrl: string | null }
+
+function toDocument(plan: EditorPlan): PlanDocument {
+  return {
+    title: plan.title.trim(),
+    status: plan.status,
+    sessions: plan.sessions.map((s) => ({
+      label: s.label.trim(),
+      weekday: s.weekday,
+      focusNote: s.focusNote,
+      warmupLines: s.warmupLines,
+      cardioTime: s.cardioTime,
+      cardioHrm: s.cardioHrm,
+      rows: s.rows.map((r) => ({
+        exerciseId: r.exercise.id,
+        sets: r.sets,
+        reps: r.reps,
+        speed: r.speed,
+        oneRm: r.oneRm,
+        rest: r.rest,
+        note: r.note,
+      })),
+    })),
+  }
+}
 
 export function PlanEditor({
   initial,
@@ -36,74 +58,74 @@ export function PlanEditor({
   const [activeSessionId, setActiveSessionId] = useState<string | null>(
     initial.sessions[0]?.id ?? null,
   )
-  const [structuralBusy, setStructuralBusy] = useState(false)
-  const { status, queueField, flush, runStructural } = useAutosave(doc.id)
+  const [dirty, setDirty] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const editCount = useRef(0)
+  const docRef = useRef(doc)
+  useEffect(() => {
+    docRef.current = doc
+  }, [doc])
 
-  /** Replace the document with a structural action's fresh payload. */
-  const applyResult = useCallback((result: ActionResult<EditorPlan>): boolean => {
-    if (!result.ok) {
-      toast.error(result.error.message)
-      return false
-    }
-    setDoc(result.data)
-    setActiveSessionId((current) =>
-      current && result.data.sessions.some((s) => s.id === current)
-        ? current
-        : (result.data.sessions[0]?.id ?? null),
-    )
-    return true
+  /** Every local mutation goes through here — instant, no server calls. */
+  const mutate = useCallback((updater: (d: EditorPlan) => EditorPlan) => {
+    editCount.current += 1
+    setDirty(true)
+    setDoc(updater)
   }, [])
 
-  /** Structural op wrapper: flush pending edits, run, apply payload. */
-  const structural = useCallback(
-    async (fn: () => Promise<ActionResult<EditorPlan>>) => {
-      if (structuralBusy) return
-      setStructuralBusy(true)
-      try {
-        const result = await runStructural(fn)
-        applyResult(result)
-      } catch {
-        toast.error('Something went wrong. Please try again.')
-      } finally {
-        setStructuralBusy(false)
+  const save = useCallback(async (): Promise<boolean> => {
+    if (saving) return false
+    if (!dirty) return true
+    const current = docRef.current
+    if (current.title.trim() === '') {
+      toast.error('Give the plan a title before saving.')
+      return false
+    }
+    if (current.sessions.some((s) => s.label.trim() === '')) {
+      toast.error('Every day needs a label before saving.')
+      return false
+    }
+    setSaving(true)
+    const startCount = editCount.current
+    try {
+      const result = await savePlanDocumentAction(current.id, toDocument(current))
+      if (!result.ok) {
+        toast.error(result.error.message)
+        return false
       }
-    },
-    [applyResult, runStructural, structuralBusy],
-  )
+      if (editCount.current === startCount) setDirty(false)
+      return true
+    } catch {
+      toast.error('Could not save — check your connection and try again.')
+      return false
+    } finally {
+      setSaving(false)
+    }
+  }, [dirty, saving])
 
-  const setTitle = useCallback(
-    (title: string) => {
-      setDoc((d) => ({ ...d, title }))
-      // an empty title fails schema validation (min 1) — don't poison the buffer with it
-      if (title.trim() !== '') queueField('plan', initial.id, { title })
-    },
-    [initial.id, queueField],
-  )
+  useEffect(() => {
+    function onBeforeUnload(e: BeforeUnloadEvent) {
+      if (dirty) e.preventDefault()
+    }
+    window.addEventListener('beforeunload', onBeforeUnload)
+    return () => window.removeEventListener('beforeunload', onBeforeUnload)
+  }, [dirty])
 
-  const setStatus = useCallback(
-    (status: EditorPlan['status']) => {
-      void structural(() => updatePlanMetaAction(doc.id, { status }))
-    },
-    [doc.id, structural],
-  )
+  // ----- local document mutations -----
 
   const setSessionField = useCallback(
     (sessionId: string, fields: SessionFieldPatch) => {
-      setDoc((d) => ({
+      mutate((d) => ({
         ...d,
         sessions: d.sessions.map((s) => (s.id === sessionId ? { ...s, ...fields } : s)),
       }))
-      // an empty label fails schema validation (min 1) — keep it local-only until it's non-empty
-      const queued: SessionFieldPatch = { ...fields }
-      if ('label' in queued && !queued.label?.trim()) delete queued.label
-      if (Object.keys(queued).length > 0) queueField('session', sessionId, queued)
     },
-    [queueField],
+    [mutate],
   )
 
   const setRowField = useCallback(
     (sessionId: string, rowId: string, fields: Record<string, string | null>) => {
-      setDoc((d) => ({
+      mutate((d) => ({
         ...d,
         sessions: d.sessions.map((s) =>
           s.id === sessionId
@@ -111,9 +133,176 @@ export function PlanEditor({
             : s,
         ),
       }))
-      queueField('row', rowId, fields)
     },
-    [queueField],
+    [mutate],
+  )
+
+  const addSession = useCallback(() => {
+    const id = crypto.randomUUID()
+    mutate((d) => ({
+      ...d,
+      sessions: [
+        ...d.sessions,
+        {
+          id,
+          position: d.sessions.length + 1,
+          label: `Day ${d.sessions.length + 1}`,
+          weekday: null,
+          focusNote: null,
+          warmupLines: [],
+          cardioTime: null,
+          cardioHrm: null,
+          rows: [],
+        },
+      ],
+    }))
+    setActiveSessionId(id)
+  }, [mutate])
+
+  const duplicateSession = useCallback(
+    (sessionId: string) => {
+      const id = crypto.randomUUID()
+      mutate((d) => {
+        const source = d.sessions.find((s) => s.id === sessionId)
+        if (!source) return d
+        const copy: EditorSession = {
+          ...source,
+          id,
+          position: d.sessions.length + 1,
+          label: `${source.label} (copy)`,
+          warmupLines: source.warmupLines.map((l) => ({ ...l })),
+          rows: source.rows.map((r) => ({
+            ...r,
+            id: crypto.randomUUID(),
+            exercise: { ...r.exercise },
+          })),
+        }
+        return { ...d, sessions: [...d.sessions, copy] }
+      })
+      setActiveSessionId(id)
+    },
+    [mutate],
+  )
+
+  const deleteSession = useCallback(
+    (sessionId: string) => {
+      const remaining = docRef.current.sessions.filter((s) => s.id !== sessionId)
+      mutate((d) => ({ ...d, sessions: d.sessions.filter((s) => s.id !== sessionId) }))
+      setActiveSessionId((current) =>
+        current === sessionId ? (remaining[0]?.id ?? null) : current,
+      )
+    },
+    [mutate],
+  )
+
+  const reorderSessions = useCallback(
+    (orderedIds: string[]) => {
+      mutate((d) => ({
+        ...d,
+        sessions: orderedIds
+          .map((id) => d.sessions.find((s) => s.id === id))
+          .filter((s): s is EditorSession => s !== undefined),
+      }))
+    },
+    [mutate],
+  )
+
+  const addRow = useCallback(
+    (sessionId: string, exercise: PickedExercise) => {
+      mutate((d) => ({
+        ...d,
+        sessions: d.sessions.map((s) =>
+          s.id === sessionId
+            ? {
+                ...s,
+                rows: [
+                  ...s.rows,
+                  {
+                    id: crypto.randomUUID(),
+                    position: s.rows.length + 1,
+                    sets: null,
+                    reps: null,
+                    speed: null,
+                    oneRm: null,
+                    rest: null,
+                    note: null,
+                    exercise,
+                  },
+                ],
+              }
+            : s,
+        ),
+      }))
+    },
+    [mutate],
+  )
+
+  const swapRow = useCallback(
+    (sessionId: string, rowId: string, exercise: PickedExercise) => {
+      mutate((d) => ({
+        ...d,
+        sessions: d.sessions.map((s) =>
+          s.id === sessionId
+            ? { ...s, rows: s.rows.map((r) => (r.id === rowId ? { ...r, exercise } : r)) }
+            : s,
+        ),
+      }))
+    },
+    [mutate],
+  )
+
+  const duplicateRow = useCallback(
+    (sessionId: string, rowId: string) => {
+      mutate((d) => ({
+        ...d,
+        sessions: d.sessions.map((s) => {
+          if (s.id !== sessionId) return s
+          const index = s.rows.findIndex((r) => r.id === rowId)
+          const source = index === -1 ? undefined : s.rows[index]
+          if (!source) return s
+          const copy: EditorRow = {
+            ...source,
+            id: crypto.randomUUID(),
+            exercise: { ...source.exercise },
+          }
+          const rows = [...s.rows]
+          rows.splice(index + 1, 0, copy)
+          return { ...s, rows }
+        }),
+      }))
+    },
+    [mutate],
+  )
+
+  const deleteRow = useCallback(
+    (sessionId: string, rowId: string) => {
+      mutate((d) => ({
+        ...d,
+        sessions: d.sessions.map((s) =>
+          s.id === sessionId ? { ...s, rows: s.rows.filter((r) => r.id !== rowId) } : s,
+        ),
+      }))
+    },
+    [mutate],
+  )
+
+  const reorderRows = useCallback(
+    (sessionId: string, orderedIds: string[]) => {
+      mutate((d) => ({
+        ...d,
+        sessions: d.sessions.map((s) =>
+          s.id === sessionId
+            ? {
+                ...s,
+                rows: orderedIds
+                  .map((id) => s.rows.find((r) => r.id === id))
+                  .filter((r): r is EditorRow => r !== undefined),
+              }
+            : s,
+        ),
+      }))
+    },
+    [mutate],
   )
 
   const activeSession = doc.sessions.find((s) => s.id === activeSessionId) ?? null
@@ -122,69 +311,40 @@ export function PlanEditor({
     <div className="min-h-dvh">
       <EditorHeader
         plan={doc}
-        saveStatus={status}
-        onTitleChange={setTitle}
-        onStatusChange={setStatus}
-        onSave={() => void flush()}
+        dirty={dirty}
+        saving={saving}
+        onTitleChange={(title) => mutate((d) => ({ ...d, title }))}
+        onStatusChange={(status) => mutate((d) => ({ ...d, status }))}
+        onSave={() => void save()}
+        onEnsureSaved={save}
         onShareChanged={(slug) => setDoc((d) => ({ ...d, shareSlug: slug }))}
-        onFlushPending={flush}
       />
       <SessionChips
         sessions={doc.sessions}
         activeSessionId={activeSessionId}
         onSelect={setActiveSessionId}
-        onAdd={() => void structural(() => createSessionAction(doc.id))}
-        onReorder={(orderedIds) => {
-          setDoc((d) => ({
-            ...d,
-            sessions: orderedIds
-              .map((id) => d.sessions.find((s) => s.id === id))
-              .filter((s): s is EditorSession => s !== undefined),
-          }))
-          void structural(() => reorderSessionsAction(doc.id, orderedIds))
-        }}
-        adding={structuralBusy}
+        onAdd={addSession}
+        onReorder={reorderSessions}
       />
       <main className="px-4 pb-8 md:px-8">
         {activeSession ? (
           <SessionPanel
             session={activeSession}
             warmups={warmups}
-            busy={structuralBusy}
             onField={(fields) => setSessionField(activeSession.id, fields)}
-            onDuplicate={() => void structural(() => duplicateSessionAction(doc.id, activeSession.id))}
-            onDelete={() => void structural(() => deleteSessionAction(doc.id, activeSession.id))}
+            onDuplicate={() => duplicateSession(activeSession.id)}
+            onDelete={() => deleteSession(activeSession.id)}
           >
             <ExerciseRows
               session={activeSession}
               exercises={exercises}
               tags={tags}
-              busy={structuralBusy}
               onRowField={(rowId, fields) => setRowField(activeSession.id, rowId, fields)}
-              onAdd={(exerciseId) =>
-                void structural(() => createRowAction(doc.id, activeSession.id, exerciseId))
-              }
-              onSwap={(rowId, exerciseId) =>
-                void structural(() => swapRowExerciseAction(doc.id, rowId, exerciseId))
-              }
-              onDuplicate={(rowId) => void structural(() => duplicateRowAction(doc.id, rowId))}
-              onDelete={(rowId) => void structural(() => deleteRowAction(doc.id, rowId))}
-              onReorder={(orderedIds) => {
-                setDoc((d) => ({
-                  ...d,
-                  sessions: d.sessions.map((s) =>
-                    s.id === activeSession.id
-                      ? {
-                          ...s,
-                          rows: orderedIds
-                            .map((id) => s.rows.find((r) => r.id === id))
-                            .filter((r): r is EditorRow => r !== undefined),
-                        }
-                      : s,
-                  ),
-                }))
-                void structural(() => reorderRowsAction(doc.id, activeSession.id, orderedIds))
-              }}
+              onAdd={(exercise) => addRow(activeSession.id, exercise)}
+              onSwap={(rowId, exercise) => swapRow(activeSession.id, rowId, exercise)}
+              onDuplicate={(rowId) => duplicateRow(activeSession.id, rowId)}
+              onDelete={(rowId) => deleteRow(activeSession.id, rowId)}
+              onReorder={(orderedIds) => reorderRows(activeSession.id, orderedIds)}
             />
           </SessionPanel>
         ) : (

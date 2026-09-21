@@ -44,14 +44,12 @@ export function SessionChips({
   onSelect,
   onAdd,
   onReorder,
-  adding,
 }: {
   sessions: EditorSession[]
   activeSessionId: string | null
   onSelect: (id: string) => void
   onAdd: () => void
   onReorder: (orderedIds: string[]) => void
-  adding: boolean
 }) {
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
@@ -83,7 +81,6 @@ export function SessionChips({
       <button
         type="button"
         onClick={onAdd}
-        disabled={adding}
         aria-label="Add session"
         className="flex size-8 shrink-0 items-center justify-center rounded-full border text-muted-foreground hover:bg-accent/50"
       >

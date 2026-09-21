@@ -23,7 +23,6 @@ const NO_WEEKDAY = 'none'
 export function SessionPanel({
   session,
   warmups,
-  busy,
   onField,
   onDuplicate,
   onDelete,
@@ -31,7 +30,6 @@ export function SessionPanel({
 }: {
   session: EditorSession
   warmups: WarmupPreset[]
-  busy: boolean
   onField: (fields: SessionFieldPatch) => void
   onDuplicate: () => void
   onDelete: () => void
@@ -139,7 +137,7 @@ export function SessionPanel({
       )}
 
       <div className="flex gap-2 border-t pt-4">
-        <Button variant="outline" size="sm" onClick={onDuplicate} disabled={busy}>
+        <Button variant="outline" size="sm" onClick={onDuplicate}>
           <Copy className="size-4" /> Duplicate day
         </Button>
         <Button
@@ -147,7 +145,6 @@ export function SessionPanel({
           size="sm"
           className="text-destructive"
           onClick={() => setDeleteOpen(true)}
-          disabled={busy}
         >
           <Trash2 className="size-4" /> Delete day
         </Button>

@@ -34,7 +34,7 @@ export function ExerciseFormDialog({
   exercise?: ExerciseWithTags
   tagOptions: TagOption[]
   initialName?: string
-  onCreated?: (id: string) => void
+  onCreated?: (exercise: { id: string; name: string; imageUrl: string | null }) => void
 }) {
   const [localTags, setLocalTags] = useState<TagOption[]>(tagOptions)
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -69,7 +69,13 @@ export function ExerciseFormDialog({
     }
     toast.success(exercise ? 'Move updated' : 'Move added')
     onOpenChange(false)
-    if (!exercise) onCreated?.(result.data.id)
+    if (!exercise) {
+      onCreated?.({
+        id: result.data.id,
+        name: values.name,
+        imageUrl: typeof values.imageUrl === 'string' && values.imageUrl !== '' ? values.imageUrl : null,
+      })
+    }
   })
 
   return (

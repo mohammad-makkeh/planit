@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Copy, Link2, MoreVertical, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -17,43 +16,44 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
-import type { SaveStatus } from '@/hooks/use-autosave'
 import { cn } from '@/lib/utils'
 import type { EditorPlan } from '@/services/plans'
 
-const SAVE_LABEL: Record<SaveStatus, string> = {
-  saved: 'Saved ✓',
-  saving: 'Saving…',
-  dirty: 'Unsaved changes',
-}
-
 export function EditorHeader({
   plan,
-  saveStatus,
+  dirty,
+  saving,
   onTitleChange,
   onStatusChange,
   onSave,
+  onEnsureSaved,
   onShareChanged,
-  onFlushPending,
 }: {
   plan: EditorPlan
-  saveStatus: SaveStatus
+  dirty: boolean
+  saving: boolean
   onTitleChange: (title: string) => void
   onStatusChange: (status: EditorPlan['status']) => void
   onSave: () => void
+  onEnsureSaved: () => Promise<boolean>
   onShareChanged: (slug: string | null) => void
-  onFlushPending: () => Promise<boolean>
 }) {
   const router = useRouter()
   const [shareOpen, setShareOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [leaveOpen, setLeaveOpen] = useState(false)
   const [busy, setBusy] = useState(false)
+
+  const backHref = `/clients/${plan.clientId}`
 
   async function duplicate() {
     if (busy) return
     setBusy(true)
     try {
-      await onFlushPending()
+      if (dirty) {
+        const saved = await onEnsureSaved()
+        if (!saved) return
+      }
       const result = await duplicatePlanAction(plan.id)
       if (!result.ok) {
         toast.error(result.error.message)
@@ -72,14 +72,13 @@ export function EditorHeader({
     if (busy) return
     setBusy(true)
     try {
-      await onFlushPending()
       const result = await deletePlanAction(plan.id)
       if (!result.ok) {
         toast.error(result.error.message)
         return
       }
       toast.success('Plan deleted')
-      router.push(`/clients/${plan.clientId}`)
+      router.push(backHref)
     } catch {
       toast.error('Something went wrong. Please try again.')
     } finally {
@@ -87,25 +86,29 @@ export function EditorHeader({
     }
   }
 
+  async function saveAndLeave() {
+    const saved = await onEnsureSaved()
+    if (saved) router.push(backHref)
+  }
+
   return (
     <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur">
       <div className="flex items-center gap-1 px-2 py-2 md:px-6">
-        <Link
-          href={`/clients/${plan.clientId}`}
+        <button
+          type="button"
+          onClick={() => (dirty ? setLeaveOpen(true) : router.push(backHref))}
           className="flex items-center gap-1 p-2 text-sm text-muted-foreground"
         >
           <ArrowLeft className="size-4" /> {plan.client.name}
-        </Link>
+        </button>
         <span
-          className={cn(
-            'ml-auto text-xs',
-            saveStatus === 'dirty' ? 'text-brand' : 'text-muted-foreground',
-          )}
+          className={cn('ml-auto text-xs', dirty ? 'text-brand' : 'text-muted-foreground')}
+          aria-live="polite"
         >
-          {SAVE_LABEL[saveStatus]}
+          {saving ? 'Saving…' : dirty ? 'Unsaved changes' : 'Saved ✓'}
         </span>
-        <Button size="sm" variant="outline" onClick={onSave} disabled={saveStatus === 'saving'}>
-          Save
+        <Button size="sm" onClick={onSave} disabled={!dirty || saving}>
+          {saving ? 'Saving…' : 'Save'}
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -133,8 +136,8 @@ export function EditorHeader({
         <input
           value={plan.title}
           onChange={(e) => onTitleChange(e.target.value)}
-          aria-label="Plan title"
           maxLength={200}
+          aria-label="Plan title"
           className="min-w-0 flex-1 bg-transparent text-xl font-bold tracking-tight outline-none placeholder:text-muted-foreground"
           placeholder="Plan title"
         />
@@ -157,6 +160,7 @@ export function EditorHeader({
         shareSlug={plan.shareSlug}
         onChanged={onShareChanged}
       />
+
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
@@ -169,6 +173,23 @@ export function EditorHeader({
             <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancel</Button>
             <Button variant="destructive" onClick={() => void onDelete()} disabled={busy}>
               {busy ? 'Deleting…' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={leaveOpen} onOpenChange={setLeaveOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Unsaved changes</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            You have edits that haven&apos;t been saved yet.
+          </p>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => router.push(backHref)}>Discard</Button>
+            <Button onClick={() => void saveAndLeave()} disabled={saving}>
+              Save &amp; leave
             </Button>
           </DialogFooter>
         </DialogContent>

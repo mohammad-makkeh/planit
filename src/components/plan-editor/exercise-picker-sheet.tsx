@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Dumbbell, Plus, Search } from 'lucide-react'
 import { ExerciseFormDialog } from '@/components/library/exercise-form-dialog'
 import { TagFilter } from '@/components/library/tag-filter'
@@ -8,6 +9,7 @@ import type { TagOption } from '@/components/library/tag-multi-select'
 import { Input } from '@/components/ui/input'
 import type { ExerciseWithTags } from '@/services/exercises'
 import { BottomSheet } from './bottom-sheet'
+import type { PickedExercise } from './plan-editor'
 
 export function ExercisePickerSheet({
   open,
@@ -20,8 +22,9 @@ export function ExercisePickerSheet({
   onOpenChange: (open: boolean) => void
   exercises: ExerciseWithTags[]
   tags: TagOption[]
-  onPick: (exerciseId: string) => void
+  onPick: (exercise: PickedExercise) => void
 }) {
+  const router = useRouter()
   const [search, setSearch] = useState('')
   const [tagId, setTagId] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
@@ -37,8 +40,8 @@ export function ExercisePickerSheet({
 
   const exactMatch = exercises.some((e) => e.name.toLowerCase() === search.trim().toLowerCase())
 
-  function pick(id: string) {
-    onPick(id)
+  function pick(exercise: PickedExercise) {
+    onPick(exercise)
     setSearch('')
     setTagId(null)
     onOpenChange(false)
@@ -73,7 +76,7 @@ export function ExercisePickerSheet({
               <button
                 key={e.id}
                 type="button"
-                onClick={() => pick(e.id)}
+                onClick={() => pick({ id: e.id, name: e.name, imageUrl: e.imageUrl })}
                 className="flex w-full items-center gap-3 rounded-xl border bg-card p-2.5 text-left hover:bg-accent/40"
               >
                 {e.imageUrl ? (
@@ -98,7 +101,10 @@ export function ExercisePickerSheet({
         onOpenChange={setCreateOpen}
         tagOptions={tags}
         initialName={search.trim()}
-        onCreated={(id) => pick(id)}
+        onCreated={(exercise) => {
+          router.refresh()
+          pick(exercise)
+        }}
       />
     </>
   )

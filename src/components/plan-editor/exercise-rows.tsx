@@ -10,6 +10,7 @@ import type { ExerciseWithTags } from '@/services/exercises'
 import type { EditorSession } from '@/services/plans'
 import { ExercisePickerSheet } from './exercise-picker-sheet'
 import { ExerciseRowCard } from './exercise-row-card'
+import type { PickedExercise } from './plan-editor'
 
 type PickerMode = { type: 'add' } | { type: 'swap'; rowId: string } | null
 
@@ -17,7 +18,6 @@ export function ExerciseRows({
   session,
   exercises,
   tags,
-  busy,
   onRowField,
   onAdd,
   onSwap,
@@ -28,10 +28,9 @@ export function ExerciseRows({
   session: EditorSession
   exercises: ExerciseWithTags[]
   tags: TagOption[]
-  busy: boolean
   onRowField: (rowId: string, fields: Record<string, string | null>) => void
-  onAdd: (exerciseId: string) => void
-  onSwap: (rowId: string, exerciseId: string) => void
+  onAdd: (exercise: PickedExercise) => void
+  onSwap: (rowId: string, exercise: PickedExercise) => void
   onDuplicate: (rowId: string) => void
   onDelete: (rowId: string) => void
   onReorder: (orderedIds: string[]) => void
@@ -69,7 +68,7 @@ export function ExerciseRows({
           </SortableContext>
         </DndContext>
       )}
-      <Button variant="outline" className="w-full" onClick={() => setPicker({ type: 'add' })} disabled={busy}>
+      <Button variant="outline" className="w-full" onClick={() => setPicker({ type: 'add' })}>
         <Plus className="size-4" /> Add move
       </Button>
       <ExercisePickerSheet
@@ -79,9 +78,9 @@ export function ExerciseRows({
         }}
         exercises={exercises}
         tags={tags}
-        onPick={(exerciseId) => {
-          if (picker?.type === 'swap') onSwap(picker.rowId, exerciseId)
-          else onAdd(exerciseId)
+        onPick={(exercise) => {
+          if (picker?.type === 'swap') onSwap(picker.rowId, exercise)
+          else onAdd(exercise)
           setPicker(null)
         }}
       />
