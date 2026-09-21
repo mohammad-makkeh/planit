@@ -2,12 +2,12 @@
 
 import { Blobatar } from '@blobatar/react'
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
-} from '@/components/ui/dialog'
+  BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle,
+} from '@/components/ui/bottom-sheet'
 
 export type PickerClient = { id: string; name: string }
 
-export function ClientPickerDialog({
+export function ClientPickerSheet({
   open,
   onOpenChange,
   clients,
@@ -22,11 +22,11 @@ export function ClientPickerDialog({
 }) {
   const options = clients.filter((c) => c.id !== excludeClientId)
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[80dvh] overflow-y-auto sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Copy plan to…</DialogTitle>
-        </DialogHeader>
+    <BottomSheet open={open} onOpenChange={onOpenChange}>
+      <BottomSheetContent>
+        <BottomSheetHeader>
+          <BottomSheetTitle>Copy plan to…</BottomSheetTitle>
+        </BottomSheetHeader>
         {options.length === 0 ? (
           <p className="text-sm text-muted-foreground">No other clients yet.</p>
         ) : (
@@ -46,7 +46,7 @@ export function ClientPickerDialog({
             ))}
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+      </BottomSheetContent>
+    </BottomSheet>
   )
 }

@@ -15,7 +15,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import type { Plan } from '@/services/plans'
-import { ClientPickerDialog, type PickerClient } from './client-picker-dialog'
+import { ClientPickerSheet, type PickerClient } from './client-picker-sheet'
 import { ShareSheet } from './share-sheet'
 
 const NEXT_STATUS: Record<Plan['status'], Plan['status']> = {
@@ -146,7 +146,7 @@ export function PlanCardMenu({
         shareSlug={slug}
         onChanged={setSlug}
       />
-      <ClientPickerDialog
+      <ClientPickerSheet
         open={pickerOpen}
         onOpenChange={setPickerOpen}
         clients={clients}
