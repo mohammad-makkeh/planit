@@ -7,7 +7,9 @@ import { createWarmupAction } from '@/actions/warmups'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { WarmupPreset } from '@/services/warmups'
-import { BottomSheet } from './bottom-sheet'
+import {
+  BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle,
+} from '@/components/ui/bottom-sheet'
 
 export function WarmupPickerSheet({
   open,
@@ -46,8 +48,12 @@ export function WarmupPickerSheet({
   }
 
   return (
-    <BottomSheet open={open} onOpenChange={onOpenChange} title="Add warm-up">
-      <div className="space-y-4">
+    <BottomSheet open={open} onOpenChange={onOpenChange}>
+      <BottomSheetContent>
+        <BottomSheetHeader>
+          <BottomSheetTitle>Add warm-up</BottomSheetTitle>
+        </BottomSheetHeader>
+        <div className="space-y-4">
         <div className="space-y-2">
           <div className="flex gap-2">
             <Input
@@ -111,6 +117,7 @@ export function WarmupPickerSheet({
           Done
         </Button>
       </div>
+      </BottomSheetContent>
     </BottomSheet>
   )
 }
