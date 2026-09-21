@@ -3,15 +3,17 @@
 import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
 import {
-  createSessionAction, deleteSessionAction, duplicateSessionAction, reorderSessionsAction, updatePlanMetaAction,
+  createRowAction, createSessionAction, deleteRowAction, deleteSessionAction, duplicateRowAction,
+  duplicateSessionAction, reorderRowsAction, reorderSessionsAction, swapRowExerciseAction, updatePlanMetaAction,
 } from '@/actions/plan-editor'
 import type { TagOption } from '@/components/library/tag-multi-select'
 import { useAutosave } from '@/hooks/use-autosave'
 import type { ActionResult } from '@/lib/action-result'
 import type { ExerciseWithTags } from '@/services/exercises'
-import type { EditorPlan, EditorSession } from '@/services/plans'
+import type { EditorPlan, EditorRow, EditorSession } from '@/services/plans'
 import type { WarmupPreset } from '@/services/warmups'
 import { EditorHeader } from './editor-header'
+import { ExerciseRows } from './exercise-rows'
 import { SessionChips } from './session-chips'
 import { SessionPanel } from './session-panel'
 
@@ -110,11 +112,6 @@ export function PlanEditor({
 
   const activeSession = doc.sessions.find((s) => s.id === activeSessionId) ?? null
 
-  // consumed by SessionPanel rows in Task 7; referenced here to keep lint clean until then
-  void exercises
-  void tags
-  void setRowField
-
   return (
     <div className="min-h-dvh">
       <EditorHeader
@@ -152,9 +149,37 @@ export function PlanEditor({
             onDuplicate={() => void structural(() => duplicateSessionAction(doc.id, activeSession.id))}
             onDelete={() => void structural(() => deleteSessionAction(doc.id, activeSession.id))}
           >
-            <div className="rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
-              Exercise rows arrive in the next task.
-            </div>
+            <ExerciseRows
+              session={activeSession}
+              exercises={exercises}
+              tags={tags}
+              busy={structuralBusy}
+              onRowField={(rowId, fields) => setRowField(activeSession.id, rowId, fields)}
+              onAdd={(exerciseId) =>
+                void structural(() => createRowAction(doc.id, activeSession.id, exerciseId))
+              }
+              onSwap={(rowId, exerciseId) =>
+                void structural(() => swapRowExerciseAction(doc.id, rowId, exerciseId))
+              }
+              onDuplicate={(rowId) => void structural(() => duplicateRowAction(doc.id, rowId))}
+              onDelete={(rowId) => void structural(() => deleteRowAction(doc.id, rowId))}
+              onReorder={(orderedIds) => {
+                setDoc((d) => ({
+                  ...d,
+                  sessions: d.sessions.map((s) =>
+                    s.id === activeSession.id
+                      ? {
+                          ...s,
+                          rows: orderedIds
+                            .map((id) => s.rows.find((r) => r.id === id))
+                            .filter((r): r is EditorRow => r !== undefined),
+                        }
+                      : s,
+                  ),
+                }))
+                void structural(() => reorderRowsAction(doc.id, activeSession.id, orderedIds))
+              }}
+            />
           </SessionPanel>
         ) : (
           <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">

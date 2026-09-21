@@ -26,12 +26,14 @@ export function ExerciseFormDialog({
   onOpenChange,
   exercise,
   tagOptions,
+  initialName,
   onCreated,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   exercise?: ExerciseWithTags
   tagOptions: TagOption[]
+  initialName?: string
   onCreated?: (id: string) => void
 }) {
   const [localTags, setLocalTags] = useState<TagOption[]>(tagOptions)
@@ -44,14 +46,14 @@ export function ExerciseFormDialog({
     if (open && !wasOpen.current) {
       setLocalTags(tagOptions)
       reset({
-        name: exercise?.name ?? '',
+        name: exercise?.name ?? initialName ?? '',
         imageUrl: exercise?.imageUrl ?? '',
         tutorialUrl: exercise?.tutorialUrl ?? '',
         tagIds: exercise?.tags.map((t) => t.id) ?? [],
       })
     }
     wasOpen.current = open
-  }, [open, exercise, tagOptions, reset])
+  }, [open, exercise, tagOptions, initialName, reset])
 
   const imageUrl = watch('imageUrl')
   const tagIds = watch('tagIds') ?? []
