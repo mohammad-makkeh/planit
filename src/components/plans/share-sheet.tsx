@@ -6,8 +6,8 @@ import { toast } from 'sonner'
 import { generateShareSlugAction, revokeShareSlugAction } from '@/actions/plan-editor'
 import { Button } from '@/components/ui/button'
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
-} from '@/components/ui/dialog'
+  BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle,
+} from '@/components/ui/bottom-sheet'
 import { Input } from '@/components/ui/input'
 
 export function ShareSheet({
@@ -75,11 +75,11 @@ export function ShareSheet({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Share plan</DialogTitle>
-        </DialogHeader>
+    <BottomSheet open={open} onOpenChange={onOpenChange}>
+      <BottomSheetContent>
+        <BottomSheetHeader>
+          <BottomSheetTitle>Share plan</BottomSheetTitle>
+        </BottomSheetHeader>
         {url ? (
           <div className="space-y-3">
             <div className="flex gap-2">
@@ -105,7 +105,7 @@ export function ShareSheet({
             </Button>
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+      </BottomSheetContent>
+    </BottomSheet>
   )
 }
