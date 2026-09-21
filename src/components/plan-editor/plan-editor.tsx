@@ -3,7 +3,7 @@
 import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
 import {
-  createSessionAction, reorderSessionsAction, updatePlanMetaAction,
+  createSessionAction, deleteSessionAction, duplicateSessionAction, reorderSessionsAction, updatePlanMetaAction,
 } from '@/actions/plan-editor'
 import type { TagOption } from '@/components/library/tag-multi-select'
 import { useAutosave } from '@/hooks/use-autosave'
@@ -13,6 +13,7 @@ import type { EditorPlan, EditorSession } from '@/services/plans'
 import type { WarmupPreset } from '@/services/warmups'
 import { EditorHeader } from './editor-header'
 import { SessionChips } from './session-chips'
+import { SessionPanel } from './session-panel'
 
 export type SessionFieldPatch = Partial<
   Pick<EditorSession, 'label' | 'weekday' | 'focusNote' | 'warmupLines' | 'cardioTime' | 'cardioHrm'>
@@ -109,11 +110,9 @@ export function PlanEditor({
 
   const activeSession = doc.sessions.find((s) => s.id === activeSessionId) ?? null
 
-  // consumed by SessionPanel/rows in Tasks 6–7; referenced here to keep lint clean until then
+  // consumed by SessionPanel rows in Task 7; referenced here to keep lint clean until then
   void exercises
   void tags
-  void warmups
-  void setSessionField
   void setRowField
 
   return (
@@ -145,10 +144,18 @@ export function PlanEditor({
       />
       <main className="px-4 pb-8 md:px-8">
         {activeSession ? (
-          // SessionPanel arrives in the next task
-          <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">
-            Session “{activeSession.label}” — content editor arrives in the next task.
-          </div>
+          <SessionPanel
+            session={activeSession}
+            warmups={warmups}
+            busy={structuralBusy}
+            onField={(fields) => setSessionField(activeSession.id, fields)}
+            onDuplicate={() => void structural(() => duplicateSessionAction(doc.id, activeSession.id))}
+            onDelete={() => void structural(() => deleteSessionAction(doc.id, activeSession.id))}
+          >
+            <div className="rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+              Exercise rows arrive in the next task.
+            </div>
+          </SessionPanel>
         ) : (
           <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-muted-foreground">
             No sessions — add one with the + button above.
