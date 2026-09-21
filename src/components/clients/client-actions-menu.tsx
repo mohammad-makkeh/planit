@@ -12,7 +12,7 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ClientFormDialog, type ClientFormClient } from './client-form-dialog'
+import { ClientFormSheet, type ClientFormClient } from './client-form-sheet'
 
 export function ClientActionsMenu({ client }: { client: ClientFormClient }) {
   const router = useRouter()
@@ -52,7 +52,7 @@ export function ClientActionsMenu({ client }: { client: ClientFormClient }) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <ClientFormDialog open={editOpen} onOpenChange={setEditOpen} client={client} />
+      <ClientFormSheet open={editOpen} onOpenChange={setEditOpen} client={client} />
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent className="sm:max-w-sm">

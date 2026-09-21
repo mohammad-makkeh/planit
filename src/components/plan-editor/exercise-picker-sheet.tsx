@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Dumbbell, Plus, Search } from 'lucide-react'
-import { ExerciseFormDialog } from '@/components/library/exercise-form-dialog'
+import { ExerciseFormSheet } from '@/components/library/exercise-form-sheet'
 import { TagFilter } from '@/components/library/tag-filter'
 import type { TagOption } from '@/components/library/tag-multi-select'
 import { Input } from '@/components/ui/input'
@@ -96,7 +96,7 @@ export function ExercisePickerSheet({
           </div>
         </div>
       </BottomSheet>
-      <ExerciseFormDialog
+      <ExerciseFormSheet
         open={createOpen}
         onOpenChange={setCreateOpen}
         tagOptions={tags}

@@ -7,7 +7,7 @@ import { Fab } from '@/components/shell/fab'
 import { Input } from '@/components/ui/input'
 import type { ExerciseWithTags } from '@/services/exercises'
 import { ExerciseCard } from './exercise-card'
-import { ExerciseFormDialog } from './exercise-form-dialog'
+import { ExerciseFormSheet } from './exercise-form-sheet'
 import { TagFilter } from './tag-filter'
 import type { TagOption } from './tag-multi-select'
 
@@ -59,9 +59,9 @@ export function LibraryMovesTab({
         </div>
       )}
       <Fab label="New move" onClick={() => setCreateOpen(true)} />
-      <ExerciseFormDialog open={createOpen} onOpenChange={setCreateOpen} tagOptions={tags} />
+      <ExerciseFormSheet open={createOpen} onOpenChange={setCreateOpen} tagOptions={tags} />
       {editing && (
-        <ExerciseFormDialog
+        <ExerciseFormSheet
           open={editing !== null}
           onOpenChange={(open) => {
             if (!open) setEditing(null)

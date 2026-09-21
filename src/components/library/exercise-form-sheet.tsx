@@ -10,8 +10,8 @@ import { createExerciseAction, updateExerciseAction } from '@/actions/exercises'
 import { ImageUploadField } from '@/components/shared/image-upload-field'
 import { Button } from '@/components/ui/button'
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
-} from '@/components/ui/dialog'
+  BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle,
+} from '@/components/ui/bottom-sheet'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { exerciseSchema } from '@/lib/validation'
@@ -21,7 +21,7 @@ import { TagMultiSelect, type TagOption } from './tag-multi-select'
 
 type FormValues = z.input<typeof exerciseSchema>
 
-export function ExerciseFormDialog({
+export function ExerciseFormSheet({
   open,
   onOpenChange,
   exercise,
@@ -80,15 +80,15 @@ export function ExerciseFormDialog({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{exercise ? 'Edit move' : 'New move'}</DialogTitle>
-          </DialogHeader>
+      <BottomSheet open={open} onOpenChange={onOpenChange}>
+        <BottomSheetContent>
+          <BottomSheetHeader>
+            <BottomSheetTitle>{exercise ? 'Edit move' : 'New move'}</BottomSheetTitle>
+          </BottomSheetHeader>
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="ex-name">Name</Label>
-              <Input id="ex-name" {...register('name')} autoFocus={!exercise} />
+              <Input id="ex-name" {...register('name')} />
               {formState.errors.name && (
                 <p className="text-sm text-destructive">{formState.errors.name.message}</p>
               )}
@@ -135,8 +135,8 @@ export function ExerciseFormDialog({
               </Button>
             )}
           </form>
-        </DialogContent>
-      </Dialog>
+        </BottomSheetContent>
+      </BottomSheet>
       {exercise && (
         <ExerciseDeleteDialog
           open={deleteOpen}

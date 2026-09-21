@@ -8,8 +8,8 @@ import type { z } from 'zod'
 import { createClientAction, updateClientAction } from '@/actions/clients'
 import { Button } from '@/components/ui/button'
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
-} from '@/components/ui/dialog'
+  BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle,
+} from '@/components/ui/bottom-sheet'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -27,7 +27,7 @@ export type ClientFormClient = {
   notes: string | null
 }
 
-export function ClientFormDialog({
+export function ClientFormSheet({
   open,
   onOpenChange,
   client,
@@ -72,15 +72,15 @@ export function ClientFormDialog({
   const fieldError = (name: keyof FormValues) => formState.errors[name]?.message
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{client ? 'Edit client' : 'New client'}</DialogTitle>
-        </DialogHeader>
+    <BottomSheet open={open} onOpenChange={onOpenChange}>
+      <BottomSheetContent>
+        <BottomSheetHeader>
+          <BottomSheetTitle>{client ? 'Edit client' : 'New client'}</BottomSheetTitle>
+        </BottomSheetHeader>
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
-            <Input id="name" {...register('name')} autoFocus />
+            <Input id="name" {...register('name')} />
             {fieldError('name') && <p className="text-sm text-destructive">{fieldError('name')}</p>}
           </div>
           <div className="space-y-2">
@@ -109,7 +109,7 @@ export function ClientFormDialog({
             {formState.isSubmitting ? 'Saving…' : client ? 'Save changes' : 'Add client'}
           </Button>
         </form>
-      </DialogContent>
-    </Dialog>
+      </BottomSheetContent>
+    </BottomSheet>
   )
 }
