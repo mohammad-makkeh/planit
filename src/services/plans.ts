@@ -73,7 +73,7 @@ export async function getPlanForEditor(
   const plan = await getOwnedPlan(coachId, planId)
   if (!plan) return undefined
   const client = await db.query.clients.findFirst({
-    where: eq(clients.id, plan.clientId),
+    where: and(eq(clients.id, plan.clientId), eq(clients.coachId, coachId), isNull(clients.deletedAt)),
     columns: { id: true, name: true },
   })
   if (!client) return undefined
