@@ -93,10 +93,10 @@ export function ExerciseRowCard({
             }
           />
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onSelect={onDuplicate}>
+            <DropdownMenuItem onClick={onDuplicate}>
               <Copy className="size-4" /> Duplicate
             </DropdownMenuItem>
-            <DropdownMenuItem variant="destructive" onSelect={onDelete}>
+            <DropdownMenuItem variant="destructive" onClick={onDelete}>
               <Trash2 className="size-4" /> Remove
             </DropdownMenuItem>
           </DropdownMenuContent>

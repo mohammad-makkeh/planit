@@ -102,14 +102,14 @@ export function EditorHeader({
             }
           />
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onSelect={() => void duplicate()}>
+            <DropdownMenuItem onClick={() => void duplicate()}>
               <Copy className="size-4" /> Duplicate plan
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setShareOpen(true)}>
+            <DropdownMenuItem onClick={() => setShareOpen(true)}>
               <Link2 className="size-4" /> Share
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onSelect={() => setDeleteOpen(true)}>
+            <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
               <Trash2 className="size-4" /> Delete plan
             </DropdownMenuItem>
           </DropdownMenuContent>

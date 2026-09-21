@@ -94,20 +94,20 @@ export function PlanCardMenu({
           }
         />
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={() => void duplicateInPlace()}>
+          <DropdownMenuItem onClick={() => void duplicateInPlace()}>
             <Copy className="size-4" /> Duplicate
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => setPickerOpen(true)}>
+          <DropdownMenuItem onClick={() => setPickerOpen(true)}>
             <UserPlus className="size-4" /> Copy to another client
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => void cycleStatus()}>
+          <DropdownMenuItem onClick={() => void cycleStatus()}>
             Mark as {NEXT_STATUS[plan.status]}
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => setShareOpen(true)}>
+          <DropdownMenuItem onClick={() => setShareOpen(true)}>
             <Link2 className="size-4" /> Share
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive" onSelect={() => setDeleteOpen(true)}>
+          <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
             <Trash2 className="size-4" /> Delete plan
           </DropdownMenuItem>
         </DropdownMenuContent>

@@ -43,10 +43,10 @@ export function ClientActionsMenu({ client }: { client: ClientFormClient }) {
           }
         />
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={() => setEditOpen(true)}>
+          <DropdownMenuItem onClick={() => setEditOpen(true)}>
             <Pencil className="size-4" /> Edit details
           </DropdownMenuItem>
-          <DropdownMenuItem variant="destructive" onSelect={() => setDeleteOpen(true)}>
+          <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
             <Trash2 className="size-4" /> Delete client
           </DropdownMenuItem>
         </DropdownMenuContent>
