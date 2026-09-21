@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Copy, Link2, MoreVertical, Trash2, UserPlus } from 'lucide-react'
+import { Copy, Link2, MoreVertical, RefreshCw, Trash2, UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   deletePlanAction, duplicatePlanAction, updatePlanMetaAction,
@@ -119,7 +119,7 @@ export function PlanCardMenu({
             </Button>
           }
         />
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="min-w-56">
           <DropdownMenuItem onClick={() => void duplicateInPlace()}>
             <Copy className="size-4" /> Duplicate
           </DropdownMenuItem>
@@ -127,7 +127,7 @@ export function PlanCardMenu({
             <UserPlus className="size-4" /> Copy to another client
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => void cycleStatus()}>
-            Mark as {NEXT_STATUS[plan.status]}
+            <RefreshCw className="size-4" /> Mark as {NEXT_STATUS[plan.status]}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setShareOpen(true)}>
             <Link2 className="size-4" /> Share

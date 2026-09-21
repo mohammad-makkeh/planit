@@ -42,7 +42,7 @@ export function ClientActionsMenu({ client }: { client: ClientFormClient }) {
             </Button>
           }
         />
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="min-w-56">
           <DropdownMenuItem onClick={() => setEditOpen(true)}>
             <Pencil className="size-4" /> Edit details
           </DropdownMenuItem>
