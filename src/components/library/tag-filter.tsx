@@ -5,7 +5,7 @@ import type { TagOption } from './tag-multi-select'
 
 function chipClass(active: boolean): string {
   return cn(
-    'inline-flex h-9 shrink-0 items-center whitespace-nowrap rounded-full border px-4 text-sm font-medium transition-colors',
+    'inline-flex h-9 shrink-0 items-center whitespace-nowrap rounded-full border px-4 text-sm font-medium transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30',
     active
       ? 'border-transparent bg-brand text-brand-foreground'
       : 'border-input bg-background text-foreground hover:bg-accent',

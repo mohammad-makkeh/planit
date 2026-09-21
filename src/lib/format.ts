@@ -12,12 +12,3 @@ export function formatRelative(date: Date): string {
 export function formatDate(date: Date): string {
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 }
-
-export function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase() ?? '')
-    .join('')
-}
