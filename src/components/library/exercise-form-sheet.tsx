@@ -101,6 +101,7 @@ export function ExerciseFormSheet({
   }
 
   const defaultEquipmentChoices = localEquipment.filter((item) => equipmentIds.includes(item.id))
+  const defaultEquipmentItems = localEquipment.map((item) => ({ value: item.id, label: item.name }))
 
   const onSubmit = handleSubmit(async (values) => {
     const result = exercise
@@ -189,6 +190,7 @@ export function ExerciseFormSheet({
             <div className="space-y-2">
               <Label>Default equipment</Label>
               <Select
+                items={defaultEquipmentItems}
                 value={defaultEquipmentId ?? ''}
                 onValueChange={(v) => {
                   if (v) setValue('defaultEquipmentId', v)
