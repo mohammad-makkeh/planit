@@ -41,7 +41,7 @@ export function ShareView({ plan, slug }: { plan: SharedPlan; slug: string }) {
 
       <div className="px-4 pb-2">
         <a
-          href={`/p/${slug}/print`}
+          href={`/p/${slug}/pdf`}
           className="flex h-11 items-center justify-center gap-2 rounded-xl bg-brand text-sm font-semibold text-brand-foreground outline-none transition-opacity hover:opacity-90 focus-visible:ring-3 focus-visible:ring-ring/30"
         >
           <Download className="size-4" /> Download PDF

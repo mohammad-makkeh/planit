@@ -71,7 +71,8 @@ export function EditorHeader({
     setBusy(true)
     // Open the tab synchronously (before any await) so the browser still sees this as a
     // direct result of the click — otherwise, if the plan is dirty, the save below can take
-    // long enough that transient activation is lost and the popup gets blocked.
+    // long enough that transient activation is lost and the popup gets blocked. The route
+    // answers with `content-disposition: attachment`, so the tab downloads and closes itself.
     const win = window.open('', '_blank')
     try {
       if (dirty) {
@@ -82,9 +83,9 @@ export function EditorHeader({
         }
       }
       if (win) {
-        win.location.href = `/plans/${plan.id}/print`
+        win.location.href = `/plans/${plan.id}/pdf`
       } else {
-        window.open(`/plans/${plan.id}/print`, '_blank')
+        window.open(`/plans/${plan.id}/pdf`, '_blank')
       }
     } catch {
       win?.close()

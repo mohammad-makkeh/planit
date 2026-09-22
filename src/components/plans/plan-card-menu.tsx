@@ -131,7 +131,7 @@ export function PlanCardMenu({
           <DropdownMenuItem onClick={() => setShareOpen(true)}>
             <Link2 className="size-4" /> Share
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => window.open(`/plans/${plan.id}/print`, '_blank')}>
+          <DropdownMenuItem onClick={() => window.open(`/plans/${plan.id}/pdf`, '_blank')}>
             <FileDown className="size-4" /> Export PDF
           </DropdownMenuItem>
           <DropdownMenuSeparator />
