@@ -2,7 +2,7 @@ import 'server-only'
 import { and, asc, desc, eq, inArray, isNull } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { db, isUniqueViolation } from '@/db/client'
-import { clients, exercises, planRows, planSessions, plans } from '@/db/schema'
+import { clients, equipment, exercises, planRows, planSessions, plans } from '@/db/schema'
 import type { WarmupLine } from '@/db/schema'
 import type { PlanDocument } from '@/lib/validation'
 
@@ -29,6 +29,7 @@ export type EditorRow = {
   rest: string | null
   note: string | null
   exercise: { id: string; name: string; imageUrl: string | null }
+  equipmentId: string | null
 }
 
 export type EditorSession = {
@@ -90,6 +91,7 @@ export async function getPlanForEditor(
             oneRm: planRows.oneRm,
             rest: planRows.rest,
             note: planRows.note,
+            equipmentId: planRows.equipmentId,
             exerciseId: exercises.id,
             exerciseName: exercises.name,
             exerciseImageUrl: exercises.imageUrl,
@@ -113,6 +115,7 @@ export async function getPlanForEditor(
       rest: r.rest,
       note: r.note,
       exercise: { id: r.exerciseId, name: r.exerciseName, imageUrl: r.exerciseImageUrl },
+      equipmentId: r.equipmentId,
     })
     rowsBySession.set(r.sessionId, list)
   }
@@ -225,6 +228,7 @@ export async function duplicatePlan(
             oneRm: r.oneRm,
             rest: r.rest,
             note: r.note,
+            equipmentId: r.equipmentId,
           })),
         )
       }
@@ -275,6 +279,19 @@ export async function savePlanDocument(
     if (owned.length !== exerciseIds.length) return undefined
   }
 
+  const equipmentIds = [
+    ...new Set(
+      doc.sessions.flatMap((s) => s.rows.map((r) => r.equipmentId).filter((id): id is string => id != null)),
+    ),
+  ]
+  if (equipmentIds.length > 0) {
+    const ownedEquipment = await db
+      .select({ id: equipment.id })
+      .from(equipment)
+      .where(and(eq(equipment.coachId, coachId), inArray(equipment.id, equipmentIds)))
+    if (ownedEquipment.length !== equipmentIds.length) return undefined
+  }
+
   await db.transaction(async (tx) => {
     await tx
       .update(plans)
@@ -308,6 +325,7 @@ export async function savePlanDocument(
             oneRm: r.oneRm,
             rest: r.rest,
             note: r.note,
+            equipmentId: r.equipmentId ?? null,
           })),
         )
       }

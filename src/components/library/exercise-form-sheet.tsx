@@ -50,6 +50,9 @@ export function ExerciseFormSheet({
         imageUrl: exercise?.imageUrl ?? '',
         tutorialUrl: exercise?.tutorialUrl ?? '',
         tagIds: exercise?.tags.map((t) => t.id) ?? [],
+        movementType: exercise?.movementType ?? 'static',
+        equipmentIds: exercise?.equipment.map((e) => e.id) ?? [],
+        defaultEquipmentId: exercise?.defaultEquipmentId ?? '',
       })
     }
     wasOpen.current = open

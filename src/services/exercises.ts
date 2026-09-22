@@ -1,11 +1,16 @@
 import 'server-only'
 import { and, asc, count, countDistinct, eq, inArray, isNull } from 'drizzle-orm'
 import { db } from '@/db/client'
-import { equipment, exerciseTags, exercises, planRows, planSessions, plans, tags } from '@/db/schema'
+import {
+  equipment, exerciseEquipment, exerciseTags, exercises, planRows, planSessions, plans, tags,
+} from '@/db/schema'
 import type { ExerciseInput } from '@/lib/validation'
 
 export type Exercise = typeof exercises.$inferSelect
-export type ExerciseWithTags = Exercise & { tags: { id: string; name: string }[] }
+export type ExerciseWithTags = Exercise & {
+  tags: { id: string; name: string }[]
+  equipment: { id: string; name: string; imageUrl: string | null }[]
+}
 export type ExerciseUsage = { rowCount: number; planCount: number }
 
 export async function listExercises(coachId: string): Promise<ExerciseWithTags[]> {
@@ -28,7 +33,30 @@ export async function listExercises(coachId: string): Promise<ExerciseWithTags[]
     list.push({ id: link.id, name: link.name })
     byExercise.set(link.exerciseId, list)
   }
-  return rows.map((r) => ({ ...r, tags: byExercise.get(r.id) ?? [] }))
+
+  const equipmentLinks = await db
+    .select({
+      exerciseId: exerciseEquipment.exerciseId,
+      id: equipment.id,
+      name: equipment.name,
+      imageUrl: equipment.imageUrl,
+    })
+    .from(exerciseEquipment)
+    .innerJoin(equipment, eq(exerciseEquipment.equipmentId, equipment.id))
+    .where(and(eq(equipment.coachId, coachId), inArray(exerciseEquipment.exerciseId, rows.map((r) => r.id))))
+
+  const equipmentByExercise = new Map<string, { id: string; name: string; imageUrl: string | null }[]>()
+  for (const link of equipmentLinks) {
+    const list = equipmentByExercise.get(link.exerciseId) ?? []
+    list.push({ id: link.id, name: link.name, imageUrl: link.imageUrl })
+    equipmentByExercise.set(link.exerciseId, list)
+  }
+
+  return rows.map((r) => ({
+    ...r,
+    tags: byExercise.get(r.id) ?? [],
+    equipment: equipmentByExercise.get(r.id) ?? [],
+  }))
 }
 
 function toRow(input: ExerciseInput) {
@@ -36,28 +64,23 @@ function toRow(input: ExerciseInput) {
     name: input.name,
     imageUrl: input.imageUrl ?? null,
     tutorialUrl: input.tutorialUrl ?? null,
+    movementType: input.movementType,
+    defaultEquipmentId: input.defaultEquipmentId,
   }
 }
 
-// Staging shim (Task 1): exercises.defaultEquipmentId is NOT NULL with no default, but
-// ExerciseInput doesn't carry an equipment selection until Task 3. Default new exercises to
-// the coach's fallback ("Any") equipment, mirroring the migration's backfill. Replaced by
-// Task 3's real ownership-checked defaultEquipmentId handling.
-async function fallbackEquipmentId(coachId: string): Promise<string> {
-  const [fallback] = await db
-    .select({ id: equipment.id })
-    .from(equipment)
-    .where(and(eq(equipment.coachId, coachId), eq(equipment.isFallback, true)))
-  if (!fallback) throw new Error('Coach has no fallback equipment')
-  return fallback.id
-}
-
 export async function createExercise(coachId: string, input: ExerciseInput): Promise<Exercise> {
-  const defaultEquipmentId = await fallbackEquipmentId(coachId)
   return db.transaction(async (tx) => {
+    const ownedEquipment = input.equipmentIds.length > 0
+      ? (await tx.select({ id: equipment.id }).from(equipment)
+          .where(and(eq(equipment.coachId, coachId), inArray(equipment.id, input.equipmentIds)))).map((e) => e.id)
+      : []
+    if (!ownedEquipment.includes(input.defaultEquipmentId)) {
+      throw new Error('Default equipment not owned')
+    }
     const [created] = await tx
       .insert(exercises)
-      .values({ coachId, ...toRow(input), defaultEquipmentId })
+      .values({ coachId, ...toRow(input) })
       .returning()
     if (!created) throw new Error('Insert returned no row')
     const ownedTagIds = input.tagIds.length > 0
@@ -70,6 +93,12 @@ export async function createExercise(coachId: string, input: ExerciseInput): Pro
         .values(ownedTagIds.map((tagId) => ({ exerciseId: created.id, tagId })))
         .onConflictDoNothing()
     }
+    if (ownedEquipment.length > 0) {
+      await tx
+        .insert(exerciseEquipment)
+        .values(ownedEquipment.map((equipmentId) => ({ exerciseId: created.id, equipmentId })))
+        .onConflictDoNothing()
+    }
     return created
   })
 }
@@ -80,6 +109,13 @@ export async function updateExercise(
   input: ExerciseInput,
 ): Promise<Exercise | undefined> {
   return db.transaction(async (tx) => {
+    const ownedEquipment = input.equipmentIds.length > 0
+      ? (await tx.select({ id: equipment.id }).from(equipment)
+          .where(and(eq(equipment.coachId, coachId), inArray(equipment.id, input.equipmentIds)))).map((e) => e.id)
+      : []
+    if (!ownedEquipment.includes(input.defaultEquipmentId)) {
+      throw new Error('Default equipment not owned')
+    }
     const [updated] = await tx
       .update(exercises)
       .set(toRow(input))
@@ -95,6 +131,13 @@ export async function updateExercise(
       await tx
         .insert(exerciseTags)
         .values(ownedTagIds.map((tagId) => ({ exerciseId, tagId })))
+        .onConflictDoNothing()
+    }
+    await tx.delete(exerciseEquipment).where(eq(exerciseEquipment.exerciseId, exerciseId))
+    if (ownedEquipment.length > 0) {
+      await tx
+        .insert(exerciseEquipment)
+        .values(ownedEquipment.map((equipmentId) => ({ exerciseId, equipmentId })))
         .onConflictDoNothing()
     }
     return updated

@@ -227,6 +227,7 @@ export function PlanEditor({
                     rest: null,
                     note: null,
                     exercise,
+                    equipmentId: null,
                   },
                 ],
               }

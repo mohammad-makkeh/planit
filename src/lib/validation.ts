@@ -28,21 +28,29 @@ export const clientSchema = z.object({
 })
 export type ClientInput = z.infer<typeof clientSchema>
 
-export const exerciseSchema = z.object({
-  name: z.string().trim().min(1, 'Name is required'),
-  imageUrl: optionalTrimmed.pipe(z.string().url('Enter a valid URL').optional()),
-  tutorialUrl: optionalTrimmed.pipe(z.string().url('Enter a valid URL').optional()),
-  tagIds: z.array(z.string().uuid()).default([]),
-})
+export const movementTypes = ['push', 'pull', 'static'] as const
+export type MovementType = (typeof movementTypes)[number]
+
+export const exerciseSchema = z
+  .object({
+    name: z.string().trim().min(1, 'Name is required'),
+    imageUrl: optionalTrimmed.pipe(z.string().url('Enter a valid URL').optional()),
+    tutorialUrl: optionalTrimmed.pipe(z.string().url('Enter a valid URL').optional()),
+    tagIds: z.array(z.string().uuid()).default([]),
+    movementType: z.enum(movementTypes),
+    equipmentIds: z.array(z.string().uuid()).min(1, 'Pick at least one equipment').max(20),
+    defaultEquipmentId: z.string().uuid(),
+  })
+  .refine((v) => v.equipmentIds.includes(v.defaultEquipmentId), {
+    message: 'Default must be one of the selected equipment',
+    path: ['defaultEquipmentId'],
+  })
 export type ExerciseInput = z.infer<typeof exerciseSchema>
 
 export const tagSchema = z.object({
   name: z.string().trim().min(1, 'Tag name is required'),
 })
 export type TagInput = z.infer<typeof tagSchema>
-
-export const movementTypes = ['push', 'pull', 'static'] as const
-export type MovementType = (typeof movementTypes)[number]
 
 export const equipmentSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(60),
@@ -95,6 +103,7 @@ export const planDocumentSchema = z.object({
           .array(
             z.object({
               exerciseId: z.string().uuid(),
+              equipmentId: z.string().uuid().nullable().optional(),
               sets: docText(40),
               reps: docText(40),
               speed: docText(120),
