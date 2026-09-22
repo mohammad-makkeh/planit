@@ -16,6 +16,8 @@ export function UnitInput({
   max,
   label,
   className,
+  inputClassName,
+  unitClassName,
   id,
 }: {
   value: number | null
@@ -25,6 +27,10 @@ export function UnitInput({
   max?: number
   label: string
   className?: string
+  /** Extra classes for the underlying input (e.g. sizing for a compact grid). */
+  inputClassName?: string
+  /** Extra classes for the unit suffix label. */
+  unitClassName?: string
   id?: string
 }) {
   return (
@@ -40,11 +46,17 @@ export function UnitInput({
         aria-label={label}
         className={cn(
           '[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none',
+          inputClassName,
           unit && 'pr-10',
         )}
       />
       {unit ? (
-        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
+        <span
+          className={cn(
+            'pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground',
+            unitClassName,
+          )}
+        >
           {unit}
         </span>
       ) : null}

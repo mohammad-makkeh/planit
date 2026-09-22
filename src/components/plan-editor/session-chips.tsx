@@ -24,11 +24,15 @@ function SessionChip({
       ref={setNodeRef}
       type="button"
       onClick={onSelect}
-      style={{ transform: CSS.Transform.toString(transform), transition }}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 50 : undefined,
+      }}
       className={cn(
-        'shrink-0 touch-manipulation rounded-full border px-4 py-1.5 text-sm font-medium transition-colors',
+        'relative shrink-0 touch-manipulation rounded-full border px-4 py-1.5 text-sm font-medium transition-colors',
         active ? 'border-brand bg-brand text-brand-foreground' : 'bg-card text-muted-foreground',
-        isDragging && 'z-10 opacity-80',
+        isDragging && 'border-brand opacity-80',
       )}
       {...attributes}
       {...listeners}

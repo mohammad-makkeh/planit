@@ -42,8 +42,8 @@ export function ExerciseRows({
 }) {
   const [picker, setPicker] = useState<PickerMode>(null)
   const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
+    useSensor(MouseSensor, { activationConstraint: { delay: 350, tolerance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 350, tolerance: 8 } }),
   )
 
   function onDragEnd(event: DragEndEvent) {

@@ -3,14 +3,14 @@
 import { useState } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Copy, Dumbbell, GripVertical, MoreVertical, StickyNote, Trash2 } from 'lucide-react'
+import { Copy, Dumbbell, MoreVertical, StickyNote, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { parseIntegerInput } from '@/lib/format'
+import { UnitInput } from '@/components/shared/unit-input'
 import { cn } from '@/lib/utils'
 import type { ExerciseWithTags } from '@/services/exercises'
 import type { EditorRow } from '@/services/plans'
@@ -18,11 +18,11 @@ import type { RowFieldPatch } from './plan-editor'
 import { RowEquipmentSheet } from './row-equipment-sheet'
 
 const FIELDS = [
-  { key: 'sets', kind: 'int', label: 'Sets', min: 1, max: 99 },
-  { key: 'reps', kind: 'int', label: 'Reps', min: 1, max: 999 },
+  { key: 'sets', kind: 'int', label: 'Sets', min: 1, max: 99, unit: undefined },
+  { key: 'reps', kind: 'int', label: 'Reps', min: 1, max: 999, unit: undefined },
+  { key: 'rest', kind: 'int', label: 'Rest', min: 0, max: 3600, unit: 'sec' },
   { key: 'speed', kind: 'text', label: 'Speed', maxLength: 120 },
-  { key: 'oneRm', kind: 'int', label: '1RM', min: 1, max: 100 },
-  { key: 'rest', kind: 'int', label: 'Rest', min: 0, max: 3600 },
+  { key: 'oneRm', kind: 'int', label: '1RM', min: 1, max: 100, unit: '%' },
 ] as const
 
 export function ExerciseRowCard({
@@ -57,22 +57,23 @@ export function ExerciseRowCard({
   return (
     <div
       ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={cn('space-y-2 rounded-2xl border bg-card p-3', isDragging && 'z-10 opacity-80')}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 50 : undefined,
+      }}
+      className={cn(
+        'relative touch-manipulation space-y-2 rounded-2xl border bg-card p-3',
+        isDragging && 'border-brand opacity-80',
+      )}
+      {...attributes}
+      {...listeners}
     >
       <div className="flex items-center gap-1">
         <button
           type="button"
-          aria-label="Reorder move"
-          className="cursor-grab touch-none p-1 text-muted-foreground"
-          {...attributes}
-          {...listeners}
-        >
-          <GripVertical className="size-4" />
-        </button>
-        <button
-          type="button"
           onClick={onSwap}
+          onPointerDown={(e) => e.stopPropagation()}
           className="flex min-w-0 flex-1 items-center gap-2 rounded-lg p-1 text-left hover:bg-accent/40"
         >
           {thumbnailUrl ? (
@@ -93,6 +94,7 @@ export function ExerciseRowCard({
           <button
             type="button"
             onClick={() => setEquipmentSheetOpen(true)}
+            onPointerDown={(e) => e.stopPropagation()}
             className="flex shrink-0 touch-manipulation items-center gap-1 rounded-full border border-input px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-accent"
             aria-label={`Equipment for ${row.exercise.name}`}
           >
@@ -109,50 +111,48 @@ export function ExerciseRowCard({
             <span className="max-w-20 truncate">{resolvedEquipment.name}</span>
           </button>
         )}
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={() => setNoteOpen((v) => !v)}
-          aria-label="Toggle note"
-        >
-          <StickyNote
-            className={cn('size-4', row.note ? 'text-brand' : 'text-muted-foreground')}
-          />
-        </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button variant="ghost" size="icon" aria-label="Row actions">
-                <MoreVertical className="size-4" />
-              </Button>
-            }
-          />
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onDuplicate}>
-              <Copy className="size-4" /> Duplicate
-            </DropdownMenuItem>
-            <DropdownMenuItem variant="destructive" onClick={onDelete}>
-              <Trash2 className="size-4" /> Remove
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div onPointerDown={(e) => e.stopPropagation()}>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button variant="ghost" size="icon" aria-label="Row actions">
+                  <MoreVertical className="size-4" />
+                </Button>
+              }
+            />
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setNoteOpen((v) => !v)}>
+                <StickyNote className={cn('size-4', row.note ? 'text-brand' : '')} /> Note
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onDuplicate}>
+                <Copy className="size-4" /> Duplicate
+              </DropdownMenuItem>
+              <DropdownMenuItem variant="destructive" onClick={onDelete}>
+                <Trash2 className="size-4" /> Remove
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
-      <div className="grid grid-cols-5 gap-1.5">
+      <div
+        className="grid grid-cols-5 gap-1.5"
+        onPointerDown={(e) => e.stopPropagation()}
+      >
         {FIELDS.map((field) => (
           <div key={field.key} className="space-y-0.5">
             <p className="text-center text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
               {field.label}
             </p>
             {field.kind === 'int' ? (
-              <Input
-                type="number"
-                inputMode="numeric"
+              <UnitInput
+                label={`${row.exercise.name} ${field.label}`}
+                unit={field.unit}
                 min={field.min}
                 max={field.max}
-                value={row[field.key] ?? ''}
-                onChange={(e) => onField({ [field.key]: parseIntegerInput(e.target.value) })}
-                className="h-8 px-1 text-center text-xs"
-                aria-label={`${row.exercise.name} ${field.label}`}
+                value={row[field.key]}
+                onChange={(value) => onField({ [field.key]: value })}
+                inputClassName="h-8 px-1 text-center text-xs"
+                unitClassName="right-1.5 text-[9px]"
               />
             ) : (
               <Input
@@ -167,14 +167,16 @@ export function ExerciseRowCard({
         ))}
       </div>
       {noteOpen && (
-        <Textarea
-          value={row.note ?? ''}
-          onChange={(e) => onField({ note: e.target.value })}
-          placeholder="Note for this move…"
-          rows={2}
-          maxLength={500}
-          className="text-sm"
-        />
+        <div onPointerDown={(e) => e.stopPropagation()}>
+          <Textarea
+            value={row.note ?? ''}
+            onChange={(e) => onField({ note: e.target.value })}
+            placeholder="Note for this move…"
+            rows={2}
+            maxLength={500}
+            className="text-sm"
+          />
+        </div>
       )}
       {move && (
         <RowEquipmentSheet

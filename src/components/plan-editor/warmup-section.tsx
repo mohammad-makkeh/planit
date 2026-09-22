@@ -24,11 +24,15 @@ function WarmupLineItem({
   return (
     <div
       ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition }}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 50 : undefined,
+      }}
       className={cn(
-        'flex items-center gap-1 rounded-xl border bg-card p-2',
+        'relative flex items-center gap-1 rounded-xl border bg-card p-2',
         line.highlighted && 'border-brand/40 bg-brand/5',
-        isDragging && 'z-10 opacity-80',
+        isDragging && 'border-brand opacity-80',
       )}
     >
       <button
