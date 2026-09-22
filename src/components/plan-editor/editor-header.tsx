@@ -13,9 +13,7 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
 import type { EditorPlan } from '@/services/plans'
 
@@ -120,7 +118,7 @@ export function EditorHeader({
   }
 
   return (
-    <header className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur">
+    <header className="border-b bg-background/95 backdrop-blur">
       <div className="flex items-center gap-1 px-2 py-2 md:px-6">
         <button
           type="button"
@@ -176,15 +174,16 @@ export function EditorHeader({
           className="min-w-0 flex-1 bg-transparent text-xl font-bold tracking-tight outline-none placeholder:text-muted-foreground"
           placeholder="Plan title"
         />
-        <Select value={plan.status} onValueChange={(v) => onStatusChange(v as EditorPlan['status'])}>
-          <SelectTrigger className="w-32" size="sm" aria-label="Plan status">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2 text-sm">
+          <span className={cn('font-medium', plan.status === 'active' ? 'text-foreground' : 'text-muted-foreground')}>
+            {plan.status === 'active' ? 'Active' : 'Draft'}
+          </span>
+          <Switch
+            checked={plan.status === 'active'}
+            onCheckedChange={(checked) => onStatusChange(checked ? 'active' : 'draft')}
+            aria-label="Plan status"
+          />
+        </div>
       </div>
 
       <ShareSheet

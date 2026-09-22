@@ -335,23 +335,28 @@ export function PlanEditor({
 
   return (
     <div className="min-h-dvh">
-      <EditorHeader
-        plan={doc}
-        dirty={dirty}
-        saving={saving}
-        onTitleChange={(title) => mutate((d) => ({ ...d, title }))}
-        onStatusChange={(status) => mutate((d) => ({ ...d, status }))}
-        onSave={() => void save()}
-        onEnsureSaved={save}
-        onShareChanged={(slug) => setDoc((d) => ({ ...d, shareSlug: slug }))}
-      />
-      <SessionChips
-        sessions={doc.sessions}
-        activeSessionId={activeSessionId}
-        onSelect={setActiveSessionId}
-        onAdd={addSession}
-        onReorder={reorderSessions}
-      />
+      {/* Header + day chips share one sticky layer so the chips sit directly beneath the
+          header by construction — no magic pixel offset that would drift if the header's
+          height changes (e.g. wrapping at narrow widths). */}
+      <div className="sticky top-0 z-30">
+        <EditorHeader
+          plan={doc}
+          dirty={dirty}
+          saving={saving}
+          onTitleChange={(title) => mutate((d) => ({ ...d, title }))}
+          onStatusChange={(status) => mutate((d) => ({ ...d, status }))}
+          onSave={() => void save()}
+          onEnsureSaved={save}
+          onShareChanged={(slug) => setDoc((d) => ({ ...d, shareSlug: slug }))}
+        />
+        <SessionChips
+          sessions={doc.sessions}
+          activeSessionId={activeSessionId}
+          onSelect={setActiveSessionId}
+          onAdd={addSession}
+          onReorder={reorderSessions}
+        />
+      </div>
       <main className="px-4 pb-8 md:px-8">
         {activeSession ? (
           <SessionPanel

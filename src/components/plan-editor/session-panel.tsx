@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, type ReactNode } from 'react'
-import { Copy, Plus, Trash2, X } from 'lucide-react'
+import { Copy, Minus, Plus, Trash2, X } from 'lucide-react'
+import { UnitInput } from '@/components/shared/unit-input'
 import { Button } from '@/components/ui/button'
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
@@ -10,7 +11,6 @@ import { Input } from '@/components/ui/input'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
-import { parseIntegerInput } from '@/lib/format'
 import type { SessionFieldPatch } from './plan-editor'
 import type { EditorSession } from '@/services/plans'
 import type { WarmupPreset } from '@/services/warmups'
@@ -20,11 +20,10 @@ import { WarmupSection } from './warmup-section'
 const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 const NO_WEEKDAY = 'none'
 
-const CARDIO_FIELDS = [
-  { key: 'cardioMinutes', label: 'Minutes', min: 1, max: 999 },
-  { key: 'cardioBpm', label: 'BPM', min: 1, max: 250 },
-  { key: 'cardioIncline', label: 'Incline', min: 0, max: 15 },
-] as const
+// Never invent a client's heart rate — BPM starts empty; minutes/incline get sane starting points.
+const CARDIO_DEFAULTS = { cardioMinutes: 30, cardioBpm: null, cardioIncline: 0 } as const
+const CARDIO_CLEARED = { cardioMinutes: null, cardioBpm: null, cardioIncline: null } as const
+const MAX_INCLINE = 15
 
 export function SessionPanel({
   session,
@@ -101,31 +100,99 @@ export function SessionPanel({
               variant="ghost"
               onClick={() => {
                 setCardioOpenFor(null)
-                onField({ cardioMinutes: null, cardioBpm: null, cardioIncline: null })
+                onField(CARDIO_CLEARED)
               }}
               aria-label="Remove cardio"
             >
               <X className="size-4 text-muted-foreground" />
             </Button>
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            {CARDIO_FIELDS.map(({ key, label, min, max }) => (
-              <Input
-                key={key}
-                type="number"
-                inputMode="numeric"
-                min={min}
-                max={max}
-                value={session[key] ?? ''}
-                onChange={(e) => onField({ [key]: parseIntegerInput(e.target.value) })}
-                placeholder={label}
-                aria-label={label}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground" htmlFor="cardio-minutes">
+                Minutes
+              </label>
+              <UnitInput
+                id="cardio-minutes"
+                label="Minutes"
+                unit="min"
+                min={1}
+                max={999}
+                value={session.cardioMinutes}
+                onChange={(v) => onField({ cardioMinutes: v })}
               />
-            ))}
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground" htmlFor="cardio-bpm">
+                Heart rate
+              </label>
+              <UnitInput
+                id="cardio-bpm"
+                label="Heart rate"
+                unit="BPM"
+                min={1}
+                max={250}
+                value={session.cardioBpm}
+                onChange={(v) => onField({ cardioBpm: v })}
+              />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs text-muted-foreground" id="cardio-incline-label">
+              Incline
+            </label>
+            <div className="flex items-center gap-1.5">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-lg"
+                aria-label="Decrease incline"
+                disabled={(session.cardioIncline ?? 0) <= 0}
+                onClick={() =>
+                  onField({ cardioIncline: Math.max(0, (session.cardioIncline ?? 0) - 1) })
+                }
+              >
+                <Minus className="size-4" />
+              </Button>
+              <UnitInput
+                label="Incline"
+                unit="%"
+                min={0}
+                max={MAX_INCLINE}
+                value={session.cardioIncline}
+                onChange={(v) =>
+                  onField({
+                    cardioIncline: v === null ? null : Math.min(MAX_INCLINE, Math.max(0, v)),
+                  })
+                }
+                className="min-w-0 flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon-lg"
+                aria-label="Increase incline"
+                disabled={(session.cardioIncline ?? 0) >= MAX_INCLINE}
+                onClick={() =>
+                  onField({
+                    cardioIncline: Math.min(MAX_INCLINE, (session.cardioIncline ?? 0) + 1),
+                  })
+                }
+              >
+                <Plus className="size-4" />
+              </Button>
+            </div>
           </div>
         </section>
       ) : (
-        <Button variant="ghost" size="sm" onClick={() => setCardioOpenFor(session.id)}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setCardioOpenFor(session.id)
+            onField(CARDIO_DEFAULTS)
+          }}
+        >
           <Plus className="size-4" /> Add cardio
         </Button>
       )}

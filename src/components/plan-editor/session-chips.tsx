@@ -65,7 +65,7 @@ export function SessionChips({
   }
 
   return (
-    <div className="flex items-center gap-2 overflow-x-auto px-4 py-3 md:px-8 [-ms-overflow-style:none] [scrollbar-width:none]">
+    <div className="flex items-center gap-2 overflow-x-auto border-b bg-background/95 px-4 py-3 backdrop-blur md:px-8 [-ms-overflow-style:none] [scrollbar-width:none]">
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={sessions.map((s) => s.id)} strategy={horizontalListSortingStrategy}>
           {sessions.map((s) => (
