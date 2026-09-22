@@ -49,6 +49,7 @@ export function SessionPanel({
           className="flex-1 font-semibold"
         />
         <Select
+          items={[{ value: NO_WEEKDAY, label: 'No weekday' }, ...WEEKDAYS.map((d) => ({ value: d, label: d }))]}
           value={session.weekday ?? NO_WEEKDAY}
           onValueChange={(v) => onField({ weekday: v === NO_WEEKDAY ? null : v })}
         >
