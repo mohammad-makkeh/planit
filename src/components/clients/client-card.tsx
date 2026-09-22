@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Blobatar } from '@blobatar/react'
-import { Badge } from '@/components/ui/badge'
+import { ChevronRight } from 'lucide-react'
 import { formatRelative } from '@/lib/format'
 import type { ClientListItem } from '@/services/clients'
 
@@ -16,13 +16,12 @@ export function ClientCard({ client }: { client: ClientListItem }) {
       <div className="min-w-0 flex-1">
         <p className="truncate font-semibold">{client.name}</p>
         <p className="truncate text-sm text-muted-foreground">{client.phone ?? 'No phone'}</p>
+        <p className="truncate text-xs text-muted-foreground">
+          {client.planCount} {client.planCount === 1 ? 'plan' : 'plans'} · updated{' '}
+          {formatRelative(client.lastActivityAt)}
+        </p>
       </div>
-      <div className="flex flex-col items-end gap-1">
-        <Badge variant="secondary">
-          {client.planCount} {client.planCount === 1 ? 'plan' : 'plans'}
-        </Badge>
-        <span className="text-xs text-muted-foreground">{formatRelative(client.lastActivityAt)}</span>
-      </div>
+      <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
     </Link>
   )
 }
