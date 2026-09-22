@@ -47,9 +47,9 @@ export function ExerciseRowCard({
   })
 
   const move = exercises.find((e) => e.id === row.exercise.id)
-  const resolvedEquipmentId = row.equipmentId ?? move?.defaultEquipmentId ?? null
-  const resolvedEquipment =
-    move && resolvedEquipmentId ? move.equipment.find((e) => e.id === resolvedEquipmentId) : undefined
+  const resolvedEquipment = move
+    ? move.equipment.find((e) => e.id === row.equipmentId) ?? move.equipment.find((e) => e.id === move.defaultEquipmentId)
+    : undefined
   const thumbnailUrl = row.exercise.imageUrl ?? resolvedEquipment?.imageUrl ?? null
 
   return (
