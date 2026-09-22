@@ -1,12 +1,13 @@
 import { sql } from 'drizzle-orm'
 import {
-  pgTable, pgEnum, uuid, text, integer, doublePrecision,
+  pgTable, pgEnum, uuid, text, integer, doublePrecision, boolean,
   timestamp, jsonb, primaryKey, uniqueIndex,
 } from 'drizzle-orm/pg-core'
 
 export type WarmupLine = { text: string; highlighted: boolean }
 
 export const planStatusEnum = pgEnum('plan_status', ['draft', 'active', 'completed'])
+export const movementTypeEnum = pgEnum('movement_type', ['push', 'pull', 'static'])
 
 const id = uuid('id').primaryKey().defaultRandom()
 const createdAt = timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
@@ -25,6 +26,15 @@ export const coaches = pgTable('coaches', {
   createdAt,
   updatedAt,
 })
+
+export const equipment = pgTable('equipment', {
+  id,
+  coachId: uuid('coach_id').notNull().references(() => coaches.id),
+  name: text('name').notNull(),
+  imageUrl: text('image_url'),
+  isFallback: boolean('is_fallback').notNull().default(false),
+  createdAt,
+}, (t) => [uniqueIndex('equipment_coach_name_uq').on(t.coachId, sql`lower(${t.name})`)])
 
 export const clients = pgTable('clients', {
   id,
@@ -46,6 +56,8 @@ export const exercises = pgTable('exercises', {
   name: text('name').notNull(),
   imageUrl: text('image_url'),
   tutorialUrl: text('tutorial_url'),
+  movementType: movementTypeEnum('movement_type').notNull().default('static'),
+  defaultEquipmentId: uuid('default_equipment_id').notNull().references(() => equipment.id),
   createdAt,
   updatedAt,
 }, (t) => [uniqueIndex('exercises_coach_name_uq').on(t.coachId, sql`lower(${t.name})`)])
@@ -60,6 +72,11 @@ export const exerciseTags = pgTable('exercise_tags', {
   exerciseId: uuid('exercise_id').notNull().references(() => exercises.id, { onDelete: 'cascade' }),
   tagId: uuid('tag_id').notNull().references(() => tags.id, { onDelete: 'cascade' }),
 }, (t) => [primaryKey({ columns: [t.exerciseId, t.tagId] })])
+
+export const exerciseEquipment = pgTable('exercise_equipment', {
+  exerciseId: uuid('exercise_id').notNull().references(() => exercises.id, { onDelete: 'cascade' }),
+  equipmentId: uuid('equipment_id').notNull().references(() => equipment.id, { onDelete: 'cascade' }),
+}, (t) => [primaryKey({ columns: [t.exerciseId, t.equipmentId] })])
 
 export const warmupPresets = pgTable('warmup_presets', {
   id,
@@ -103,4 +120,5 @@ export const planRows = pgTable('plan_rows', {
   oneRm: text('one_rm'),
   rest: text('rest'),
   note: text('note'),
+  equipmentId: uuid('equipment_id').references(() => equipment.id, { onDelete: 'set null' }),
 })

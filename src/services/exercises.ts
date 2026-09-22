@@ -1,7 +1,7 @@
 import 'server-only'
 import { and, asc, count, countDistinct, eq, inArray, isNull } from 'drizzle-orm'
 import { db } from '@/db/client'
-import { exerciseTags, exercises, planRows, planSessions, plans, tags } from '@/db/schema'
+import { equipment, exerciseTags, exercises, planRows, planSessions, plans, tags } from '@/db/schema'
 import type { ExerciseInput } from '@/lib/validation'
 
 export type Exercise = typeof exercises.$inferSelect
@@ -39,9 +39,26 @@ function toRow(input: ExerciseInput) {
   }
 }
 
+// Staging shim (Task 1): exercises.defaultEquipmentId is NOT NULL with no default, but
+// ExerciseInput doesn't carry an equipment selection until Task 3. Default new exercises to
+// the coach's fallback ("Any") equipment, mirroring the migration's backfill. Replaced by
+// Task 3's real ownership-checked defaultEquipmentId handling.
+async function fallbackEquipmentId(coachId: string): Promise<string> {
+  const [fallback] = await db
+    .select({ id: equipment.id })
+    .from(equipment)
+    .where(and(eq(equipment.coachId, coachId), eq(equipment.isFallback, true)))
+  if (!fallback) throw new Error('Coach has no fallback equipment')
+  return fallback.id
+}
+
 export async function createExercise(coachId: string, input: ExerciseInput): Promise<Exercise> {
+  const defaultEquipmentId = await fallbackEquipmentId(coachId)
   return db.transaction(async (tx) => {
-    const [created] = await tx.insert(exercises).values({ coachId, ...toRow(input) }).returning()
+    const [created] = await tx
+      .insert(exercises)
+      .values({ coachId, ...toRow(input), defaultEquipmentId })
+      .returning()
     if (!created) throw new Error('Insert returned no row')
     const ownedTagIds = input.tagIds.length > 0
       ? (await tx.select({ id: tags.id }).from(tags)

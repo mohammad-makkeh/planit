@@ -1,8 +1,10 @@
 import bcrypt from 'bcryptjs'
 import { eq } from 'drizzle-orm'
 import { db } from './client'
-import { coaches, exerciseTags, exercises, tags, warmupPresets } from './schema'
-import { SEED_EXERCISES, SEED_WARMUPS, TAG_NAMES } from './seed-data'
+import {
+  coaches, equipment, exerciseEquipment, exerciseTags, exercises, tags, warmupPresets,
+} from './schema'
+import { EQUIPMENT, SEED_EXERCISES, SEED_WARMUPS, TAG_NAMES } from './seed-data'
 
 type SeedCoach = { email: string; password: string; name: string }
 
@@ -38,8 +40,23 @@ async function seedCoach(input: SeedCoach): Promise<void> {
   const tagIdByName = new Map(tagRows.map((t) => [t.name, t.id]))
 
   await db
+    .insert(equipment)
+    .values(EQUIPMENT.map((e) => ({
+      coachId, name: e.name, imageUrl: e.imageUrl, isFallback: e.isFallback,
+    })))
+    .onConflictDoNothing()
+  const equipmentRows = await db.query.equipment.findMany({
+    where: eq(equipment.coachId, coachId),
+  })
+  const equipmentIdByName = new Map(equipmentRows.map((e) => [e.name, e.id]))
+  const anyEquipmentId = equipmentIdByName.get('Any')
+  if (!anyEquipmentId) throw new Error(`Missing "Any" equipment for coach ${input.email}`)
+
+  await db
     .insert(exercises)
-    .values(SEED_EXERCISES.map((e) => ({ coachId, name: e.name })))
+    .values(SEED_EXERCISES.map((e) => ({
+      coachId, name: e.name, movementType: e.movementType, defaultEquipmentId: anyEquipmentId,
+    })))
     .onConflictDoNothing()
   const exerciseRows = await db.query.exercises.findMany({
     where: eq(exercises.coachId, coachId),
@@ -56,6 +73,14 @@ async function seedCoach(input: SeedCoach): Promise<void> {
   })
   if (links.length > 0) await db.insert(exerciseTags).values(links).onConflictDoNothing()
 
+  const equipmentLinks = SEED_EXERCISES.flatMap((e) => {
+    const exerciseId = exerciseIdByName.get(e.name)
+    return exerciseId ? [{ exerciseId, equipmentId: anyEquipmentId }] : []
+  })
+  if (equipmentLinks.length > 0) {
+    await db.insert(exerciseEquipment).values(equipmentLinks).onConflictDoNothing()
+  }
+
   const existing = await db.query.warmupPresets.findMany({
     where: eq(warmupPresets.coachId, coachId),
   })
@@ -66,7 +91,10 @@ async function seedCoach(input: SeedCoach): Promise<void> {
   }))
   if (missing.length > 0) await db.insert(warmupPresets).values(missing)
 
-  console.log(`Seeded ${input.email}: ${exerciseRows.length} exercises, ${tagRows.length} tags`)
+  console.log(
+    `Seeded ${input.email}: ${exerciseRows.length} exercises, `
+    + `${tagRows.length} tags, ${equipmentRows.length} equipment`,
+  )
 }
 
 async function main(): Promise<void> {
