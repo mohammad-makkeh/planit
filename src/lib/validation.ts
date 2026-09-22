@@ -41,6 +41,15 @@ export const tagSchema = z.object({
 })
 export type TagInput = z.infer<typeof tagSchema>
 
+export const movementTypes = ['push', 'pull', 'static'] as const
+export type MovementType = (typeof movementTypes)[number]
+
+export const equipmentSchema = z.object({
+  name: z.string().trim().min(1, 'Name is required').max(60),
+  imageUrl: optionalTrimmed.pipe(z.string().url('Enter a valid URL').optional()),
+})
+export type EquipmentInput = z.infer<typeof equipmentSchema>
+
 export const warmupSchema = z.object({
   text: z.string().trim().min(1, 'Warm-up text is required'),
 })
