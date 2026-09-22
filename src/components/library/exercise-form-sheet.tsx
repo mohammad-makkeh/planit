@@ -92,7 +92,12 @@ export function ExerciseFormSheet({
   function handleEquipmentChange(ids: string[]) {
     setValue('equipmentIds', ids)
     const onlyId = ids.length === 1 ? ids[0] : undefined
-    if (onlyId) setValue('defaultEquipmentId', onlyId)
+    if (onlyId) {
+      setValue('defaultEquipmentId', onlyId)
+    } else if (defaultEquipmentId && !ids.includes(defaultEquipmentId)) {
+      const fallback = ids[0]
+      if (fallback) setValue('defaultEquipmentId', fallback)
+    }
   }
 
   const defaultEquipmentChoices = localEquipment.filter((item) => equipmentIds.includes(item.id))
