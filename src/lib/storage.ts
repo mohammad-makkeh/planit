@@ -13,7 +13,7 @@ function supabaseAdmin() {
 
 export async function uploadImage(
   file: File,
-  folder: 'exercises' | 'logos',
+  folder: 'exercises' | 'logos' | 'equipment',
 ): Promise<string> {
   const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
   const path = `${folder}/${nanoid(12)}.${ext}`
