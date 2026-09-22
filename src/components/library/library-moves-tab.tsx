@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/shell/empty-state'
 import { Fab } from '@/components/shell/fab'
 import { Input } from '@/components/ui/input'
 import type { ExerciseWithTags } from '@/services/exercises'
+import type { EquipmentOption } from './equipment-multi-select'
 import { ExerciseCard } from './exercise-card'
 import { ExerciseFormSheet } from './exercise-form-sheet'
 import { TagFilter } from './tag-filter'
@@ -14,9 +15,11 @@ import type { TagOption } from './tag-multi-select'
 export function LibraryMovesTab({
   exercises,
   tags,
+  equipmentOptions,
 }: {
   exercises: ExerciseWithTags[]
   tags: TagOption[]
+  equipmentOptions: EquipmentOption[]
 }) {
   const [search, setSearch] = useState('')
   const [tagId, setTagId] = useState<string | null>(null)
@@ -59,7 +62,12 @@ export function LibraryMovesTab({
         </div>
       )}
       <Fab label="New move" onClick={() => setCreateOpen(true)} />
-      <ExerciseFormSheet open={createOpen} onOpenChange={setCreateOpen} tagOptions={tags} />
+      <ExerciseFormSheet
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        tagOptions={tags}
+        equipmentOptions={equipmentOptions}
+      />
       {editing && (
         <ExerciseFormSheet
           open={editing !== null}
@@ -68,6 +76,7 @@ export function LibraryMovesTab({
           }}
           exercise={editing}
           tagOptions={tags}
+          equipmentOptions={equipmentOptions}
         />
       )}
     </div>

@@ -29,7 +29,7 @@ export default async function LibraryPage() {
             <TabsTrigger value="equipment">Equipment</TabsTrigger>
           </TabsList>
           <TabsContent value="moves">
-            <LibraryMovesTab exercises={exerciseList} tags={tagList} />
+            <LibraryMovesTab exercises={exerciseList} tags={tagList} equipmentOptions={equipmentList} />
           </TabsContent>
           <TabsContent value="warmups">
             <WarmupsTab warmups={warmupList} />

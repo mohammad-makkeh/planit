@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { z } from 'zod'
 import { PlanEditor } from '@/components/plan-editor/plan-editor'
 import { requireCoachId } from '@/lib/session'
+import { listEquipment } from '@/services/equipment'
 import { listExercises } from '@/services/exercises'
 import { getPlanForEditor } from '@/services/plans'
 import { listTags } from '@/services/tags'
@@ -16,11 +17,12 @@ export default async function PlanEditorPage({
   const { planId } = await params
   if (!z.string().uuid().safeParse(planId).success) notFound()
 
-  const [plan, exercises, tags, warmups] = await Promise.all([
+  const [plan, exercises, tags, warmups, equipmentOptions] = await Promise.all([
     getPlanForEditor(coachId, planId),
     listExercises(coachId),
     listTags(coachId),
     listWarmups(coachId),
+    listEquipment(coachId),
   ])
   if (!plan) notFound()
 
@@ -30,6 +32,7 @@ export default async function PlanEditorPage({
       exercises={exercises}
       tags={tags}
       warmups={warmups}
+      equipmentOptions={equipmentOptions}
     />
   )
 }

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { DndContext, MouseSensor, TouchSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Plus } from 'lucide-react'
+import type { EquipmentOption } from '@/components/library/equipment-multi-select'
 import type { TagOption } from '@/components/library/tag-multi-select'
 import { Button } from '@/components/ui/button'
 import type { ExerciseWithTags } from '@/services/exercises'
@@ -18,6 +19,7 @@ export function ExerciseRows({
   session,
   exercises,
   tags,
+  equipmentOptions,
   onRowField,
   onAdd,
   onSwap,
@@ -28,6 +30,7 @@ export function ExerciseRows({
   session: EditorSession
   exercises: ExerciseWithTags[]
   tags: TagOption[]
+  equipmentOptions: EquipmentOption[]
   onRowField: (rowId: string, fields: Record<string, string | null>) => void
   onAdd: (exercise: PickedExercise) => void
   onSwap: (rowId: string, exercise: PickedExercise) => void
@@ -78,6 +81,7 @@ export function ExerciseRows({
         }}
         exercises={exercises}
         tags={tags}
+        equipmentOptions={equipmentOptions}
         onPick={(exercise) => {
           if (picker?.type === 'swap') onSwap(picker.rowId, exercise)
           else onAdd(exercise)

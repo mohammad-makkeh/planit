@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { savePlanDocumentAction } from '@/actions/plan-editor'
+import type { EquipmentOption } from '@/components/library/equipment-multi-select'
 import type { TagOption } from '@/components/library/tag-multi-select'
 import type { PlanDocument } from '@/lib/validation'
 import type { ExerciseWithTags } from '@/services/exercises'
@@ -48,11 +49,13 @@ export function PlanEditor({
   exercises,
   tags,
   warmups,
+  equipmentOptions,
 }: {
   initial: EditorPlan
   exercises: ExerciseWithTags[]
   tags: TagOption[]
   warmups: WarmupPreset[]
+  equipmentOptions: EquipmentOption[]
 }) {
   const [doc, setDoc] = useState<EditorPlan>(initial)
   const [activeSessionId, setActiveSessionId] = useState<string | null>(
@@ -340,6 +343,7 @@ export function PlanEditor({
               session={activeSession}
               exercises={exercises}
               tags={tags}
+              equipmentOptions={equipmentOptions}
               onRowField={(rowId, fields) => setRowField(activeSession.id, rowId, fields)}
               onAdd={(exercise) => addRow(activeSession.id, exercise)}
               onSwap={(rowId, exercise) => swapRow(activeSession.id, rowId, exercise)}

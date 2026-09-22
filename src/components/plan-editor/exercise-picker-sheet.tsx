@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Dumbbell, Plus, Search } from 'lucide-react'
+import type { EquipmentOption } from '@/components/library/equipment-multi-select'
 import { ExerciseFormSheet } from '@/components/library/exercise-form-sheet'
 import { TagFilter } from '@/components/library/tag-filter'
 import type { TagOption } from '@/components/library/tag-multi-select'
@@ -18,12 +19,14 @@ export function ExercisePickerSheet({
   onOpenChange,
   exercises,
   tags,
+  equipmentOptions,
   onPick,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   exercises: ExerciseWithTags[]
   tags: TagOption[]
+  equipmentOptions: EquipmentOption[]
   onPick: (exercise: PickedExercise) => void
 }) {
   const router = useRouter()
@@ -107,6 +110,7 @@ export function ExercisePickerSheet({
         open={createOpen}
         onOpenChange={setCreateOpen}
         tagOptions={tags}
+        equipmentOptions={equipmentOptions}
         initialName={search.trim()}
         onCreated={(exercise) => {
           router.refresh()
