@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, type CSSProperties } from 'react'
-import { Download } from 'lucide-react'
 import { EmptyState } from '@/components/shell/empty-state'
 import { cn } from '@/lib/utils'
 import type { SharedPlan } from '@/services/share'
@@ -17,7 +16,11 @@ export function ShareView({ plan, slug }: { plan: SharedPlan; slug: string }) {
       className="min-h-dvh bg-background text-foreground"
       style={{ '--brand': plan.coach.brandColor || '#FE2E00' } as CSSProperties}
     >
-      <ShareHeader coach={plan.coach} client={plan.client} planTitle={plan.plan.title} />
+      <ShareHeader coach={plan.coach} client={plan.client} slug={slug} />
+
+      <div className="px-4 pt-4">
+        <h1 className="text-xl font-bold tracking-tight text-balance">{plan.plan.title}</h1>
+      </div>
 
       {plan.sessions.length > 0 && (
         <div className="flex items-center gap-2 overflow-x-auto px-4 py-3 [-ms-overflow-style:none] [scrollbar-width:none]">
@@ -38,15 +41,6 @@ export function ShareView({ plan, slug }: { plan: SharedPlan; slug: string }) {
           ))}
         </div>
       )}
-
-      <div className="px-4 pb-2">
-        <a
-          href={`/p/${slug}/pdf`}
-          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-brand text-sm font-semibold text-brand-foreground outline-none transition-opacity hover:opacity-90 focus-visible:ring-3 focus-visible:ring-ring/30"
-        >
-          <Download className="size-4" /> Download PDF
-        </a>
-      </div>
 
       <main className="px-4 pt-2 pb-10">
         {session ? (

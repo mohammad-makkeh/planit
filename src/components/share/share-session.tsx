@@ -69,7 +69,7 @@ export function ShareSession({ session }: { session: SharedSession }) {
             {session.cardioIncline !== null && (
               <div className="flex items-center gap-2 text-sm">
                 <TrendingUp className="size-4 shrink-0 text-brand" />
-                Incline {session.cardioIncline}
+                {session.cardioIncline}%
               </div>
             )}
           </div>
