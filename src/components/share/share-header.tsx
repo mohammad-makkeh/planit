@@ -1,4 +1,8 @@
+'use client'
+
 import { FileDown } from 'lucide-react'
+import { toast } from 'sonner'
+import { downloadPdf } from '@/lib/pdf-download'
 import type { SharedPlan } from '@/services/share'
 
 /**
@@ -17,17 +21,28 @@ export function ShareHeader({
   client: SharedPlan['client']
   slug: string
 }) {
+  async function exportPDF() {
+    const id = toast.loading('Preparing PDF…')
+    const result = await downloadPdf(`/p/${slug}/pdf`)
+    if (result.ok) {
+      toast.success('PDF downloaded', { id })
+    } else {
+      toast.error(result.message, { id })
+    }
+  }
+
   return (
     <header className="border-b-4 bg-[#0f0f0f]" style={{ borderBottomColor: 'var(--brand)' }}>
       <div className="flex px-4 pt-3">
         {/* Top-left per the coach's request — a small icon-only download, not the old full-width button. */}
-        <a
-          href={`/p/${slug}/pdf`}
+        <button
+          type="button"
+          onClick={() => void exportPDF()}
           className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 text-xs font-semibold text-white outline-none transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white/50"
         >
           <FileDown className="size-3.5 shrink-0" aria-hidden />
           PDF
-        </a>
+        </button>
       </div>
       <div className="flex items-start justify-between gap-4 px-4 pt-3 pb-4">
         {/* Logo stacks above the coach's name below `sm` — a wide, non-square logo would

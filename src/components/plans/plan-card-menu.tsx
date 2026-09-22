@@ -14,6 +14,7 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { downloadPdf } from '@/lib/pdf-download'
 import type { Plan } from '@/services/plans'
 import { ClientPickerSheet, type PickerClient } from './client-picker-sheet'
 import { ShareSheet } from './share-sheet'
@@ -90,6 +91,16 @@ export function PlanCardMenu({
     }
   }
 
+  async function exportPDF() {
+    const id = toast.loading('Preparing PDF…')
+    const result = await downloadPdf(`/plans/${plan.id}/pdf`)
+    if (result.ok) {
+      toast.success('PDF downloaded', { id })
+    } else {
+      toast.error(result.message, { id })
+    }
+  }
+
   async function onDelete() {
     setBusy(true)
     try {
@@ -131,7 +142,7 @@ export function PlanCardMenu({
           <DropdownMenuItem onClick={() => setShareOpen(true)}>
             <Link2 className="size-4" /> Share
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => window.open(`/plans/${plan.id}/pdf`, '_blank')}>
+          <DropdownMenuItem onClick={() => void exportPDF()}>
             <FileDown className="size-4" /> Export PDF
           </DropdownMenuItem>
           <DropdownMenuSeparator />

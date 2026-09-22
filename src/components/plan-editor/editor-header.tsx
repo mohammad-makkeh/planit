@@ -14,6 +14,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Switch } from '@/components/ui/switch'
+import { downloadPdf } from '@/lib/pdf-download'
 import { cn } from '@/lib/utils'
 import type { EditorPlan } from '@/services/plans'
 
@@ -69,27 +70,23 @@ export function EditorHeader({
   async function exportPDF() {
     if (busy) return
     setBusy(true)
-    // Open the tab synchronously (before any await) so the browser still sees this as a
-    // direct result of the click — otherwise, if the plan is dirty, the save below can take
-    // long enough that transient activation is lost and the popup gets blocked. The route
-    // answers with `content-disposition: attachment`, so the tab downloads and closes itself.
-    const win = window.open('', '_blank')
+    const id = toast.loading('Preparing PDF…')
     try {
       if (dirty) {
         const saved = await onEnsureSaved()
         if (!saved) {
-          win?.close()
+          toast.dismiss(id)
           return
         }
       }
-      if (win) {
-        win.location.href = `/plans/${plan.id}/pdf`
+      const result = await downloadPdf(`/plans/${plan.id}/pdf`)
+      if (result.ok) {
+        toast.success('PDF downloaded', { id })
       } else {
-        window.open(`/plans/${plan.id}/pdf`, '_blank')
+        toast.error(result.message, { id })
       }
     } catch {
-      win?.close()
-      toast.error('Something went wrong. Please try again.')
+      toast.error('Something went wrong. Please try again.', { id })
     } finally {
       setBusy(false)
     }
