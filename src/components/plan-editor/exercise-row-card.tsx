@@ -73,7 +73,8 @@ export function ExerciseRowCard({
         <button
           type="button"
           onClick={onSwap}
-          onPointerDown={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
           className="flex min-w-0 flex-1 items-center gap-2 rounded-lg p-1 text-left hover:bg-accent/40"
         >
           {thumbnailUrl ? (
@@ -94,7 +95,8 @@ export function ExerciseRowCard({
           <button
             type="button"
             onClick={() => setEquipmentSheetOpen(true)}
-            onPointerDown={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
             className="flex shrink-0 touch-manipulation items-center gap-1 rounded-full border border-input px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-accent"
             aria-label={`Equipment for ${row.exercise.name}`}
           >
@@ -111,7 +113,10 @@ export function ExerciseRowCard({
             <span className="max-w-20 truncate">{resolvedEquipment.name}</span>
           </button>
         )}
-        <div onPointerDown={(e) => e.stopPropagation()}>
+        <div
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+        >
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
@@ -136,7 +141,8 @@ export function ExerciseRowCard({
       </div>
       <div
         className="grid grid-cols-5 gap-1.5"
-        onPointerDown={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
       >
         {FIELDS.map((field) => (
           <div key={field.key} className="space-y-0.5">
@@ -167,7 +173,10 @@ export function ExerciseRowCard({
         ))}
       </div>
       {noteOpen && (
-        <div onPointerDown={(e) => e.stopPropagation()}>
+        <div
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+        >
           <Textarea
             value={row.note ?? ''}
             onChange={(e) => onField({ note: e.target.value })}
