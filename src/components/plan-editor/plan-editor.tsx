@@ -33,6 +33,7 @@ function toDocument(plan: EditorPlan): PlanDocument {
       cardioHrm: s.cardioHrm,
       rows: s.rows.map((r) => ({
         exerciseId: r.exercise.id,
+        equipmentId: r.equipmentId ?? null,
         sets: r.sets,
         reps: r.reps,
         speed: r.speed,
@@ -211,7 +212,7 @@ export function PlanEditor({
   )
 
   const addRow = useCallback(
-    (sessionId: string, exercise: PickedExercise) => {
+    (sessionId: string, exercise: PickedExercise, equipmentId: string | null) => {
       mutate((d) => ({
         ...d,
         sessions: d.sessions.map((s) =>
@@ -230,7 +231,7 @@ export function PlanEditor({
                     rest: null,
                     note: null,
                     exercise,
-                    equipmentId: null,
+                    equipmentId,
                   },
                 ],
               }
@@ -242,12 +243,26 @@ export function PlanEditor({
   )
 
   const swapRow = useCallback(
-    (sessionId: string, rowId: string, exercise: PickedExercise) => {
+    (sessionId: string, rowId: string, exercise: PickedExercise, equipmentId: string | null) => {
       mutate((d) => ({
         ...d,
         sessions: d.sessions.map((s) =>
           s.id === sessionId
-            ? { ...s, rows: s.rows.map((r) => (r.id === rowId ? { ...r, exercise } : r)) }
+            ? { ...s, rows: s.rows.map((r) => (r.id === rowId ? { ...r, exercise, equipmentId } : r)) }
+            : s,
+        ),
+      }))
+    },
+    [mutate],
+  )
+
+  const setRowEquipment = useCallback(
+    (sessionId: string, rowId: string, equipmentId: string | null) => {
+      mutate((d) => ({
+        ...d,
+        sessions: d.sessions.map((s) =>
+          s.id === sessionId
+            ? { ...s, rows: s.rows.map((r) => (r.id === rowId ? { ...r, equipmentId } : r)) }
             : s,
         ),
       }))
@@ -345,11 +360,16 @@ export function PlanEditor({
               tags={tags}
               equipmentOptions={equipmentOptions}
               onRowField={(rowId, fields) => setRowField(activeSession.id, rowId, fields)}
-              onAdd={(exercise) => addRow(activeSession.id, exercise)}
-              onSwap={(rowId, exercise) => swapRow(activeSession.id, rowId, exercise)}
+              onAdd={(exercise, equipmentId) => addRow(activeSession.id, exercise, equipmentId)}
+              onSwap={(rowId, exercise, equipmentId) =>
+                swapRow(activeSession.id, rowId, exercise, equipmentId)
+              }
               onDuplicate={(rowId) => duplicateRow(activeSession.id, rowId)}
               onDelete={(rowId) => deleteRow(activeSession.id, rowId)}
               onReorder={(orderedIds) => reorderRows(activeSession.id, orderedIds)}
+              onRowEquipment={(rowId, equipmentId) =>
+                setRowEquipment(activeSession.id, rowId, equipmentId)
+              }
             />
           </SessionPanel>
         ) : (

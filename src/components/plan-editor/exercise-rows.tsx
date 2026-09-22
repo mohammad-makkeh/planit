@@ -26,17 +26,19 @@ export function ExerciseRows({
   onDuplicate,
   onDelete,
   onReorder,
+  onRowEquipment,
 }: {
   session: EditorSession
   exercises: ExerciseWithTags[]
   tags: TagOption[]
   equipmentOptions: EquipmentOption[]
   onRowField: (rowId: string, fields: Record<string, string | null>) => void
-  onAdd: (exercise: PickedExercise) => void
-  onSwap: (rowId: string, exercise: PickedExercise) => void
+  onAdd: (exercise: PickedExercise, equipmentId: string | null) => void
+  onSwap: (rowId: string, exercise: PickedExercise, equipmentId: string | null) => void
   onDuplicate: (rowId: string) => void
   onDelete: (rowId: string) => void
   onReorder: (orderedIds: string[]) => void
+  onRowEquipment: (rowId: string, equipmentId: string | null) => void
 }) {
   const [picker, setPicker] = useState<PickerMode>(null)
   const sensors = useSensors(
@@ -61,10 +63,12 @@ export function ExerciseRows({
                 <ExerciseRowCard
                   key={row.id}
                   row={row}
+                  exercises={exercises}
                   onField={(fields) => onRowField(row.id, fields)}
                   onSwap={() => setPicker({ type: 'swap', rowId: row.id })}
                   onDuplicate={() => onDuplicate(row.id)}
                   onDelete={() => onDelete(row.id)}
+                  onEquipmentChange={(equipmentId) => onRowEquipment(row.id, equipmentId)}
                 />
               ))}
             </div>
@@ -82,9 +86,9 @@ export function ExerciseRows({
         exercises={exercises}
         tags={tags}
         equipmentOptions={equipmentOptions}
-        onPick={(exercise) => {
-          if (picker?.type === 'swap') onSwap(picker.rowId, exercise)
-          else onAdd(exercise)
+        onPick={(exercise, equipmentId) => {
+          if (picker?.type === 'swap') onSwap(picker.rowId, exercise, equipmentId)
+          else onAdd(exercise, equipmentId)
           setPicker(null)
         }}
       />

@@ -11,7 +11,9 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
+import type { ExerciseWithTags } from '@/services/exercises'
 import type { EditorRow } from '@/services/plans'
+import { RowEquipmentSheet } from './row-equipment-sheet'
 
 const FIELDS = [
   { key: 'sets', label: 'Sets', maxLength: 40 },
@@ -23,21 +25,32 @@ const FIELDS = [
 
 export function ExerciseRowCard({
   row,
+  exercises,
   onField,
   onSwap,
   onDuplicate,
   onDelete,
+  onEquipmentChange,
 }: {
   row: EditorRow
+  exercises: ExerciseWithTags[]
   onField: (fields: Record<string, string | null>) => void
   onSwap: () => void
   onDuplicate: () => void
   onDelete: () => void
+  onEquipmentChange: (equipmentId: string | null) => void
 }) {
   const [noteOpen, setNoteOpen] = useState(row.note !== null && row.note !== '')
+  const [equipmentSheetOpen, setEquipmentSheetOpen] = useState(false)
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: row.id,
   })
+
+  const move = exercises.find((e) => e.id === row.exercise.id)
+  const resolvedEquipmentId = row.equipmentId ?? move?.defaultEquipmentId ?? null
+  const resolvedEquipment =
+    move && resolvedEquipmentId ? move.equipment.find((e) => e.id === resolvedEquipmentId) : undefined
+  const thumbnailUrl = row.exercise.imageUrl ?? resolvedEquipment?.imageUrl ?? null
 
   return (
     <div
@@ -60,10 +73,10 @@ export function ExerciseRowCard({
           onClick={onSwap}
           className="flex min-w-0 flex-1 items-center gap-2 rounded-lg p-1 text-left hover:bg-accent/40"
         >
-          {row.exercise.imageUrl ? (
+          {thumbnailUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={row.exercise.imageUrl}
+              src={thumbnailUrl}
               alt={row.exercise.name}
               className="size-9 rounded-lg border object-cover"
             />
@@ -74,6 +87,26 @@ export function ExerciseRowCard({
           )}
           <span className="min-w-0 flex-1 truncate text-sm font-semibold">{row.exercise.name}</span>
         </button>
+        {move && resolvedEquipment && (
+          <button
+            type="button"
+            onClick={() => setEquipmentSheetOpen(true)}
+            className="flex shrink-0 touch-manipulation items-center gap-1 rounded-full border border-input px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-accent"
+            aria-label={`Equipment for ${row.exercise.name}`}
+          >
+            {resolvedEquipment.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={resolvedEquipment.imageUrl}
+                alt=""
+                className="size-3.5 shrink-0 rounded-sm object-cover"
+              />
+            ) : (
+              <Dumbbell className="size-3.5 shrink-0" />
+            )}
+            <span className="max-w-20 truncate">{resolvedEquipment.name}</span>
+          </button>
+        )}
         <Button
           size="icon"
           variant="ghost"
@@ -126,6 +159,17 @@ export function ExerciseRowCard({
           rows={2}
           maxLength={500}
           className="text-sm"
+        />
+      )}
+      {move && (
+        <RowEquipmentSheet
+          open={equipmentSheetOpen}
+          onOpenChange={setEquipmentSheetOpen}
+          moveName={move.name}
+          equipment={move.equipment}
+          defaultEquipmentId={move.defaultEquipmentId}
+          selectedId={row.equipmentId}
+          onSelect={onEquipmentChange}
         />
       )}
     </div>
