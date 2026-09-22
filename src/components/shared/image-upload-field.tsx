@@ -64,12 +64,14 @@ export function ImageUploadField({
           disabled={uploading}
           onDragOver={(e) => {
             e.preventDefault()
+            if (uploading) return
             setDragOver(true)
           }}
           onDragLeave={() => setDragOver(false)}
           onDrop={(e) => {
             e.preventDefault()
             setDragOver(false)
+            if (uploading) return
             const f = e.dataTransfer.files?.[0]
             if (f) void onFile(f)
           }}
