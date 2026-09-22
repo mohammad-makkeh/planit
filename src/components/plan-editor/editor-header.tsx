@@ -183,7 +183,6 @@ export function EditorHeader({
           <SelectContent>
             <SelectItem value="draft">Draft</SelectItem>
             <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
           </SelectContent>
         </Select>
       </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Clock, HeartPulse } from 'lucide-react'
+import { Clock, HeartPulse, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { SharedRow, SharedSession } from '@/services/share'
 import { MoveLightbox } from './move-lightbox'
@@ -9,16 +9,11 @@ import { ShareRowCard } from './share-row-card'
 
 export function ShareSession({ session }: { session: SharedSession }) {
   const [activeRow, setActiveRow] = useState<SharedRow | null>(null)
-  const hasCardio = Boolean(session.cardioTime) || Boolean(session.cardioHrm)
+  const hasCardio =
+    session.cardioMinutes !== null || session.cardioBpm !== null || session.cardioIncline !== null
 
   return (
     <div className="space-y-6">
-      {session.focusNote && (
-        <div className="rounded-xl border-l-4 border-brand bg-muted p-3">
-          <p className="text-sm">{session.focusNote}</p>
-        </div>
-      )}
-
       {session.warmupLines.length > 0 && (
         <section className="space-y-2">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -59,16 +54,22 @@ export function ShareSession({ session }: { session: SharedSession }) {
             Cardio
           </p>
           <div className="flex flex-col gap-2 rounded-xl border bg-card p-3 sm:flex-row sm:gap-5">
-            {session.cardioTime && (
+            {session.cardioMinutes !== null && (
               <div className="flex items-center gap-2 text-sm">
                 <Clock className="size-4 shrink-0 text-brand" />
-                {session.cardioTime}
+                {session.cardioMinutes} min
               </div>
             )}
-            {session.cardioHrm && (
+            {session.cardioBpm !== null && (
               <div className="flex items-center gap-2 text-sm">
                 <HeartPulse className="size-4 shrink-0 text-brand" />
-                {session.cardioHrm}
+                {session.cardioBpm} BPM
+              </div>
+            )}
+            {session.cardioIncline !== null && (
+              <div className="flex items-center gap-2 text-sm">
+                <TrendingUp className="size-4 shrink-0 text-brand" />
+                Incline {session.cardioIncline}
               </div>
             )}
           </div>

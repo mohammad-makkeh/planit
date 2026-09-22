@@ -20,8 +20,7 @@ import { ShareSheet } from './share-sheet'
 
 const NEXT_STATUS: Record<Plan['status'], Plan['status']> = {
   draft: 'active',
-  active: 'completed',
-  completed: 'draft',
+  active: 'draft',
 }
 
 export function PlanCardMenu({
@@ -75,7 +74,7 @@ export function PlanCardMenu({
     }
   }
 
-  async function cycleStatus() {
+  async function toggleStatus() {
     setBusy(true)
     try {
       const result = await updatePlanMetaAction(plan.id, { status: NEXT_STATUS[plan.status] })
@@ -126,7 +125,7 @@ export function PlanCardMenu({
           <DropdownMenuItem onClick={() => setPickerOpen(true)}>
             <UserPlus className="size-4" /> Copy to another client
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => void cycleStatus()}>
+          <DropdownMenuItem onClick={() => void toggleStatus()}>
             <RefreshCw className="size-4" /> Mark as {NEXT_STATUS[plan.status]}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setShareOpen(true)}>

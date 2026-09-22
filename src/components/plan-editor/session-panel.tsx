@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
+import { parseIntegerInput } from '@/lib/format'
 import type { SessionFieldPatch } from './plan-editor'
 import type { EditorSession } from '@/services/plans'
 import type { WarmupPreset } from '@/services/warmups'
@@ -19,6 +19,12 @@ import { WarmupSection } from './warmup-section'
 
 const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 const NO_WEEKDAY = 'none'
+
+const CARDIO_FIELDS = [
+  { key: 'cardioMinutes', label: 'Minutes', min: 1, max: 999 },
+  { key: 'cardioBpm', label: 'BPM', min: 1, max: 250 },
+  { key: 'cardioIncline', label: 'Incline', min: 0, max: 15 },
+] as const
 
 export function SessionPanel({
   session,
@@ -37,6 +43,14 @@ export function SessionPanel({
 }) {
   const [pickerOpen, setPickerOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  // Which session the coach opened an empty cardio block for. Tracked by id (not a boolean) so
+  // switching days doesn't carry the open state over — this panel is reused across sessions.
+  const [cardioOpenFor, setCardioOpenFor] = useState<string | null>(null)
+  const showCardio =
+    cardioOpenFor === session.id ||
+    session.cardioMinutes !== null ||
+    session.cardioBpm !== null ||
+    session.cardioIncline !== null
 
   return (
     <div className="space-y-6">
@@ -67,31 +81,6 @@ export function SessionPanel({
         </Select>
       </div>
 
-      {session.focusNote === null ? (
-        <Button variant="ghost" size="sm" onClick={() => onField({ focusNote: '' })}>
-          <Plus className="size-4" /> Add focus note
-        </Button>
-      ) : (
-        <div className="flex items-start gap-1 rounded-xl border-l-4 border-brand bg-muted p-3">
-          <Textarea
-            value={session.focusNote}
-            onChange={(e) => onField({ focusNote: e.target.value })}
-            placeholder="Session focus…"
-            rows={2}
-            maxLength={500}
-            className="min-h-0 flex-1 resize-none border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
-          />
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => onField({ focusNote: null })}
-            aria-label="Remove focus note"
-          >
-            <X className="size-4 text-muted-foreground" />
-          </Button>
-        </div>
-      )}
-
       <WarmupSection
         lines={session.warmupLines}
         onChange={(lines) => onField({ warmupLines: lines })}
@@ -103,38 +92,42 @@ export function SessionPanel({
         {children}
       </section>
 
-      {session.cardioTime === null && session.cardioHrm === null ? (
-        <Button variant="ghost" size="sm" onClick={() => onField({ cardioTime: '', cardioHrm: '' })}>
-          <Plus className="size-4" /> Add cardio
-        </Button>
-      ) : (
+      {showCardio ? (
         <section className="space-y-2">
           <div className="flex items-center justify-between">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Cardio</p>
             <Button
               size="icon"
               variant="ghost"
-              onClick={() => onField({ cardioTime: null, cardioHrm: null })}
+              onClick={() => {
+                setCardioOpenFor(null)
+                onField({ cardioMinutes: null, cardioBpm: null, cardioIncline: null })
+              }}
               aria-label="Remove cardio"
             >
               <X className="size-4 text-muted-foreground" />
             </Button>
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <Input
-              value={session.cardioTime ?? ''}
-              onChange={(e) => onField({ cardioTime: e.target.value })}
-              placeholder="Time — e.g. 20 min + 5 cool down"
-              maxLength={120}
-            />
-            <Input
-              value={session.cardioHrm ?? ''}
-              onChange={(e) => onField({ cardioHrm: e.target.value })}
-              placeholder="Heart rate — e.g. 140 BPM incline 8"
-              maxLength={120}
-            />
+          <div className="grid grid-cols-3 gap-2">
+            {CARDIO_FIELDS.map(({ key, label, min, max }) => (
+              <Input
+                key={key}
+                type="number"
+                inputMode="numeric"
+                min={min}
+                max={max}
+                value={session[key] ?? ''}
+                onChange={(e) => onField({ [key]: parseIntegerInput(e.target.value) })}
+                placeholder={label}
+                aria-label={label}
+              />
+            ))}
           </div>
         </section>
+      ) : (
+        <Button variant="ghost" size="sm" onClick={() => setCardioOpenFor(session.id)}>
+          <Plus className="size-4" /> Add cardio
+        </Button>
       )}
 
       <div className="flex gap-2 border-t pt-4">

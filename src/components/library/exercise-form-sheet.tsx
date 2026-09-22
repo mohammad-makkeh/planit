@@ -70,7 +70,6 @@ export function ExerciseFormSheet({
         tagIds: exercise?.tags.map((t) => t.id) ?? [],
         movementType: exercise?.movementType ?? 'static',
         equipmentIds: exercise?.equipment.map((e) => e.id) ?? [fallbackId],
-        defaultEquipmentId: exercise?.defaultEquipmentId ?? fallbackId,
       })
     }
     wasOpen.current = open
@@ -80,20 +79,6 @@ export function ExerciseFormSheet({
   const tagIds = watch('tagIds') ?? []
   const movementType = watch('movementType')
   const equipmentIds = watch('equipmentIds') ?? []
-  const defaultEquipmentId = watch('defaultEquipmentId')
-
-  function handleEquipmentChange(ids: string[]) {
-    setValue('equipmentIds', ids)
-    const onlyId = ids.length === 1 ? ids[0] : undefined
-    if (onlyId) {
-      setValue('defaultEquipmentId', onlyId)
-    } else if (defaultEquipmentId && !ids.includes(defaultEquipmentId)) {
-      const fallback = ids[0]
-      if (fallback) setValue('defaultEquipmentId', fallback)
-    }
-  }
-
-  const defaultEquipmentChoices = equipmentOptions.filter((item) => equipmentIds.includes(item.id))
 
   const onSubmit = handleSubmit(async (values) => {
     const result = exercise
@@ -172,28 +157,10 @@ export function ExerciseFormSheet({
               <EquipmentMultiSelect
                 options={equipmentOptions}
                 value={equipmentIds}
-                onChange={handleEquipmentChange}
+                onChange={(ids) => setValue('equipmentIds', ids)}
               />
               {formState.errors.equipmentIds && (
                 <p className="text-sm text-destructive">{formState.errors.equipmentIds.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label>Default equipment</Label>
-              <div className="flex flex-wrap gap-2">
-                {defaultEquipmentChoices.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className={chipClass(defaultEquipmentId === item.id)}
-                    onClick={() => setValue('defaultEquipmentId', item.id)}
-                  >
-                    {item.name}
-                  </button>
-                ))}
-              </div>
-              {formState.errors.defaultEquipmentId && (
-                <p className="text-sm text-destructive">{formState.errors.defaultEquipmentId.message}</p>
               )}
             </div>
             <div className="space-y-2">

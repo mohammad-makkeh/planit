@@ -4,16 +4,17 @@ import { Dumbbell } from 'lucide-react'
 import type { SharedRow } from '@/services/share'
 
 const FIELDS = [
-  { key: 'sets', label: 'Sets' },
-  { key: 'reps', label: 'Reps' },
-  { key: 'speed', label: 'Speed' },
-  { key: 'oneRm', label: '1RM' },
-  { key: 'rest', label: 'Rest' },
+  { key: 'sets', label: 'Sets', suffix: '' },
+  { key: 'reps', label: 'Reps', suffix: '' },
+  { key: 'speed', label: 'Speed', suffix: '' },
+  { key: 'oneRm', label: '1RM', suffix: '%' },
+  { key: 'rest', label: 'Rest', suffix: 's' },
 ] as const
 
 export function ShareRowCard({ row, onOpen }: { row: SharedRow; onOpen: () => void }) {
   const thumbnailUrl = row.exercise.imageUrl ?? row.equipment?.imageUrl ?? null
-  const values = FIELDS.filter(({ key }) => row[key])
+  // `!== null` rather than truthiness — rest is an integer and 0 is a real value.
+  const values = FIELDS.filter(({ key }) => row[key] !== null && row[key] !== '')
 
   return (
     <button
@@ -60,12 +61,15 @@ export function ShareRowCard({ row, onOpen }: { row: SharedRow; onOpen: () => vo
       </div>
       {values.length > 0 && (
         <div className="flex flex-wrap gap-x-4 gap-y-1.5 border-t pt-2">
-          {values.map(({ key, label }) => (
+          {values.map(({ key, label, suffix }) => (
             <div key={key} className="min-w-10">
               <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
                 {label}
               </p>
-              <p className="text-sm font-semibold">{row[key]}</p>
+              <p className="text-sm font-semibold">
+                {row[key]}
+                {suffix}
+              </p>
             </div>
           ))}
         </div>

@@ -22,11 +22,11 @@ export function listPlansForClient(coachId: string, clientId: string): Promise<P
 export type EditorRow = {
   id: string
   position: number
-  sets: string | null
-  reps: string | null
+  sets: number | null
+  reps: number | null
   speed: string | null
-  oneRm: string | null
-  rest: string | null
+  oneRm: number | null
+  rest: number | null
   note: string | null
   exercise: { id: string; name: string; imageUrl: string | null }
   equipmentId: string | null
@@ -37,10 +37,10 @@ export type EditorSession = {
   position: number
   label: string
   weekday: string | null
-  focusNote: string | null
   warmupLines: WarmupLine[]
-  cardioTime: string | null
-  cardioHrm: string | null
+  cardioMinutes: number | null
+  cardioBpm: number | null
+  cardioIncline: number | null
   rows: EditorRow[]
 }
 
@@ -133,10 +133,10 @@ export async function getPlanForEditor(
       position: s.position,
       label: s.label,
       weekday: s.weekday,
-      focusNote: s.focusNote,
       warmupLines: s.warmupLines,
-      cardioTime: s.cardioTime,
-      cardioHrm: s.cardioHrm,
+      cardioMinutes: s.cardioMinutes,
+      cardioBpm: s.cardioBpm,
+      cardioIncline: s.cardioIncline,
       rows: rowsBySession.get(s.id) ?? [],
     })),
   }
@@ -209,10 +209,10 @@ export async function duplicatePlan(
           position: s.position,
           label: s.label,
           weekday: s.weekday,
-          focusNote: s.focusNote,
           warmupLines: s.warmupLines,
-          cardioTime: s.cardioTime,
-          cardioHrm: s.cardioHrm,
+          cardioMinutes: s.cardioMinutes,
+          cardioBpm: s.cardioBpm,
+          cardioIncline: s.cardioIncline,
         })
         .returning({ id: planSessions.id })
       if (!session) throw new Error('Insert returned no row')
@@ -306,10 +306,10 @@ export async function savePlanDocument(
           position: index + 1,
           label: s.label,
           weekday: s.weekday,
-          focusNote: s.focusNote,
           warmupLines: s.warmupLines,
-          cardioTime: s.cardioTime,
-          cardioHrm: s.cardioHrm,
+          cardioMinutes: s.cardioMinutes,
+          cardioBpm: s.cardioBpm,
+          cardioIncline: s.cardioIncline,
         })
         .returning({ id: planSessions.id })
       if (!session) throw new Error('Insert returned no row')

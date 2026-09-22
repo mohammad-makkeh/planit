@@ -15,6 +15,13 @@
       "when": 1790060034260,
       "tag": "0001_nebulous_slyde",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790080551208,
+      "tag": "0002_brown_sauron",
+      "breakpoints": true
     }
   ]
 }

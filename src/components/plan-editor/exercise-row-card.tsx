@@ -10,17 +10,19 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { parseIntegerInput } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { ExerciseWithTags } from '@/services/exercises'
 import type { EditorRow } from '@/services/plans'
+import type { RowFieldPatch } from './plan-editor'
 import { RowEquipmentSheet } from './row-equipment-sheet'
 
 const FIELDS = [
-  { key: 'sets', label: 'Sets', maxLength: 40 },
-  { key: 'reps', label: 'Reps', maxLength: 40 },
-  { key: 'speed', label: 'Speed', maxLength: 120 },
-  { key: 'oneRm', label: '1RM', maxLength: 120 },
-  { key: 'rest', label: 'Rest', maxLength: 60 },
+  { key: 'sets', kind: 'int', label: 'Sets', min: 1, max: 99 },
+  { key: 'reps', kind: 'int', label: 'Reps', min: 1, max: 999 },
+  { key: 'speed', kind: 'text', label: 'Speed', maxLength: 120 },
+  { key: 'oneRm', kind: 'int', label: '1RM', min: 1, max: 100 },
+  { key: 'rest', kind: 'int', label: 'Rest', min: 0, max: 3600 },
 ] as const
 
 export function ExerciseRowCard({
@@ -34,7 +36,7 @@ export function ExerciseRowCard({
 }: {
   row: EditorRow
   exercises: ExerciseWithTags[]
-  onField: (fields: Record<string, string | null>) => void
+  onField: (fields: RowFieldPatch) => void
   onSwap: () => void
   onDuplicate: () => void
   onDelete: () => void
@@ -136,18 +138,31 @@ export function ExerciseRowCard({
         </DropdownMenu>
       </div>
       <div className="grid grid-cols-5 gap-1.5">
-        {FIELDS.map(({ key, label, maxLength }) => (
-          <div key={key} className="space-y-0.5">
+        {FIELDS.map((field) => (
+          <div key={field.key} className="space-y-0.5">
             <p className="text-center text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-              {label}
+              {field.label}
             </p>
-            <Input
-              value={row[key] ?? ''}
-              onChange={(e) => onField({ [key]: e.target.value })}
-              maxLength={maxLength}
-              className="h-8 px-1 text-center text-xs"
-              aria-label={`${row.exercise.name} ${label}`}
-            />
+            {field.kind === 'int' ? (
+              <Input
+                type="number"
+                inputMode="numeric"
+                min={field.min}
+                max={field.max}
+                value={row[field.key] ?? ''}
+                onChange={(e) => onField({ [field.key]: parseIntegerInput(e.target.value) })}
+                className="h-8 px-1 text-center text-xs"
+                aria-label={`${row.exercise.name} ${field.label}`}
+              />
+            ) : (
+              <Input
+                value={row[field.key] ?? ''}
+                onChange={(e) => onField({ [field.key]: e.target.value })}
+                maxLength={field.maxLength}
+                className="h-8 px-1 text-center text-xs"
+                aria-label={`${row.exercise.name} ${field.label}`}
+              />
+            )}
           </div>
         ))}
       </div>

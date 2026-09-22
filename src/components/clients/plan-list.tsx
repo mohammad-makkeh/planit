@@ -10,7 +10,6 @@ import type { Plan } from '@/services/plans'
 const STATUS_STYLES: Record<Plan['status'], string> = {
   draft: 'bg-muted text-muted-foreground',
   active: 'bg-brand/10 text-brand',
-  completed: 'bg-secondary text-secondary-foreground',
 }
 
 export function PlanList({

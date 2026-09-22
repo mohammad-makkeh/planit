@@ -12,3 +12,14 @@ export function formatRelative(date: Date): string {
 export function formatDate(date: Date): string {
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 }
+
+/**
+ * A numeric editor field's raw input → an integer, or null when it is empty. Never NaN and
+ * never a silent 0: a cleared field must round-trip to SQL NULL, not to zero.
+ */
+export function parseIntegerInput(raw: string): number | null {
+  const trimmed = raw.trim()
+  if (trimmed === '') return null
+  const parsed = Number(trimmed)
+  return Number.isFinite(parsed) ? Math.trunc(parsed) : null
+}

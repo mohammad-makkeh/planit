@@ -59,28 +59,38 @@ export async function listExercises(coachId: string): Promise<ExerciseWithTags[]
   }))
 }
 
-function toRow(input: ExerciseInput) {
+function toRow(input: ExerciseInput, defaultEquipmentId: string) {
   return {
     name: input.name,
     imageUrl: input.imageUrl ?? null,
     tutorialUrl: input.tutorialUrl ?? null,
     movementType: input.movementType,
-    defaultEquipmentId: input.defaultEquipmentId,
+    defaultEquipmentId,
   }
+}
+
+/**
+ * Keeps the coach-owned ids in the order the coach picked them — the ownership query returns
+ * rows in an arbitrary order, so the input drives the order, not the query result. The first
+ * entry becomes the exercise's default equipment, which preserves the "default is always an
+ * owned, linked equipment" guarantee now that the default is no longer a separate input.
+ */
+function orderedOwned(equipmentIds: string[], ownedRows: { id: string }[]): string[] {
+  const owned = new Set(ownedRows.map((e) => e.id))
+  return equipmentIds.filter((id) => owned.has(id))
 }
 
 export async function createExercise(coachId: string, input: ExerciseInput): Promise<Exercise> {
   return db.transaction(async (tx) => {
     const ownedEquipment = input.equipmentIds.length > 0
-      ? (await tx.select({ id: equipment.id }).from(equipment)
-          .where(and(eq(equipment.coachId, coachId), inArray(equipment.id, input.equipmentIds)))).map((e) => e.id)
+      ? orderedOwned(input.equipmentIds, await tx.select({ id: equipment.id }).from(equipment)
+          .where(and(eq(equipment.coachId, coachId), inArray(equipment.id, input.equipmentIds))))
       : []
-    if (!ownedEquipment.includes(input.defaultEquipmentId)) {
-      throw new Error('Default equipment not owned')
-    }
+    const defaultEquipmentId = ownedEquipment[0]
+    if (!defaultEquipmentId) throw new Error('Default equipment not owned')
     const [created] = await tx
       .insert(exercises)
-      .values({ coachId, ...toRow(input) })
+      .values({ coachId, ...toRow(input, defaultEquipmentId) })
       .returning()
     if (!created) throw new Error('Insert returned no row')
     const ownedTagIds = input.tagIds.length > 0
@@ -110,15 +120,14 @@ export async function updateExercise(
 ): Promise<Exercise | undefined> {
   return db.transaction(async (tx) => {
     const ownedEquipment = input.equipmentIds.length > 0
-      ? (await tx.select({ id: equipment.id }).from(equipment)
-          .where(and(eq(equipment.coachId, coachId), inArray(equipment.id, input.equipmentIds)))).map((e) => e.id)
+      ? orderedOwned(input.equipmentIds, await tx.select({ id: equipment.id }).from(equipment)
+          .where(and(eq(equipment.coachId, coachId), inArray(equipment.id, input.equipmentIds))))
       : []
-    if (!ownedEquipment.includes(input.defaultEquipmentId)) {
-      throw new Error('Default equipment not owned')
-    }
+    const defaultEquipmentId = ownedEquipment[0]
+    if (!defaultEquipmentId) throw new Error('Default equipment not owned')
     const [updated] = await tx
       .update(exercises)
-      .set(toRow(input))
+      .set(toRow(input, defaultEquipmentId))
       .where(and(eq(exercises.id, exerciseId), eq(exercises.coachId, coachId)))
       .returning()
     if (!updated) return undefined

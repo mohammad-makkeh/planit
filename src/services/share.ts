@@ -9,21 +9,21 @@ export type SharedRow = {
   exercise: { name: string; imageUrl: string | null; tutorialUrl: string | null }
   movementType: 'push' | 'pull' | 'static'
   equipment: { name: string; imageUrl: string | null } | null
-  sets: string | null
-  reps: string | null
+  sets: number | null
+  reps: number | null
   speed: string | null
-  oneRm: string | null
-  rest: string | null
+  oneRm: number | null
+  rest: number | null
   note: string | null
 }
 
 export type SharedSession = {
   label: string
   weekday: string | null
-  focusNote: string | null
   warmupLines: { text: string; highlighted: boolean }[]
-  cardioTime: string | null
-  cardioHrm: string | null
+  cardioMinutes: number | null
+  cardioBpm: number | null
+  cardioIncline: number | null
   rows: SharedRow[]
 }
 
@@ -149,10 +149,10 @@ async function buildSharedPlan(planRow: PlanRow | undefined): Promise<SharedPlan
     sessions: sessions.map((s) => ({
       label: s.label,
       weekday: s.weekday,
-      focusNote: s.focusNote,
       warmupLines: s.warmupLines,
-      cardioTime: s.cardioTime,
-      cardioHrm: s.cardioHrm,
+      cardioMinutes: s.cardioMinutes,
+      cardioBpm: s.cardioBpm,
+      cardioIncline: s.cardioIncline,
       rows: rowsBySession.get(s.id) ?? [],
     })),
   }

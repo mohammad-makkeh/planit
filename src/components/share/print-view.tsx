@@ -121,15 +121,6 @@ const PRINT_CSS = `
     letter-spacing: 0.04em;
   }
 
-  .pv-focus-note {
-    margin: 0;
-    font-size: 11px;
-    background: #f3f4f6;
-    border-left: 3px solid var(--brand);
-    padding: 2.5mm 3mm;
-    border-radius: 2px;
-  }
-
   .pv-section {
     display: flex;
     flex-direction: column;
@@ -249,8 +240,9 @@ const PRINT_CSS = `
   }
 `
 
-function displayValue(value: string | null): string {
-  return value ? value : '—'
+/** `!= null` rather than truthiness — the integer fields have 0 as a real value. */
+function displayValue(value: string | number | null, suffix = ''): string {
+  return value != null && value !== '' ? `${value}${suffix}` : '—'
 }
 
 function capitalize(value: string): string {
@@ -309,8 +301,8 @@ function WorkoutTableRow({ row, index }: { row: SharedRow; index: number }) {
         <td>{displayValue(row.sets)}</td>
         <td>{displayValue(row.reps)}</td>
         <td>{displayValue(row.speed)}</td>
-        <td>{displayValue(row.oneRm)}</td>
-        <td>{displayValue(row.rest)}</td>
+        <td>{displayValue(row.oneRm, '%')}</td>
+        <td>{displayValue(row.rest, 's')}</td>
       </tr>
       {row.note && (
         <tr className="pv-note-row" key={`${index}-note`}>
@@ -322,7 +314,11 @@ function WorkoutTableRow({ row, index }: { row: SharedRow; index: number }) {
 }
 
 function SessionPage({ plan, session }: { plan: SharedPlan; session: SharedSession }) {
-  const cardioParts = [session.cardioTime, session.cardioHrm].filter((part): part is string => Boolean(part))
+  const cardioParts = [
+    session.cardioMinutes !== null ? `${session.cardioMinutes} min` : null,
+    session.cardioBpm !== null ? `${session.cardioBpm} BPM` : null,
+    session.cardioIncline !== null ? `incline ${session.cardioIncline}` : null,
+  ].filter((part): part is string => part !== null)
   const cardioLabel = cardioParts.length > 0 ? `CARDIO — ${cardioParts.join(' · ')}` : null
 
   return (
@@ -333,8 +329,6 @@ function SessionPage({ plan, session }: { plan: SharedPlan; session: SharedSessi
           <h2 className="pv-day-label">{session.label}</h2>
           {session.weekday && <span className="pv-day-weekday">{session.weekday}</span>}
         </div>
-
-        {session.focusNote && <p className="pv-focus-note">{session.focusNote}</p>}
 
         {session.warmupLines.length > 0 && (
           <section className="pv-section">

@@ -11,7 +11,7 @@ import type { ExerciseWithTags } from '@/services/exercises'
 import type { EditorSession } from '@/services/plans'
 import { ExercisePickerSheet } from './exercise-picker-sheet'
 import { ExerciseRowCard } from './exercise-row-card'
-import type { PickedExercise } from './plan-editor'
+import type { PickedExercise, RowFieldPatch } from './plan-editor'
 
 type PickerMode = { type: 'add' } | { type: 'swap'; rowId: string } | null
 
@@ -32,7 +32,7 @@ export function ExerciseRows({
   exercises: ExerciseWithTags[]
   tags: TagOption[]
   equipmentOptions: EquipmentOption[]
-  onRowField: (rowId: string, fields: Record<string, string | null>) => void
+  onRowField: (rowId: string, fields: RowFieldPatch) => void
   onAdd: (exercise: PickedExercise, equipmentId: string | null) => void
   onSwap: (rowId: string, exercise: PickedExercise, equipmentId: string | null) => void
   onDuplicate: (rowId: string) => void

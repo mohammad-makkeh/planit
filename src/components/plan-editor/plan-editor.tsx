@@ -15,7 +15,14 @@ import { SessionChips } from './session-chips'
 import { SessionPanel } from './session-panel'
 
 export type SessionFieldPatch = Partial<
-  Pick<EditorSession, 'label' | 'weekday' | 'focusNote' | 'warmupLines' | 'cardioTime' | 'cardioHrm'>
+  Pick<
+    EditorSession,
+    'label' | 'weekday' | 'warmupLines' | 'cardioMinutes' | 'cardioBpm' | 'cardioIncline'
+  >
+>
+
+export type RowFieldPatch = Partial<
+  Pick<EditorRow, 'sets' | 'reps' | 'speed' | 'oneRm' | 'rest' | 'note'>
 >
 
 export type PickedExercise = { id: string; name: string; imageUrl: string | null }
@@ -27,10 +34,10 @@ function toDocument(plan: EditorPlan): PlanDocument {
     sessions: plan.sessions.map((s) => ({
       label: s.label.trim(),
       weekday: s.weekday,
-      focusNote: s.focusNote,
       warmupLines: s.warmupLines,
-      cardioTime: s.cardioTime,
-      cardioHrm: s.cardioHrm,
+      cardioMinutes: s.cardioMinutes,
+      cardioBpm: s.cardioBpm,
+      cardioIncline: s.cardioIncline,
       rows: s.rows.map((r) => ({
         exerciseId: r.exercise.id,
         equipmentId: r.equipmentId ?? null,
@@ -128,7 +135,7 @@ export function PlanEditor({
   )
 
   const setRowField = useCallback(
-    (sessionId: string, rowId: string, fields: Record<string, string | null>) => {
+    (sessionId: string, rowId: string, fields: RowFieldPatch) => {
       mutate((d) => ({
         ...d,
         sessions: d.sessions.map((s) =>
@@ -152,10 +159,10 @@ export function PlanEditor({
           position: d.sessions.length + 1,
           label: `Day ${d.sessions.length + 1}`,
           weekday: null,
-          focusNote: null,
           warmupLines: [],
-          cardioTime: null,
-          cardioHrm: null,
+          cardioMinutes: null,
+          cardioBpm: null,
+          cardioIncline: null,
           rows: [],
         },
       ],

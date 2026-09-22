@@ -31,22 +31,16 @@ export type ClientInput = z.infer<typeof clientSchema>
 export const movementTypes = ['push', 'pull', 'static'] as const
 export type MovementType = (typeof movementTypes)[number]
 
-export const exerciseSchema = z
-  .object({
-    name: z.string().trim().min(1, 'Name is required'),
-    imageUrl: optionalTrimmed.pipe(z.string().url('Enter a valid URL').optional()),
-    tutorialUrl: optionalTrimmed.pipe(
-      z.url({ protocol: /^https?$/, error: 'Enter a valid URL' }).optional(),
-    ),
-    tagIds: z.array(z.string().uuid()).default([]),
-    movementType: z.enum(movementTypes),
-    equipmentIds: z.array(z.string().uuid()).min(1, 'Pick at least one equipment').max(20),
-    defaultEquipmentId: z.string().uuid(),
-  })
-  .refine((v) => v.equipmentIds.includes(v.defaultEquipmentId), {
-    message: 'Default must be one of the selected equipment',
-    path: ['defaultEquipmentId'],
-  })
+export const exerciseSchema = z.object({
+  name: z.string().trim().min(1, 'Name is required'),
+  imageUrl: optionalTrimmed.pipe(z.string().url('Enter a valid URL').optional()),
+  tutorialUrl: optionalTrimmed.pipe(
+    z.url({ protocol: /^https?$/, error: 'Enter a valid URL' }).optional(),
+  ),
+  tagIds: z.array(z.string().uuid()).default([]),
+  movementType: z.enum(movementTypes),
+  equipmentIds: z.array(z.string().uuid()).min(1, 'Pick at least one equipment').max(20),
+})
 export type ExerciseInput = z.infer<typeof exerciseSchema>
 
 export const tagSchema = z.object({
@@ -80,37 +74,38 @@ export type ProfileInput = z.infer<typeof profileSchema>
 export const planMetaSchema = z
   .object({
     title: z.string().trim().min(1, 'Title is required').max(200),
-    status: z.enum(['draft', 'active', 'completed']),
+    status: z.enum(['draft', 'active']),
   })
   .partial()
 export type PlanMetaInput = z.infer<typeof planMetaSchema>
 
 const docText = (max: number) => z.string().max(max).nullable()
+const docInt = (min: number, max: number) => z.number().int().min(min).max(max).nullable()
 
 export const planDocumentSchema = z.object({
   title: z.string().trim().min(1, 'Title is required').max(200),
-  status: z.enum(['draft', 'active', 'completed']),
+  status: z.enum(['draft', 'active']),
   sessions: z
     .array(
       z.object({
         label: z.string().trim().min(1).max(120),
         weekday: z.string().max(20).nullable(),
-        focusNote: docText(500),
         warmupLines: z
           .array(z.object({ text: z.string().min(1).max(300), highlighted: z.boolean() }))
           .max(50),
-        cardioTime: docText(120),
-        cardioHrm: docText(120),
+        cardioMinutes: docInt(1, 999),
+        cardioBpm: docInt(1, 250),
+        cardioIncline: docInt(0, 15),
         rows: z
           .array(
             z.object({
               exerciseId: z.string().uuid(),
               equipmentId: z.string().uuid().nullable().optional(),
-              sets: docText(40),
-              reps: docText(40),
+              sets: docInt(1, 99),
+              reps: docInt(1, 999),
               speed: docText(120),
-              oneRm: docText(120),
-              rest: docText(60),
+              oneRm: docInt(1, 100),
+              rest: docInt(0, 3600),
               note: docText(500),
             }),
           )

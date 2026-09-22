@@ -6,7 +6,7 @@ import {
 
 export type WarmupLine = { text: string; highlighted: boolean }
 
-export const planStatusEnum = pgEnum('plan_status', ['draft', 'active', 'completed'])
+export const planStatusEnum = pgEnum('plan_status', ['draft', 'active'])
 export const movementTypeEnum = pgEnum('movement_type', ['push', 'pull', 'static'])
 
 const id = uuid('id').primaryKey().defaultRandom()
@@ -103,10 +103,10 @@ export const planSessions = pgTable('plan_sessions', {
   position: integer('position').notNull(),
   label: text('label').notNull(),
   weekday: text('weekday'),
-  focusNote: text('focus_note'),
   warmupLines: jsonb('warmup_lines').$type<WarmupLine[]>().notNull().default(sql`'[]'::jsonb`),
-  cardioTime: text('cardio_time'),
-  cardioHrm: text('cardio_hrm'),
+  cardioMinutes: integer('cardio_minutes'),
+  cardioBpm: integer('cardio_bpm'),
+  cardioIncline: integer('cardio_incline'),
 })
 
 export const planRows = pgTable('plan_rows', {
@@ -114,11 +114,11 @@ export const planRows = pgTable('plan_rows', {
   sessionId: uuid('session_id').notNull().references(() => planSessions.id, { onDelete: 'cascade' }),
   position: integer('position').notNull(),
   exerciseId: uuid('exercise_id').notNull().references(() => exercises.id, { onDelete: 'cascade' }),
-  sets: text('sets'),
-  reps: text('reps'),
+  sets: integer('sets'),
+  reps: integer('reps'),
   speed: text('speed'),
-  oneRm: text('one_rm'),
-  rest: text('rest'),
+  oneRm: integer('one_rm'),
+  rest: integer('rest'),
   note: text('note'),
   equipmentId: uuid('equipment_id').references(() => equipment.id, { onDelete: 'set null' }),
 })
