@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Check, Copy, Link2, MoreVertical, Save, Trash2 } from 'lucide-react'
+import { ArrowLeft, Check, Copy, FileDown, Link2, MoreVertical, Save, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { deletePlanAction, duplicatePlanAction } from '@/actions/plan-editor'
 import { ShareSheet } from '@/components/plans/share-sheet'
@@ -61,6 +61,22 @@ export function EditorHeader({
       }
       toast.success('Duplicated — you are now editing the copy')
       router.push(`/clients/${plan.clientId}/plans/${result.data.id}`)
+    } catch {
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function exportPDF() {
+    if (busy) return
+    setBusy(true)
+    try {
+      if (dirty) {
+        const saved = await onEnsureSaved()
+        if (!saved) return
+      }
+      window.open(`/plans/${plan.id}/print`, '_blank')
     } catch {
       toast.error('Something went wrong. Please try again.')
     } finally {
@@ -128,6 +144,9 @@ export function EditorHeader({
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setShareOpen(true)}>
               <Link2 className="size-4" /> Share
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => void exportPDF()}>
+              <FileDown className="size-4" /> Export PDF
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>

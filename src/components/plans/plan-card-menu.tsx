@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Copy, Link2, MoreVertical, RefreshCw, Trash2, UserPlus } from 'lucide-react'
+import { Copy, FileDown, Link2, MoreVertical, RefreshCw, Trash2, UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
 import {
   deletePlanAction, duplicatePlanAction, updatePlanMetaAction,
@@ -131,6 +131,9 @@ export function PlanCardMenu({
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setShareOpen(true)}>
             <Link2 className="size-4" /> Share
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => window.open(`/plans/${plan.id}/print`, '_blank')}>
+            <FileDown className="size-4" /> Export PDF
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onClick={() => setDeleteOpen(true)}>
