@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Copy, Link2, MoreVertical, Trash2 } from 'lucide-react'
+import { ArrowLeft, Check, Copy, Link2, MoreVertical, Save, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { deletePlanAction, duplicatePlanAction } from '@/actions/plan-editor'
 import { ShareSheet } from '@/components/plans/share-sheet'
@@ -101,14 +101,18 @@ export function EditorHeader({
         >
           <ArrowLeft className="size-4" /> {plan.client.name}
         </button>
-        <span
-          className={cn('ml-auto text-xs', dirty ? 'text-brand' : 'text-muted-foreground')}
-          aria-live="polite"
-        >
-          {saving ? 'Saving…' : dirty ? 'Unsaved changes' : 'Saved ✓'}
+        <span className="sr-only" aria-live="polite">
+          {saving ? 'Saving…' : dirty ? 'Unsaved changes' : 'Saved'}
         </span>
-        <Button size="sm" onClick={onSave} disabled={!dirty || saving}>
-          {saving ? 'Saving…' : 'Save'}
+        <Button
+          size="sm"
+          onClick={onSave}
+          disabled={!dirty || saving}
+          variant={dirty ? 'default' : 'secondary'}
+          className={cn('ml-auto', !dirty && !saving && 'text-muted-foreground')}
+        >
+          {saving ? null : dirty ? <Save className="size-4" /> : <Check className="size-4" />}
+          {saving ? 'Saving…' : dirty ? 'Save' : 'Saved'}
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger

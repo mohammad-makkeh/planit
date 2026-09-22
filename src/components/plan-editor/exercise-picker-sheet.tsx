@@ -2,12 +2,13 @@
 
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Dumbbell, Plus, Search } from 'lucide-react'
+import { ChevronDown, Dumbbell, Plus, Search } from 'lucide-react'
 import type { EquipmentOption } from '@/components/library/equipment-multi-select'
 import { ExerciseFormSheet } from '@/components/library/exercise-form-sheet'
 import { TagFilter } from '@/components/library/tag-filter'
 import type { TagOption } from '@/components/library/tag-multi-select'
 import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 import type { ExerciseWithTags } from '@/services/exercises'
 import {
   BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle,
@@ -94,18 +95,20 @@ export function ExercisePickerSheet({
             <div className="space-y-1.5">
               {filtered.map((e) => {
                 const thumb = moveThumbnail(e)
+                const expandable = e.equipment.length > 1
+                const expanded = expandable && expandedId === e.id
                 return (
-                  <div key={e.id} className="space-y-1.5">
+                  <div key={e.id} className="rounded-xl border bg-card">
                     <button
                       type="button"
                       onClick={() => {
-                        if (e.equipment.length > 1) {
+                        if (expandable) {
                           setExpandedId((cur) => (cur === e.id ? null : e.id))
                         } else {
                           pick({ id: e.id, name: e.name, imageUrl: e.imageUrl }, null)
                         }
                       }}
-                      className="flex w-full items-center gap-3 rounded-xl border bg-card p-2.5 text-left hover:bg-accent/40"
+                      className="flex w-full items-center gap-3 p-2.5 text-left hover:bg-accent/40"
                     >
                       {thumb ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -116,25 +119,42 @@ export function ExercisePickerSheet({
                         </div>
                       )}
                       <span className="min-w-0 flex-1 truncate text-sm font-medium">{e.name}</span>
+                      {expandable && (
+                        <ChevronDown
+                          className={cn(
+                            'size-4 shrink-0 text-muted-foreground transition-transform duration-200',
+                            expanded && 'rotate-180',
+                          )}
+                        />
+                      )}
                     </button>
-                    {expandedId === e.id && (
-                      <div className="flex flex-wrap gap-1.5 pl-2">
-                        {e.equipment.map((eq) => (
-                          <button
-                            key={eq.id}
-                            type="button"
-                            onClick={() => pick({ id: e.id, name: e.name, imageUrl: e.imageUrl }, eq.id)}
-                            className={equipmentChipClass()}
-                          >
-                            {eq.imageUrl ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img src={eq.imageUrl} alt="" className="size-4 shrink-0 rounded-sm object-cover" />
-                            ) : (
-                              <Dumbbell className="size-4 shrink-0 text-muted-foreground" />
-                            )}
-                            {eq.name}
-                          </button>
-                        ))}
+                    {expandable && (
+                      <div
+                        className={cn(
+                          'grid transition-[grid-template-rows] duration-200 ease-in-out',
+                          expanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+                        )}
+                      >
+                        <div className="overflow-hidden">
+                          <div className="flex flex-wrap gap-1.5 px-2.5 pb-2.5">
+                            {e.equipment.map((eq) => (
+                              <button
+                                key={eq.id}
+                                type="button"
+                                onClick={() => pick({ id: e.id, name: e.name, imageUrl: e.imageUrl }, eq.id)}
+                                className={equipmentChipClass()}
+                              >
+                                {eq.imageUrl ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img src={eq.imageUrl} alt="" className="size-4 shrink-0 rounded-sm object-cover" />
+                                ) : (
+                                  <Dumbbell className="size-4 shrink-0 text-muted-foreground" />
+                                )}
+                                {eq.name}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     )}
                   </div>

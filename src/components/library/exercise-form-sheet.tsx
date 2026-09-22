@@ -14,9 +14,6 @@ import {
 } from '@/components/ui/bottom-sheet'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
 import { exerciseSchema, movementTypes, type MovementType } from '@/lib/validation'
 import { cn } from '@/lib/utils'
 import type { ExerciseWithTags } from '@/services/exercises'
@@ -32,7 +29,7 @@ const movementTypeLabels: Record<MovementType, string> = {
   static: 'Static',
 }
 
-function movementChipClass(active: boolean): string {
+function chipClass(active: boolean): string {
   return cn(
     'inline-flex h-9 shrink-0 items-center whitespace-nowrap rounded-full border px-4 text-sm font-medium transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30',
     active
@@ -58,8 +55,6 @@ export function ExerciseFormSheet({
   initialName?: string
   onCreated?: (exercise: { id: string; name: string; imageUrl: string | null }) => void
 }) {
-  const [localTags, setLocalTags] = useState<TagOption[]>(tagOptions)
-  const [localEquipment, setLocalEquipment] = useState<EquipmentOption[]>(equipmentOptions)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const { register, handleSubmit, reset, watch, setValue, setError, formState } =
     useForm<FormValues>({ resolver: zodResolver(exerciseSchema) })
@@ -67,8 +62,6 @@ export function ExerciseFormSheet({
   const wasOpen = useRef(false)
   useEffect(() => {
     if (open && !wasOpen.current) {
-      setLocalTags(tagOptions)
-      setLocalEquipment(equipmentOptions)
       const fallbackId = equipmentOptions.find((o) => o.isFallback)!.id
       reset({
         name: exercise?.name ?? initialName ?? '',
@@ -100,8 +93,7 @@ export function ExerciseFormSheet({
     }
   }
 
-  const defaultEquipmentChoices = localEquipment.filter((item) => equipmentIds.includes(item.id))
-  const defaultEquipmentItems = localEquipment.map((item) => ({ value: item.id, label: item.name }))
+  const defaultEquipmentChoices = equipmentOptions.filter((item) => equipmentIds.includes(item.id))
 
   const onSubmit = handleSubmit(async (values) => {
     const result = exercise
@@ -164,7 +156,7 @@ export function ExerciseFormSheet({
                   <button
                     key={type}
                     type="button"
-                    className={movementChipClass(movementType === type)}
+                    className={chipClass(movementType === type)}
                     onClick={() => setValue('movementType', type)}
                   >
                     {movementTypeLabels[type]}
@@ -178,10 +170,9 @@ export function ExerciseFormSheet({
             <div className="space-y-2">
               <Label>Equipment</Label>
               <EquipmentMultiSelect
-                options={localEquipment}
+                options={equipmentOptions}
                 value={equipmentIds}
                 onChange={handleEquipmentChange}
-                onCreated={(item) => setLocalEquipment((prev) => [...prev, item])}
               />
               {formState.errors.equipmentIds && (
                 <p className="text-sm text-destructive">{formState.errors.equipmentIds.message}</p>
@@ -189,24 +180,18 @@ export function ExerciseFormSheet({
             </div>
             <div className="space-y-2">
               <Label>Default equipment</Label>
-              <Select
-                items={defaultEquipmentItems}
-                value={defaultEquipmentId ?? ''}
-                onValueChange={(v) => {
-                  if (v) setValue('defaultEquipmentId', v)
-                }}
-              >
-                <SelectTrigger className="w-full" aria-label="Default equipment">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {defaultEquipmentChoices.map((item) => (
-                    <SelectItem key={item.id} value={item.id}>
-                      {item.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex flex-wrap gap-2">
+                {defaultEquipmentChoices.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={chipClass(defaultEquipmentId === item.id)}
+                    onClick={() => setValue('defaultEquipmentId', item.id)}
+                  >
+                    {item.name}
+                  </button>
+                ))}
+              </div>
               {formState.errors.defaultEquipmentId && (
                 <p className="text-sm text-destructive">{formState.errors.defaultEquipmentId.message}</p>
               )}
@@ -214,10 +199,9 @@ export function ExerciseFormSheet({
             <div className="space-y-2">
               <Label>Tags</Label>
               <TagMultiSelect
-                options={localTags}
+                options={tagOptions}
                 value={tagIds}
                 onChange={(ids) => setValue('tagIds', ids)}
-                onCreated={(tag) => setLocalTags((prev) => [...prev, tag])}
               />
             </div>
             <Button type="submit" className="w-full" disabled={formState.isSubmitting}>

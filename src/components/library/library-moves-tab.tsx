@@ -11,7 +11,6 @@ import type { ExerciseWithTags } from '@/services/exercises'
 import type { EquipmentOption } from './equipment-multi-select'
 import { ExerciseCard } from './exercise-card'
 import { ExerciseFormSheet } from './exercise-form-sheet'
-import { TagFilter } from './tag-filter'
 import type { TagOption } from './tag-multi-select'
 
 function chipClass(active: boolean): string {
@@ -33,20 +32,30 @@ export function LibraryMovesTab({
   equipmentOptions: EquipmentOption[]
 }) {
   const [search, setSearch] = useState('')
-  const [tagId, setTagId] = useState<string | null>(null)
-  const [movementType, setMovementType] = useState<MovementType | null>(null)
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [selectedTypes, setSelectedTypes] = useState<MovementType[]>([])
   const [editing, setEditing] = useState<ExerciseWithTags | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
+
+  function toggleType(type: MovementType) {
+    setSelectedTypes((prev) => (prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]))
+  }
+
+  function toggleTag(id: string) {
+    setSelectedTags((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]))
+  }
+
+  const allActive = selectedTypes.length === 0 && selectedTags.length === 0
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     return exercises.filter((e) => {
       if (q && !e.name.toLowerCase().includes(q)) return false
-      if (tagId && !e.tags.some((t) => t.id === tagId)) return false
-      if (movementType && e.movementType !== movementType) return false
+      if (selectedTypes.length && !selectedTypes.includes(e.movementType)) return false
+      if (selectedTags.length && !e.tags.some((t) => selectedTags.includes(t.id))) return false
       return true
     })
-  }, [exercises, search, tagId, movementType])
+  }, [exercises, search, selectedTags, selectedTypes])
 
   return (
     <div className="space-y-3 pt-3">
@@ -61,21 +70,37 @@ export function LibraryMovesTab({
         />
       </div>
       <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none]">
-        <button type="button" className={chipClass(movementType === null)} onClick={() => setMovementType(null)}>
+        <button
+          type="button"
+          className={chipClass(allActive)}
+          onClick={() => {
+            setSelectedTypes([])
+            setSelectedTags([])
+          }}
+        >
           All
         </button>
         {movementTypes.map((type) => (
           <button
             key={type}
             type="button"
-            className={chipClass(movementType === type)}
-            onClick={() => setMovementType(movementType === type ? null : type)}
+            className={chipClass(selectedTypes.includes(type))}
+            onClick={() => toggleType(type)}
           >
             {type.charAt(0).toUpperCase() + type.slice(1)}
           </button>
         ))}
+        {tags.map((tag) => (
+          <button
+            key={tag.id}
+            type="button"
+            className={chipClass(selectedTags.includes(tag.id))}
+            onClick={() => toggleTag(tag.id)}
+          >
+            {tag.name}
+          </button>
+        ))}
       </div>
-      <TagFilter tags={tags} selected={tagId} onSelect={setTagId} />
       {filtered.length === 0 ? (
         <EmptyState
           icon={<Dumbbell className="size-8 text-muted-foreground" />}
