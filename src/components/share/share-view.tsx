@@ -15,7 +15,7 @@ export function ShareView({ plan, slug }: { plan: SharedPlan; slug: string }) {
   return (
     <div
       className="min-h-dvh bg-background text-foreground"
-      style={{ '--brand': plan.coach.brandColor ?? '#FE2E00' } as CSSProperties}
+      style={{ '--brand': plan.coach.brandColor || '#FE2E00' } as CSSProperties}
     >
       <ShareHeader coach={plan.coach} client={plan.client} planTitle={plan.plan.title} />
 
@@ -50,7 +50,7 @@ export function ShareView({ plan, slug }: { plan: SharedPlan; slug: string }) {
 
       <main className="px-4 pt-2 pb-10">
         {session ? (
-          <ShareSession session={session} />
+          <ShareSession key={selected} session={session} />
         ) : (
           <EmptyState
             title="No sessions yet"

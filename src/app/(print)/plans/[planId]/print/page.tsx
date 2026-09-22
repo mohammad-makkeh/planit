@@ -4,6 +4,10 @@ import { PrintView } from '@/components/share/print-view'
 import { requireCoachId } from '@/lib/session'
 import { getPlanForPrint } from '@/services/share'
 
+// Coach-authenticated view — already implicitly dynamic via cookies; explicit for parity
+// with the public share/print routes.
+export const dynamic = 'force-dynamic'
+
 export default async function CoachPrintPage({
   params,
 }: {
@@ -16,5 +20,5 @@ export default async function CoachPrintPage({
   const plan = await getPlanForPrint(coachId, planId)
   if (!plan) notFound()
 
-  return <PrintView plan={plan} brand={plan.coach.brandColor ?? '#FE2E00'} />
+  return <PrintView plan={plan} brand={plan.coach.brandColor || '#FE2E00'} />
 }

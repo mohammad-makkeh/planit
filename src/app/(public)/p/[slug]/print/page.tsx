@@ -25,5 +25,5 @@ export default async function SharePrintPage({
 
   if (!plan) return <LinkInactive />
 
-  return <PrintView plan={plan} brand={plan.coach.brandColor ?? '#FE2E00'} />
+  return <PrintView plan={plan} brand={plan.coach.brandColor || '#FE2E00'} />
 }

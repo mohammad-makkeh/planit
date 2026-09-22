@@ -35,7 +35,9 @@ export const exerciseSchema = z
   .object({
     name: z.string().trim().min(1, 'Name is required'),
     imageUrl: optionalTrimmed.pipe(z.string().url('Enter a valid URL').optional()),
-    tutorialUrl: optionalTrimmed.pipe(z.string().url('Enter a valid URL').optional()),
+    tutorialUrl: optionalTrimmed.pipe(
+      z.url({ protocol: /^https?$/, error: 'Enter a valid URL' }).optional(),
+    ),
     tagIds: z.array(z.string().uuid()).default([]),
     movementType: z.enum(movementTypes),
     equipmentIds: z.array(z.string().uuid()).min(1, 'Pick at least one equipment').max(20),

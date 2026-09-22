@@ -9,7 +9,7 @@ import { ShareRowCard } from './share-row-card'
 
 export function ShareSession({ session }: { session: SharedSession }) {
   const [activeRow, setActiveRow] = useState<SharedRow | null>(null)
-  const hasCardio = session.cardioTime !== null || session.cardioHrm !== null
+  const hasCardio = Boolean(session.cardioTime) || Boolean(session.cardioHrm)
 
   return (
     <div className="space-y-6">

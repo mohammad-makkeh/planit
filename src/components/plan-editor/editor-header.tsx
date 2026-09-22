@@ -71,13 +71,25 @@ export function EditorHeader({
   async function exportPDF() {
     if (busy) return
     setBusy(true)
+    // Open the tab synchronously (before any await) so the browser still sees this as a
+    // direct result of the click — otherwise, if the plan is dirty, the save below can take
+    // long enough that transient activation is lost and the popup gets blocked.
+    const win = window.open('', '_blank')
     try {
       if (dirty) {
         const saved = await onEnsureSaved()
-        if (!saved) return
+        if (!saved) {
+          win?.close()
+          return
+        }
       }
-      window.open(`/plans/${plan.id}/print`, '_blank')
+      if (win) {
+        win.location.href = `/plans/${plan.id}/print`
+      } else {
+        window.open(`/plans/${plan.id}/print`, '_blank')
+      }
     } catch {
+      win?.close()
       toast.error('Something went wrong. Please try again.')
     } finally {
       setBusy(false)
