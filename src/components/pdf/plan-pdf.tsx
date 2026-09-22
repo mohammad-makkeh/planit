@@ -475,11 +475,13 @@ export function planPdfFilename(plan: SharedPlan): string {
 /**
  * react-pdf only decodes PNG and JPEG, and a single unreachable or exotic logo would otherwise
  * fail the whole render. Fetching it here lets a bad logo degrade to "no logo" instead of a 500.
+ * The timeout keeps a slow/hanging logo host from stalling the render until the platform limit —
+ * the abort it raises lands in the same catch as any other fetch failure.
  */
 async function loadLogo(url: string | null): Promise<Logo | null> {
   if (!url) return null
   try {
-    const response = await fetch(url, { cache: 'no-store' })
+    const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(5000) })
     if (!response.ok) return null
     const data = Buffer.from(await response.arrayBuffer())
     if (data.length > 4 && data[0] === 0x89 && data[1] === 0x50) return { data, format: 'png' }

@@ -17,7 +17,7 @@ const FONT_DIR = join(process.cwd(), 'src/pdf-fonts')
 export const FONT_DISPLAY = 'JockeyOne'
 /** Kelly Slab — the letterspaced kickers, labels and exercise numbers. */
 export const FONT_LABEL = 'KellySlab'
-/** Inter — everything else, in 400/600/700/800. */
+/** Inter — everything else, in 400/500/600/700/800. */
 export const FONT_BODY = 'Inter'
 
 Font.register({ family: FONT_DISPLAY, src: join(FONT_DIR, 'JockeyOne.ttf') })
@@ -26,6 +26,7 @@ Font.register({
   family: FONT_BODY,
   fonts: [
     { src: join(FONT_DIR, 'Inter-400.ttf'), fontWeight: 400 },
+    { src: join(FONT_DIR, 'Inter-500.ttf'), fontWeight: 500 },
     { src: join(FONT_DIR, 'Inter-600.ttf'), fontWeight: 600 },
     { src: join(FONT_DIR, 'Inter-700.ttf'), fontWeight: 700 },
     { src: join(FONT_DIR, 'Inter-800.ttf'), fontWeight: 800 },
