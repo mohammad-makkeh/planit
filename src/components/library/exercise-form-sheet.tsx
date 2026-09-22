@@ -69,7 +69,12 @@ export function ExerciseFormSheet({
         tutorialUrl: exercise?.tutorialUrl ?? '',
         tagIds: exercise?.tags.map((t) => t.id) ?? [],
         movementType: exercise?.movementType ?? 'static',
-        equipmentIds: exercise?.equipment.map((e) => e.id) ?? [fallbackId],
+        equipmentIds: exercise
+          ? [
+              exercise.defaultEquipmentId,
+              ...exercise.equipment.map((e) => e.id).filter((id) => id !== exercise.defaultEquipmentId),
+            ]
+          : [fallbackId],
       })
     }
     wasOpen.current = open
@@ -122,7 +127,6 @@ export function ExerciseFormSheet({
                 onChange={(url) => setValue('imageUrl', url ?? '')}
                 folder="exercises"
               />
-              <Input placeholder="…or paste an image URL" {...register('imageUrl')} />
               {formState.errors.imageUrl && (
                 <p className="text-sm text-destructive">{formState.errors.imageUrl.message}</p>
               )}

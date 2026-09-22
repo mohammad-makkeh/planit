@@ -4,7 +4,7 @@ import { useRef, useState } from 'react'
 import { ImagePlus, Loader2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { uploadImageAction } from '@/actions/uploads'
-import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 // Plain <img>: Supabase Storage URLs would need next/image remotePatterns config — not worth it in MVP.
 
@@ -21,6 +21,7 @@ export function ImageUploadField({
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
+  const [dragOver, setDragOver] = useState(false)
 
   async function onFile(file: File) {
     setUploading(true)
@@ -57,10 +58,36 @@ export function ImageUploadField({
           </button>
         </div>
       ) : (
-        <Button type="button" variant="outline" onClick={() => inputRef.current?.click()} disabled={uploading}>
-          {uploading ? <Loader2 className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}
-          {uploading ? 'Uploading…' : `Upload ${label.toLowerCase()}`}
-        </Button>
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          onDragOver={(e) => {
+            e.preventDefault()
+            setDragOver(true)
+          }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={(e) => {
+            e.preventDefault()
+            setDragOver(false)
+            const f = e.dataTransfer.files?.[0]
+            if (f) void onFile(f)
+          }}
+          className={cn(
+            'flex h-28 w-full flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed text-center transition-colors',
+            dragOver ? 'border-brand bg-brand/5' : 'border-input hover:bg-accent',
+          )}
+        >
+          {uploading ? (
+            <Loader2 className="size-5 animate-spin text-muted-foreground" />
+          ) : (
+            <ImagePlus className="size-5 text-foreground opacity-40" />
+          )}
+          <span className="text-sm font-medium text-foreground">
+            {uploading ? 'Uploading…' : `Upload ${label.toLowerCase()}`}
+          </span>
+          {!uploading && <span className="text-xs text-muted-foreground">PNG, JPG or WebP</span>}
+        </button>
       )}
       <input
         ref={inputRef}

@@ -44,6 +44,7 @@ export async function listExercises(coachId: string): Promise<ExerciseWithTags[]
     .from(exerciseEquipment)
     .innerJoin(equipment, eq(exerciseEquipment.equipmentId, equipment.id))
     .where(and(eq(equipment.coachId, coachId), inArray(exerciseEquipment.exerciseId, rows.map((r) => r.id))))
+    .orderBy(asc(equipment.name))
 
   const equipmentByExercise = new Map<string, { id: string; name: string; imageUrl: string | null }[]>()
   for (const link of equipmentLinks) {

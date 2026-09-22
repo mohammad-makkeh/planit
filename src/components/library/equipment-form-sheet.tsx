@@ -77,7 +77,6 @@ export function EquipmentFormSheet({
               onChange={(url) => setValue('imageUrl', url ?? '')}
               folder="equipment"
             />
-            <Input placeholder="…or paste an image URL" {...register('imageUrl')} />
             {formState.errors.imageUrl && (
               <p className="text-sm text-destructive">{formState.errors.imageUrl.message}</p>
             )}

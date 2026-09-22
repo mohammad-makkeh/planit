@@ -31,6 +31,7 @@ export function EquipmentMultiSelect({
               <img src={item.imageUrl} alt="" className="size-4 shrink-0 rounded-sm object-cover" />
             )}
             {item.name}
+            {value[0] === item.id && <span className="text-brand-foreground/70"> · default</span>}
           </Badge>
         </button>
       ))}
