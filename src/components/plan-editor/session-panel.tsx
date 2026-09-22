@@ -160,11 +160,7 @@ export function SessionPanel({
                 min={0}
                 max={MAX_INCLINE}
                 value={session.cardioIncline}
-                onChange={(v) =>
-                  onField({
-                    cardioIncline: v === null ? null : Math.min(MAX_INCLINE, Math.max(0, v)),
-                  })
-                }
+                onChange={(v) => onField({ cardioIncline: v })}
                 className="min-w-0 flex-1"
               />
               <Button

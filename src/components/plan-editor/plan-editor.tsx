@@ -101,7 +101,10 @@ export function PlanEditor({
     try {
       const result = await savePlanDocumentAction(current.id, toDocument(current))
       if (!result.ok) {
-        toast.error(result.error.message)
+        const firstField = Object.entries(result.error.fieldErrors ?? {})[0]
+        toast.error(
+          firstField ? `${result.error.message} (${firstField[0]}: ${firstField[1][0]})` : result.error.message,
+        )
         return false
       }
       if (editCount.current === startCount) setDirty(false)

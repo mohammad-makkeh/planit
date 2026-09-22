@@ -27,7 +27,7 @@ function WarmupLineItem({
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
-        zIndex: isDragging ? 50 : undefined,
+        zIndex: isDragging ? 20 : undefined,
       }}
       className={cn(
         'relative flex items-center gap-1 rounded-xl border bg-card p-2',

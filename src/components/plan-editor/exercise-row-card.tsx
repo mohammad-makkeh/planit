@@ -44,7 +44,7 @@ export function ExerciseRowCard({
 }) {
   const [noteOpen, setNoteOpen] = useState(row.note !== null && row.note !== '')
   const [equipmentSheetOpen, setEquipmentSheetOpen] = useState(false)
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+  const { listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: row.id,
   })
 
@@ -60,13 +60,12 @@ export function ExerciseRowCard({
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
-        zIndex: isDragging ? 50 : undefined,
+        zIndex: isDragging ? 20 : undefined,
       }}
       className={cn(
         'relative touch-manipulation space-y-2 rounded-2xl border bg-card p-3',
         isDragging && 'border-brand opacity-80',
       )}
-      {...attributes}
       {...listeners}
     >
       <div className="flex items-center gap-1">
@@ -157,8 +156,8 @@ export function ExerciseRowCard({
                 max={field.max}
                 value={row[field.key]}
                 onChange={(value) => onField({ [field.key]: value })}
-                inputClassName="h-8 px-1 text-center text-xs"
-                unitClassName="right-1.5 text-[9px]"
+                inputClassName={cn('h-8 px-1 text-center text-xs', field.unit && 'pr-5')}
+                unitClassName="right-1 text-[8px]"
               />
             ) : (
               <Input

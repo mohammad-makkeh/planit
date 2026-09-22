@@ -3,12 +3,14 @@
 import { Dumbbell } from 'lucide-react'
 import type { SharedRow } from '@/services/share'
 
+// Same field order and units as the editor (`exercise-row-card.tsx`) and the PDF
+// (`plan-pdf.tsx`'s `COL` + `Workout`): Sets · Reps · Rest · Speed · 1RM, rest in `sec`.
 const FIELDS = [
   { key: 'sets', label: 'Sets', suffix: '' },
   { key: 'reps', label: 'Reps', suffix: '' },
+  { key: 'rest', label: 'Rest', suffix: 'sec' },
   { key: 'speed', label: 'Speed', suffix: '' },
   { key: 'oneRm', label: '1RM', suffix: '%' },
-  { key: 'rest', label: 'Rest', suffix: 's' },
 ] as const
 
 export function ShareRowCard({ row, onOpen }: { row: SharedRow; onOpen: () => void }) {
@@ -67,8 +69,8 @@ export function ShareRowCard({ row, onOpen }: { row: SharedRow; onOpen: () => vo
                 {label}
               </p>
               <p className="text-sm font-semibold">
-                {row[key]}
-                {suffix}
+                {/* Same spacing rule as the PDF's `cell()`: a space before the unit, except `%`. */}
+                {suffix ? `${row[key]} ${suffix}`.replace(' %', '%') : row[key]}
               </p>
             </div>
           ))}

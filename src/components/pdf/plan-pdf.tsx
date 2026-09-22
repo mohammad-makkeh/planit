@@ -444,7 +444,7 @@ function SessionPage({
   )
 }
 
-export function PlanDocument({ plan, logo }: { plan: SharedPlan; logo: Logo | null }) {
+export function PlanPdfDocument({ plan, logo }: { plan: SharedPlan; logo: Logo | null }) {
   const brand = safeBrand(plan.coach.brandColor)
 
   return (
@@ -467,7 +467,7 @@ export function PlanDocument({ plan, logo }: { plan: SharedPlan; logo: Logo | nu
 }
 
 /** `<Client_Name>_Workout_Plan.pdf` — runs of anything non-alphanumeric collapse to one `_`. */
-export function planPdfFilename(plan: SharedPlan): string {
+function planPdfFilename(plan: SharedPlan): string {
   const slug = plan.client.name.replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '')
   return `${slug || 'Client'}_Workout_Plan.pdf`
 }
@@ -497,7 +497,7 @@ export async function renderPlanPdf(
   plan: SharedPlan,
 ): Promise<{ body: Uint8Array<ArrayBuffer>; filename: string }> {
   const logo = await loadLogo(plan.coach.logoUrl)
-  const buffer = await renderToBuffer(<PlanDocument plan={plan} logo={logo} />)
+  const buffer = await renderToBuffer(<PlanPdfDocument plan={plan} logo={logo} />)
   // Copied into a plain ArrayBuffer-backed view: a Node Buffer can sit on a SharedArrayBuffer,
   // which `BodyInit` does not accept.
   const body = new Uint8Array(buffer.byteLength)

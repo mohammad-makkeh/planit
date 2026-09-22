@@ -27,7 +27,7 @@ function SessionChip({
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
-        zIndex: isDragging ? 50 : undefined,
+        zIndex: isDragging ? 20 : undefined,
       }}
       className={cn(
         'relative shrink-0 touch-manipulation rounded-full border px-4 py-1.5 text-sm font-medium transition-colors',
