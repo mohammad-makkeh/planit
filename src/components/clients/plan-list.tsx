@@ -3,14 +3,9 @@ import { ClipboardList } from 'lucide-react'
 import { EmptyState } from '@/components/shell/empty-state'
 import { PlanCardMenu } from '@/components/plans/plan-card-menu'
 import type { PickerClient } from '@/components/plans/client-picker-sheet'
-import { Badge } from '@/components/ui/badge'
+import { PlanStatusSwitch } from '@/components/plans/plan-status-switch'
 import { formatDate } from '@/lib/format'
 import type { Plan } from '@/services/plans'
-
-const STATUS_STYLES: Record<Plan['status'], string> = {
-  draft: 'bg-muted text-muted-foreground',
-  active: 'bg-brand/10 text-brand',
-}
 
 export function PlanList({
   plans,
@@ -40,7 +35,7 @@ export function PlanList({
               Created {formatDate(plan.createdAt)} · Updated {formatDate(plan.updatedAt)}
             </p>
           </Link>
-          <Badge className={STATUS_STYLES[plan.status]}>{plan.status}</Badge>
+          <PlanStatusSwitch planId={plan.id} status={plan.status} />
           <PlanCardMenu
             plan={{ id: plan.id, title: plan.title, status: plan.status, shareSlug: plan.shareSlug }}
             clients={clients}

@@ -13,7 +13,6 @@ import {
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Switch } from '@/components/ui/switch'
 import { downloadPdf } from '@/lib/pdf-download'
 import { cn } from '@/lib/utils'
 import type { EditorPlan } from '@/services/plans'
@@ -23,7 +22,6 @@ export function EditorHeader({
   dirty,
   saving,
   onTitleChange,
-  onStatusChange,
   onSave,
   onEnsureSaved,
   onShareChanged,
@@ -32,7 +30,6 @@ export function EditorHeader({
   dirty: boolean
   saving: boolean
   onTitleChange: (title: string) => void
-  onStatusChange: (status: EditorPlan['status']) => void
   onSave: () => void
   onEnsureSaved: () => Promise<boolean>
   onShareChanged: (slug: string | null) => void
@@ -148,7 +145,7 @@ export function EditorHeader({
           />
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => void duplicate()}>
-              <Copy className="size-4" /> Duplicate plan
+              <Copy className="size-4" /> Duplicate
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setShareOpen(true)}>
               <Link2 className="size-4" /> Share
@@ -172,16 +169,6 @@ export function EditorHeader({
           className="min-w-0 flex-1 bg-transparent text-xl font-bold tracking-tight outline-none placeholder:text-muted-foreground"
           placeholder="Plan title"
         />
-        <div className="flex items-center gap-2 text-sm">
-          <span className={cn('font-medium', plan.status === 'active' ? 'text-foreground' : 'text-muted-foreground')}>
-            {plan.status === 'active' ? 'Active' : 'Draft'}
-          </span>
-          <Switch
-            checked={plan.status === 'active'}
-            onCheckedChange={(checked) => onStatusChange(checked ? 'active' : 'draft')}
-            aria-label="Plan status"
-          />
-        </div>
       </div>
 
       <ShareSheet

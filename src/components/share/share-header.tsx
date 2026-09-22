@@ -33,18 +33,7 @@ export function ShareHeader({
 
   return (
     <header className="border-b-4 bg-[#0f0f0f]" style={{ borderBottomColor: 'var(--brand)' }}>
-      <div className="flex px-4 pt-3">
-        {/* Top-left per the coach's request — a small icon-only download, not the old full-width button. */}
-        <button
-          type="button"
-          onClick={() => void exportPDF()}
-          className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 text-xs font-semibold text-white outline-none transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white/50"
-        >
-          <FileDown className="size-3.5 shrink-0" aria-hidden />
-          PDF
-        </button>
-      </div>
-      <div className="flex items-start justify-between gap-4 px-4 pt-3 pb-4">
+      <div className="flex items-start justify-between gap-4 px-4 py-4">
         {/* Logo stacks above the coach's name below `sm` — a wide, non-square logo would
             otherwise fight the name/title for the little width a 390px viewport has left. */}
         <div className="flex min-w-0 flex-1 flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
@@ -78,6 +67,15 @@ export function ShareHeader({
             Client
           </p>
           <p className="mt-1 text-sm leading-snug font-bold text-white">{client.name}</p>
+          {/* Under the client name per the coach's request — a small icon + "PDF" pill. */}
+          <button
+            type="button"
+            onClick={() => void exportPDF()}
+            className="mt-2 inline-flex h-9 items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 text-xs font-semibold text-white outline-none transition-colors hover:bg-white/20 focus-visible:ring-2 focus-visible:ring-white/50"
+          >
+            <FileDown className="size-3.5 shrink-0" aria-hidden />
+            PDF
+          </button>
         </div>
       </div>
     </header>

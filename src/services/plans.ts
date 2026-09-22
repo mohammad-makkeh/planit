@@ -295,7 +295,7 @@ export async function savePlanDocument(
   await db.transaction(async (tx) => {
     await tx
       .update(plans)
-      .set({ title: doc.title, status: doc.status })
+      .set({ title: doc.title })
       .where(eq(plans.id, planId))
     await tx.delete(planSessions).where(eq(planSessions.planId, planId))
     for (const [index, s] of doc.sessions.entries()) {

@@ -2,11 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Copy, FileDown, Link2, MoreVertical, RefreshCw, Trash2, UserPlus } from 'lucide-react'
+import { Copy, FileDown, Link2, MoreVertical, Trash2, UserPlus } from 'lucide-react'
 import { toast } from 'sonner'
-import {
-  deletePlanAction, duplicatePlanAction, updatePlanMetaAction,
-} from '@/actions/plan-editor'
+import { deletePlanAction, duplicatePlanAction } from '@/actions/plan-editor'
 import { Button } from '@/components/ui/button'
 import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
@@ -18,11 +16,6 @@ import { downloadPdf } from '@/lib/pdf-download'
 import type { Plan } from '@/services/plans'
 import { ClientPickerSheet, type PickerClient } from './client-picker-sheet'
 import { ShareSheet } from './share-sheet'
-
-const NEXT_STATUS: Record<Plan['status'], Plan['status']> = {
-  draft: 'active',
-  active: 'draft',
-}
 
 export function PlanCardMenu({
   plan,
@@ -75,22 +68,6 @@ export function PlanCardMenu({
     }
   }
 
-  async function toggleStatus() {
-    setBusy(true)
-    try {
-      const result = await updatePlanMetaAction(plan.id, { status: NEXT_STATUS[plan.status] })
-      if (!result.ok) {
-        toast.error(result.error.message)
-        return
-      }
-      router.refresh()
-    } catch {
-      toast.error('Something went wrong. Please try again.')
-    } finally {
-      setBusy(false)
-    }
-  }
-
   async function exportPDF() {
     const id = toast.loading('Preparing PDF…')
     const result = await downloadPdf(`/plans/${plan.id}/pdf`)
@@ -135,9 +112,6 @@ export function PlanCardMenu({
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setPickerOpen(true)}>
             <UserPlus className="size-4" /> Copy to another client
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => void toggleStatus()}>
-            <RefreshCw className="size-4" /> Mark as {NEXT_STATUS[plan.status]}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setShareOpen(true)}>
             <Link2 className="size-4" /> Share

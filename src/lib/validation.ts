@@ -84,7 +84,6 @@ const docInt = (min: number, max: number) => z.number().int().min(min).max(max).
 
 export const planDocumentSchema = z.object({
   title: z.string().trim().min(1, 'Title is required').max(200),
-  status: z.enum(['draft', 'active']),
   sessions: z
     .array(
       z.object({

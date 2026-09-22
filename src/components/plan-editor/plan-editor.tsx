@@ -30,7 +30,6 @@ export type PickedExercise = { id: string; name: string; imageUrl: string | null
 function toDocument(plan: EditorPlan): PlanDocument {
   return {
     title: plan.title.trim(),
-    status: plan.status,
     sessions: plan.sessions.map((s) => ({
       label: s.label.trim(),
       weekday: s.weekday,
@@ -347,7 +346,6 @@ export function PlanEditor({
           dirty={dirty}
           saving={saving}
           onTitleChange={(title) => mutate((d) => ({ ...d, title }))}
-          onStatusChange={(status) => mutate((d) => ({ ...d, status }))}
           onSave={() => void save()}
           onEnsureSaved={save}
           onShareChanged={(slug) => setDoc((d) => ({ ...d, shareSlug: slug }))}
@@ -360,7 +358,7 @@ export function PlanEditor({
           onReorder={reorderSessions}
         />
       </div>
-      <main className="px-4 pb-8 md:px-8">
+      <main className="px-4 pt-4 pb-8 md:px-8">
         {activeSession ? (
           <SessionPanel
             session={activeSession}

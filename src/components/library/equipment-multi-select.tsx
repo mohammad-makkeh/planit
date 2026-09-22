@@ -20,21 +20,29 @@ export function EquipmentMultiSelect({
 
   return (
     <div className="flex flex-wrap gap-1.5">
-      {options.map((item) => (
-        <button key={item.id} type="button" onClick={() => toggle(item.id)}>
-          <Badge
-            variant={value.includes(item.id) ? 'default' : 'outline'}
-            className={cn(value.includes(item.id) && 'bg-brand text-brand-foreground')}
-          >
-            {item.imageUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={item.imageUrl} alt="" className="size-4 shrink-0 rounded-sm object-cover" />
-            )}
-            {item.name}
-            {value[0] === item.id && <span className="text-brand-foreground/70"> · default</span>}
-          </Badge>
-        </button>
-      ))}
+      {options.map((item) => {
+        const selected = value.includes(item.id)
+        return (
+          <button key={item.id} type="button" onClick={() => toggle(item.id)}>
+            <Badge
+              variant={selected ? 'default' : 'outline'}
+              className={cn(selected && 'bg-brand text-brand-foreground')}
+            >
+              {item.imageUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={item.imageUrl}
+                  alt=""
+                  // The icons are SVG files with a fixed dark stroke, so a filter is the only
+                  // way to turn them white alongside the text on the brand background.
+                  className={cn('size-4 shrink-0 rounded-sm object-cover', selected && 'brightness-0 invert')}
+                />
+              )}
+              {item.name}
+            </Badge>
+          </button>
+        )
+      })}
     </div>
   )
 }

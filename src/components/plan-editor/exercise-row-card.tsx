@@ -125,9 +125,20 @@ export function ExerciseRowCard({
               }
             />
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setNoteOpen((v) => !v)}>
-                <StickyNote className={cn('size-4', row.note ? 'text-brand' : '')} /> Note
-              </DropdownMenuItem>
+              {noteOpen ? (
+                <DropdownMenuItem
+                  onClick={() => {
+                    onField({ note: null })
+                    setNoteOpen(false)
+                  }}
+                >
+                  <StickyNote className="size-4" /> Remove note
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onClick={() => setNoteOpen(true)}>
+                  <StickyNote className="size-4" /> Add note
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={onDuplicate}>
                 <Copy className="size-4" /> Duplicate
               </DropdownMenuItem>

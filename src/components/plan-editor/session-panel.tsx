@@ -161,7 +161,7 @@ export function SessionPanel({
                 max={MAX_INCLINE}
                 value={session.cardioIncline}
                 onChange={(v) => onField({ cardioIncline: v })}
-                className="min-w-0 flex-1"
+                className="w-28"
               />
               <Button
                 type="button"

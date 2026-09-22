@@ -47,7 +47,7 @@ export function ImageUploadField({
       {value ? (
         <div className="relative inline-block">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={value} alt={label} className="h-24 w-24 rounded-xl border object-cover" />
+          <img src={value} alt={label} className="h-24 w-auto max-w-full rounded-xl border object-contain" />
           <button
             type="button"
             onClick={() => onChange(undefined)}
