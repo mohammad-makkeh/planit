@@ -25,7 +25,7 @@ export type RowFieldPatch = Partial<
   Pick<EditorRow, 'sets' | 'reps' | 'speed' | 'oneRm' | 'rest' | 'note'>
 >
 
-export type PickedExercise = { id: string; name: string; imageUrl: string | null }
+export type PickedExercise = { id: string; name: string }
 
 function toDocument(plan: EditorPlan): PlanDocument {
   return {

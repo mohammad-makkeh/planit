@@ -22,7 +22,6 @@ export function ExerciseCard({
     >
       <MoveThumbnail
         name={exercise.name}
-        imageUrl={exercise.imageUrl}
         muscles={exercise.muscleTargets}
         equipmentImageUrl={defaultEquipment?.imageUrl ?? null}
         className="size-12 rounded-xl"

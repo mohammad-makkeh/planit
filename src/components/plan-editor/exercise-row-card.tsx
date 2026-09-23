@@ -77,7 +77,6 @@ export function ExerciseRowCard({
         >
           <MoveThumbnail
             name={row.exercise.name}
-            imageUrl={row.exercise.imageUrl}
             muscles={move?.muscleTargets ?? []}
             equipmentImageUrl={resolvedEquipment?.imageUrl ?? null}
             className="size-9 rounded-lg"

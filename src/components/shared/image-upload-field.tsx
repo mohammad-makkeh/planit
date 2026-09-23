@@ -16,7 +16,7 @@ export function ImageUploadField({
 }: {
   value: string | undefined
   onChange: (url: string | undefined) => void
-  folder: 'exercises' | 'logos'
+  folder: 'logos'
   label?: string
 }) {
   const inputRef = useRef<HTMLInputElement>(null)

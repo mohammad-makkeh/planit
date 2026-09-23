@@ -50,6 +50,13 @@
       "when": 1790165695167,
       "tag": "0006_drop_muscle_image",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1790169651200,
+      "tag": "0007_drop_move_image",
+      "breakpoints": true
     }
   ]
 }

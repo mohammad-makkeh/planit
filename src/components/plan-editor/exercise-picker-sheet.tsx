@@ -107,14 +107,13 @@ export function ExercisePickerSheet({
                         if (expandable) {
                           setExpandedId((cur) => (cur === e.id ? null : e.id))
                         } else {
-                          pick({ id: e.id, name: e.name, imageUrl: e.imageUrl }, null)
+                          pick({ id: e.id, name: e.name }, null)
                         }
                       }}
                       className="flex w-full items-center gap-3 p-2.5 text-left hover:bg-accent/40"
                     >
                       <MoveThumbnail
                         name={e.name}
-                        imageUrl={e.imageUrl}
                         muscles={e.muscleTargets}
                         equipmentImageUrl={e.equipment.find((eq) => eq.id === e.defaultEquipmentId)?.imageUrl ?? null}
                         className="size-10 rounded-lg"
@@ -142,7 +141,7 @@ export function ExercisePickerSheet({
                               <button
                                 key={eq.id}
                                 type="button"
-                                onClick={() => pick({ id: e.id, name: e.name, imageUrl: e.imageUrl }, eq.id)}
+                                onClick={() => pick({ id: e.id, name: e.name }, eq.id)}
                                 className={equipmentChipClass()}
                               >
                                 {eq.imageUrl ? (

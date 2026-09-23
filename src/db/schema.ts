@@ -65,7 +65,6 @@ export const exercises = pgTable('exercises', {
   id,
   coachId: uuid('coach_id').notNull().references(() => coaches.id),
   name: text('name').notNull(),
-  imageUrl: text('image_url'),
   tutorialUrl: text('tutorial_url'),
   movementType: movementTypeEnum('movement_type').notNull().default('static'),
   defaultEquipmentId: uuid('default_equipment_id').notNull().references(() => equipment.id),

@@ -28,7 +28,7 @@ export type EditorRow = {
   oneRm: number | null
   rest: number | null
   note: string | null
-  exercise: { id: string; name: string; imageUrl: string | null }
+  exercise: { id: string; name: string }
   equipmentId: string | null
 }
 
@@ -94,7 +94,6 @@ export async function getPlanForEditor(
             equipmentId: planRows.equipmentId,
             exerciseId: exercises.id,
             exerciseName: exercises.name,
-            exerciseImageUrl: exercises.imageUrl,
           })
           .from(planRows)
           .innerJoin(exercises, eq(planRows.exerciseId, exercises.id))
@@ -114,7 +113,7 @@ export async function getPlanForEditor(
       oneRm: r.oneRm,
       rest: r.rest,
       note: r.note,
-      exercise: { id: r.exerciseId, name: r.exerciseName, imageUrl: r.exerciseImageUrl },
+      exercise: { id: r.exerciseId, name: r.exerciseName },
       equipmentId: r.equipmentId,
     })
     rowsBySession.set(r.sessionId, list)

@@ -71,7 +71,6 @@ export async function listExercises(coachId: string): Promise<ExerciseWithDetail
 function toRow(input: ExerciseInput, defaultEquipmentId: string) {
   return {
     name: input.name,
-    imageUrl: input.imageUrl ?? null,
     tutorialUrl: input.tutorialUrl ?? null,
     movementType: input.movementType,
     defaultEquipmentId,

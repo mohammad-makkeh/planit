@@ -8,7 +8,7 @@ import {
 } from '@/db/schema'
 
 export type SharedRow = {
-  exercise: { name: string; imageUrl: string | null; tutorialUrl: string | null }
+  exercise: { name: string; tutorialUrl: string | null }
   movementType: 'push' | 'pull' | 'static'
   /** Muscle targets in catalog display order. */
   muscles: MuscleWork[]
@@ -80,7 +80,6 @@ async function buildSharedPlan(planRow: PlanRow | undefined): Promise<SharedPlan
             rowEquipmentId: planRows.equipmentId,
             exerciseId: exercises.id,
             exerciseName: exercises.name,
-            exerciseImageUrl: exercises.imageUrl,
             exerciseTutorialUrl: exercises.tutorialUrl,
             movementType: exercises.movementType,
             defaultEquipmentId: exercises.defaultEquipmentId,
@@ -146,7 +145,6 @@ async function buildSharedPlan(planRow: PlanRow | undefined): Promise<SharedPlan
     list.push({
       exercise: {
         name: r.exerciseName,
-        imageUrl: r.exerciseImageUrl,
         tutorialUrl: r.exerciseTutorialUrl,
       },
       movementType: r.movementType,

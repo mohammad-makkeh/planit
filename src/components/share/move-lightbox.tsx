@@ -19,9 +19,8 @@ export function MoveLightbox({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
-  // Same precedence as `MoveThumbnail`: uploaded image, then the body figure, then equipment.
-  const imageUrl = row?.exercise.imageUrl ?? null
-  const showBodyHero = row !== null && imageUrl === null && row.muscles.length > 0
+  // Same precedence as `MoveThumbnail`: the body figure, else the equipment icon.
+  const showBodyHero = row !== null && row.muscles.length > 0
   const fallbackUrl = row?.equipment?.imageUrl ?? null
 
   return (
@@ -33,14 +32,7 @@ export function MoveLightbox({
               <BottomSheetTitle>{row.exercise.name}</BottomSheetTitle>
             </BottomSheetHeader>
             <div className="space-y-4">
-              {imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={imageUrl}
-                  alt=""
-                  className="max-h-[50dvh] w-full rounded-xl border bg-muted object-contain"
-                />
-              ) : showBodyHero ? (
+              {showBodyHero ? (
                 <div className="flex h-[min(40dvh,20rem)] items-center justify-center rounded-xl border bg-muted/40 p-5">
                   <MuscleMap
                     shades={shadesForMove(row.muscles)}
@@ -81,24 +73,14 @@ export function MoveLightbox({
                 )}
               </div>
               {row.muscles.length > 0 && (
-                <div className="flex items-center gap-4 rounded-xl border p-3">
-                  {/* The figure is already the hero when there's no uploaded image. */}
-                  {!showBodyHero && (
-                    <MuscleMap
-                      shades={shadesForMove(row.muscles)}
-                      label={`Muscles worked: ${row.muscles.map((m) => m.name).join(', ')}`}
-                      className="h-24"
-                    />
-                  )}
-                  <div className="min-w-0 space-y-1.5">
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Works
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {row.muscles.map((m) => (
-                        <MusclePill key={m.name} name={m.name} primary={m.primary} />
-                      ))}
-                    </div>
+                <div className="space-y-1.5 rounded-xl border p-3">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Works
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {row.muscles.map((m) => (
+                      <MusclePill key={m.name} name={m.name} primary={m.primary} />
+                    ))}
                   </div>
                 </div>
               )}

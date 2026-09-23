@@ -27,7 +27,6 @@ export function ShareRowCard({ row, onOpen }: { row: SharedRow; onOpen: () => vo
       <div className="flex items-center gap-2.5">
         <MoveThumbnail
           name={row.exercise.name}
-          imageUrl={row.exercise.imageUrl}
           muscles={row.muscles}
           equipmentImageUrl={row.equipment?.imageUrl ?? null}
           className="size-11 rounded-lg"

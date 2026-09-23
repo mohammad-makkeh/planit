@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  // Same picture rule as the web (`MoveThumbnail`): uploaded image, else the cropped body.
+  // Same picture as the web (`MoveThumbnail`): the body figure cropped to the worked muscles.
   exThumb: {
     width: mm(10),
     height: mm(10),
@@ -223,7 +223,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     flexShrink: 0,
   },
-  exThumbImage: { width: mm(10), height: mm(10), objectFit: 'cover' },
   exThumbFigure: { width: mm(10), height: mm(10) },
   exBody: { flexGrow: 1, flexShrink: 1 },
   exName: { flexDirection: 'row' },
@@ -298,8 +297,6 @@ function cardioStats(session: SharedSession): { label: string; value: string }[]
 }
 
 type PdfImage = { data: Buffer; format: 'png' | 'jpg' }
-/** Uploaded move images by URL; a URL that failed to load (or is WebP) is simply absent. */
-type PdfImages = Map<string, PdfImage>
 
 function PageHeader({ plan, brand, logo }: { plan: SharedPlan; brand: string; logo: PdfImage | null }) {
   return (
@@ -392,11 +389,7 @@ function CardioBar({ session, brand }: { session: SharedSession; brand: string }
   )
 }
 
-function RowThumb({ row, image, brand }: { row: SharedRow; image: PdfImage | undefined; brand: string }) {
-  if (image) {
-    // eslint-disable-next-line jsx-a11y/alt-text
-    return <View style={styles.exThumb}><Image src={image} style={styles.exThumbImage} /></View>
-  }
+function RowThumb({ row, brand }: { row: SharedRow; brand: string }) {
   if (row.muscles.length === 0) return <View style={[styles.exThumb, { backgroundColor: WHITE }]} />
   const shades = shadesForMove(row.muscles)
   const shapes = busiestSide(shades) === 'back' ? BACK_BODY : FRONT_BODY
@@ -413,14 +406,7 @@ function RowThumb({ row, image, brand }: { row: SharedRow; image: PdfImage | und
   )
 }
 
-function WorkoutRow({
-  row, index, brand, image,
-}: {
-  row: SharedRow
-  index: number
-  brand: string
-  image: PdfImage | undefined
-}) {
+function WorkoutRow({ row, index, brand }: { row: SharedRow; index: number; brand: string }) {
   const speed = cell(row.speed)
   const cells = [
     { key: 'sets', ...cell(row.sets), style: COL.sets, small: false },
@@ -434,7 +420,7 @@ function WorkoutRow({
   return (
     <View style={styles.tr} wrap={false}>
       <View style={[styles.tdExercise, COL.exercise]}>
-        <RowThumb row={row} image={image} brand={brand} />
+        <RowThumb row={row} brand={brand} />
         <View style={styles.exBody}>
           <View style={styles.exName}>
             <Text style={[styles.exNum, { color: brand }]}>{String(index + 1).padStart(2, '0')}</Text>
@@ -461,13 +447,7 @@ function WorkoutRow({
   )
 }
 
-function Workout({
-  session, brand, images,
-}: {
-  session: SharedSession
-  brand: string
-  images: PdfImages
-}) {
+function Workout({ session, brand }: { session: SharedSession; brand: string }) {
   return (
     <View style={[styles.section, styles.sectionLast]}>
       <SectionHead label="Workout" brand={brand} />
@@ -480,13 +460,7 @@ function Workout({
         <Text style={[styles.th, COL.oneRm]}>1RM</Text>
       </View>
       {session.rows.map((row, i) => (
-        <WorkoutRow
-          key={i}
-          row={row}
-          index={i}
-          brand={brand}
-          image={row.exercise.imageUrl ? images.get(row.exercise.imageUrl) : undefined}
-        />
+        <WorkoutRow key={i} row={row} index={i} brand={brand} />
       ))}
     </View>
   )
@@ -520,13 +494,12 @@ function BodyFigure({
 }
 
 function SessionPage({
-  plan, session, brand, logo, images,
+  plan, session, brand, logo,
 }: {
   plan: SharedPlan
   session: SharedSession
   brand: string
   logo: PdfImage | null
-  images: PdfImages
 }) {
   const shades = shadesForRows(session.rows.map((row) => ({ muscles: row.muscles, sets: row.sets })))
   const hasMuscles = Object.keys(shades).length > 0
@@ -551,26 +524,20 @@ function SessionPage({
       </View>
       {session.warmupLines.length > 0 && <WarmUp session={session} brand={brand} />}
       <CardioBar session={session} brand={brand} />
-      {session.rows.length > 0 && <Workout session={session} brand={brand} images={images} />}
+      {session.rows.length > 0 && <Workout session={session} brand={brand} />}
       <PageFooter plan={plan} />
     </Page>
   )
 }
 
-export function PlanPdfDocument({
-  plan, logo, images,
-}: {
-  plan: SharedPlan
-  logo: PdfImage | null
-  images: PdfImages
-}) {
+export function PlanPdfDocument({ plan, logo }: { plan: SharedPlan; logo: PdfImage | null }) {
   const brand = safeBrand(plan.coach.brandColor)
 
   return (
     <Document title={`${plan.client.name} — ${plan.plan.title}`} author={plan.coach.name}>
       {plan.sessions.length > 0 ? (
         plan.sessions.map((session, i) => (
-          <SessionPage key={i} plan={plan} session={session} brand={brand} logo={logo} images={images} />
+          <SessionPage key={i} plan={plan} session={session} brand={brand} logo={logo} />
         ))
       ) : (
         <Page size="A4" style={styles.page}>
@@ -615,19 +582,8 @@ async function loadImage(url: string | null): Promise<PdfImage | null> {
 export async function renderPlanPdf(
   plan: SharedPlan,
 ): Promise<{ body: Uint8Array<ArrayBuffer>; filename: string }> {
-  const imageUrls = [
-    ...new Set(plan.sessions.flatMap((s) => s.rows.flatMap((r) => r.exercise.imageUrl ?? []))),
-  ]
-  const [logo, ...loaded] = await Promise.all([
-    loadImage(plan.coach.logoUrl),
-    ...imageUrls.map((url) => loadImage(url)),
-  ])
-  const images: PdfImages = new Map()
-  imageUrls.forEach((url, i) => {
-    const image = loaded[i]
-    if (image) images.set(url, image)
-  })
-  const buffer = await renderToBuffer(<PlanPdfDocument plan={plan} logo={logo ?? null} images={images} />)
+  const logo = await loadImage(plan.coach.logoUrl)
+  const buffer = await renderToBuffer(<PlanPdfDocument plan={plan} logo={logo} />)
   // Copied into a plain ArrayBuffer-backed view: a Node Buffer can sit on a SharedArrayBuffer,
   // which `BodyInit` does not accept.
   const body = new Uint8Array(buffer.byteLength)

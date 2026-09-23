@@ -7,7 +7,6 @@ import { Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { z } from 'zod'
 import { createExerciseAction, updateExerciseAction } from '@/actions/exercises'
-import { ImageUploadField } from '@/components/shared/image-upload-field'
 import { Button } from '@/components/ui/button'
 import {
   BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle,
@@ -54,7 +53,7 @@ export function ExerciseFormSheet({
   muscleTargetOptions: CatalogOption[]
   equipmentOptions: EquipmentOption[]
   initialName?: string
-  onCreated?: (exercise: { id: string; name: string; imageUrl: string | null }) => void
+  onCreated?: (exercise: { id: string; name: string }) => void
 }) {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const { register, handleSubmit, reset, watch, setValue, setError, formState } =
@@ -66,7 +65,6 @@ export function ExerciseFormSheet({
       const fallbackId = equipmentOptions.find((o) => o.isFallback)!.id
       reset({
         name: exercise?.name ?? initialName ?? '',
-        imageUrl: exercise?.imageUrl ?? '',
         tutorialUrl: exercise?.tutorialUrl ?? '',
         muscleTargets: exercise?.muscleTargets.map((m) => ({ id: m.id, primary: m.primary })) ?? [],
         movementType: exercise?.movementType ?? 'static',
@@ -81,7 +79,6 @@ export function ExerciseFormSheet({
     wasOpen.current = open
   }, [open, exercise, equipmentOptions, initialName, reset])
 
-  const imageUrl = watch('imageUrl')
   const muscles = watch('muscleTargets') ?? []
   const movementType = watch('movementType')
   const equipmentIds = watch('equipmentIds') ?? []
@@ -98,11 +95,7 @@ export function ExerciseFormSheet({
     toast.success(exercise ? 'Move updated' : 'Move added')
     onOpenChange(false)
     if (!exercise) {
-      onCreated?.({
-        id: result.data.id,
-        name: values.name,
-        imageUrl: typeof values.imageUrl === 'string' && values.imageUrl !== '' ? values.imageUrl : null,
-      })
+      onCreated?.({ id: result.data.id, name: values.name })
     }
   })
 
@@ -119,17 +112,6 @@ export function ExerciseFormSheet({
               <Input id="ex-name" {...register('name')} />
               {formState.errors.name && (
                 <p className="text-sm text-destructive">{formState.errors.name.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label>Image</Label>
-              <ImageUploadField
-                value={typeof imageUrl === 'string' && imageUrl !== '' ? imageUrl : undefined}
-                onChange={(url) => setValue('imageUrl', url ?? '')}
-                folder="exercises"
-              />
-              {formState.errors.imageUrl && (
-                <p className="text-sm text-destructive">{formState.errors.imageUrl.message}</p>
               )}
             </div>
             <div className="space-y-2">
