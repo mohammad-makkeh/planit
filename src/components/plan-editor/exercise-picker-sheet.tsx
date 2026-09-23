@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ChevronDown, Dumbbell, Plus, Search } from 'lucide-react'
 import type { CatalogOption, EquipmentOption } from '@/components/library/catalog-picker-field'
 import { ExerciseFormSheet } from '@/components/library/exercise-form-sheet'
+import { MoveThumbnail } from '@/components/shared/move-thumbnail'
 import { MuscleFilter } from '@/components/library/muscle-filter'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
@@ -16,11 +17,6 @@ import type { PickedExercise } from './plan-editor'
 
 function equipmentChipClass(): string {
   return 'inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-input bg-background px-3 text-sm font-medium text-foreground transition-colors outline-none hover:bg-accent focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30'
-}
-
-function moveThumbnail(e: ExerciseWithDetails): string | null {
-  if (e.imageUrl) return e.imageUrl
-  return e.equipment.find((eq) => eq.id === e.defaultEquipmentId)?.imageUrl ?? null
 }
 
 export function ExercisePickerSheet({
@@ -101,7 +97,6 @@ export function ExercisePickerSheet({
             )}
             <div className="space-y-1.5">
               {filtered.map((e) => {
-                const thumb = moveThumbnail(e)
                 const expandable = e.equipment.length > 1
                 const expanded = expandable && expandedId === e.id
                 return (
@@ -117,14 +112,13 @@ export function ExercisePickerSheet({
                       }}
                       className="flex w-full items-center gap-3 p-2.5 text-left hover:bg-accent/40"
                     >
-                      {thumb ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={thumb} alt={e.name} className="size-10 rounded-lg border object-cover" />
-                      ) : (
-                        <div className="flex size-10 items-center justify-center rounded-lg bg-muted">
-                          <Dumbbell className="size-4 text-muted-foreground" />
-                        </div>
-                      )}
+                      <MoveThumbnail
+                        name={e.name}
+                        imageUrl={e.imageUrl}
+                        muscles={e.muscleTargets}
+                        equipmentImageUrl={e.equipment.find((eq) => eq.id === e.defaultEquipmentId)?.imageUrl ?? null}
+                        className="size-10 rounded-lg"
+                      />
                       <span className="min-w-0 flex-1 truncate text-sm font-medium">{e.name}</span>
                       {expandable && (
                         <ChevronDown

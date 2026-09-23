@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { DndContext, MouseSensor, TouchSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Plus } from 'lucide-react'
@@ -40,6 +40,8 @@ export function ExerciseRows({
   onRowEquipment: (rowId: string, equipmentId: string | null) => void
 }) {
   const [picker, setPicker] = useState<PickerMode>(null)
+  // A stable id keeps dnd-kit's generated aria-describedby ids equal on server and client.
+  const dndId = useId()
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { delay: 350, tolerance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 350, tolerance: 8 } }),
@@ -55,7 +57,7 @@ export function ExerciseRows({
   return (
     <div className="space-y-2">
       {session.rows.length > 0 && (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+        <DndContext id={dndId} sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
           <SortableContext items={session.rows.map((r) => r.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-2">
               {session.rows.map((row) => (

@@ -7,9 +7,10 @@ import {
   BottomSheetContent, BottomSheetHeader, BottomSheetNested, BottomSheetTitle,
 } from '@/components/ui/bottom-sheet'
 import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 
 /** An entry of a global catalog (muscle targets, equipment) — edited in the database only. */
-export type CatalogOption = { id: string; name: string; imageUrl: string | null }
+export type CatalogOption = { id: string; name: string; imageUrl?: string | null }
 export type EquipmentOption = CatalogOption & { isFallback: boolean }
 
 function OptionIcon({ option }: { option: CatalogOption }) {
@@ -30,6 +31,8 @@ export function CatalogPickerField({
   value,
   onChange,
   showIcons = false,
+  secondaryIds,
+  onToggleSecondary,
   error,
 }: {
   label: string
@@ -38,6 +41,9 @@ export function CatalogPickerField({
   value: string[]
   onChange: (ids: string[]) => void
   showIcons?: boolean
+  /** With `onToggleSecondary`: picked ids shown as secondary; tapping a pill's name toggles. */
+  secondaryIds?: string[]
+  onToggleSecondary?: (id: string) => void
   error?: string
 }) {
   const [open, setOpen] = useState(false)
@@ -52,23 +58,51 @@ export function CatalogPickerField({
     <div className="space-y-2">
       <Label>{label}</Label>
       <div className="flex flex-wrap gap-1.5">
-        {picked.map((option) => (
-          <span
-            key={option.id}
-            className="inline-flex h-9 items-center gap-1.5 rounded-full border border-input bg-background pr-1 pl-3 text-sm font-medium"
-          >
-            {showIcons && <OptionIcon option={option} />}
-            {option.name}
-            <button
-              type="button"
-              onClick={() => onChange(value.filter((v) => v !== option.id))}
-              aria-label={`Remove ${option.name}`}
-              className="flex size-7 items-center justify-center rounded-full text-muted-foreground outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/50"
+        {picked.map((option) => {
+          const secondary = secondaryIds?.includes(option.id) ?? false
+          return (
+            <span
+              key={option.id}
+              className={cn(
+                'inline-flex h-9 items-center gap-1.5 rounded-full border pr-1 text-sm font-medium',
+                onToggleSecondary ? 'pl-0' : 'pl-3',
+                onToggleSecondary && !secondary
+                  ? 'border-transparent bg-brand/10 text-brand'
+                  : 'border-input bg-background',
+                secondary && 'text-muted-foreground',
+              )}
             >
-              <X className="size-3.5" />
-            </button>
-          </span>
-        ))}
+              {showIcons && <OptionIcon option={option} />}
+              {onToggleSecondary ? (
+                <button
+                  type="button"
+                  onClick={() => onToggleSecondary(option.id)}
+                  aria-pressed={!secondary}
+                  aria-label={`${option.name}: ${secondary ? 'secondary' : 'primary'}. Tap to switch`}
+                  className="flex h-full cursor-pointer items-center rounded-l-full pl-3 outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                >
+                  {option.name}
+                </button>
+              ) : (
+                option.name
+              )}
+              <button
+                type="button"
+                onClick={() => onChange(value.filter((v) => v !== option.id))}
+                aria-label={`Remove ${option.name}`}
+                className={cn(
+                  'flex size-7 cursor-pointer items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
+                  // Follows the pill: brand on a primary muscle, muted everywhere else.
+                  onToggleSecondary && !secondary
+                    ? 'text-brand hover:bg-brand/15'
+                    : 'text-muted-foreground hover:bg-accent',
+                )}
+              >
+                <X className="size-3.5" />
+              </button>
+            </span>
+          )
+        })}
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -77,6 +111,11 @@ export function CatalogPickerField({
           <Plus className="size-4" /> Add
         </button>
       </div>
+      {onToggleSecondary && picked.length > 0 && (
+        <p className="text-xs text-muted-foreground">
+          Tap a muscle to switch it between primary (orange) and secondary (grey).
+        </p>
+      )}
       {error && <p className="text-sm text-destructive">{error}</p>}
 
       <BottomSheetNested open={open} onOpenChange={setOpen}>

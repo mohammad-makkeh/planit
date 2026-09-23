@@ -38,12 +38,12 @@ export const equipment = pgTable('equipment', {
 
 /**
  * Global catalog shared by every coach — managed in the database only, never from the app.
- * `position` is the display order (anatomical, not alphabetical).
+ * `position` is the display order (anatomical, not alphabetical). No image: the app draws the
+ * body figure instead (`src/lib/muscle-map`).
  */
 export const muscleTargets = pgTable('muscle_targets', {
   id,
   name: text('name').notNull(),
-  imageUrl: text('image_url'),
   position: integer('position').notNull().default(0),
 }, (t) => [uniqueIndex('muscle_targets_name_uq').on(sql`lower(${t.name})`)])
 
@@ -77,6 +77,8 @@ export const exerciseMuscleTargets = pgTable('exercise_muscle_targets', {
   exerciseId: uuid('exercise_id').notNull().references(() => exercises.id, { onDelete: 'cascade' }),
   muscleTargetId: uuid('muscle_target_id').notNull()
     .references(() => muscleTargets.id, { onDelete: 'cascade' }),
+  /** Primary muscles draw at full strength; secondary ones lighter and at half volume. */
+  isPrimary: boolean('is_primary').notNull().default(true),
 }, (t) => [primaryKey({ columns: [t.exerciseId, t.muscleTargetId] })])
 
 export const exerciseEquipment = pgTable('exercise_equipment', {

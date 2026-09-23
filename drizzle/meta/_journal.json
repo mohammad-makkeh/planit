@@ -36,6 +36,20 @@
       "when": 1790153443740,
       "tag": "0004_drop_tags",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790165694666,
+      "tag": "0005_primary_muscles",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790165695167,
+      "tag": "0006_drop_muscle_image",
+      "breakpoints": true
     }
   ]
 }

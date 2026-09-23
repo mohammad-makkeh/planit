@@ -9,6 +9,7 @@ import type { ExerciseWithDetails } from '@/services/exercises'
 import type { EditorPlan, EditorRow, EditorSession } from '@/services/plans'
 import type { WarmupPreset } from '@/services/warmups'
 import { EditorHeader } from './editor-header'
+import { WeekBalanceButton } from './week-balance-button'
 import { ExerciseRows } from './exercise-rows'
 import { SessionChips } from './session-chips'
 import { SessionPanel } from './session-panel'
@@ -333,6 +334,11 @@ export function PlanEditor({
   )
 
   const activeSession = doc.sessions.find((s) => s.id === activeSessionId) ?? null
+  // Live from the unsaved document, so the balance follows every edit.
+  const musclesByExercise = new Map(exercises.map((e) => [e.id, e.muscleTargets]))
+  const weekRows = doc.sessions.flatMap((s) =>
+    s.rows.map((r) => ({ muscles: musclesByExercise.get(r.exercise.id) ?? [], sets: r.sets })),
+  )
 
   return (
     <div className="min-h-dvh">
@@ -348,6 +354,13 @@ export function PlanEditor({
           onSave={() => void save()}
           onEnsureSaved={save}
           onShareChanged={(slug) => setDoc((d) => ({ ...d, shareSlug: slug }))}
+          titleAccessory={
+            <WeekBalanceButton
+              title={doc.title}
+              rows={weekRows}
+              catalog={muscleTargets.map((m) => m.name)}
+            />
+          }
         />
         <SessionChips
           sessions={doc.sessions}

@@ -1,10 +1,13 @@
 'use client'
 
 import { Dumbbell } from 'lucide-react'
+import { MuscleMap } from '@/components/shared/muscle-map'
+import { MusclePill } from '@/components/shared/muscle-pill'
 import { Button } from '@/components/ui/button'
 import {
   BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle,
 } from '@/components/ui/bottom-sheet'
+import { shadesForMove } from '@/lib/muscle-map'
 import type { SharedRow } from '@/services/share'
 
 export function MoveLightbox({
@@ -16,7 +19,10 @@ export function MoveLightbox({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
-  const imageUrl = row ? (row.exercise.imageUrl ?? row.equipment?.imageUrl ?? null) : null
+  // Same precedence as `MoveThumbnail`: uploaded image, then the body figure, then equipment.
+  const imageUrl = row?.exercise.imageUrl ?? null
+  const showBodyHero = row !== null && imageUrl === null && row.muscles.length > 0
+  const fallbackUrl = row?.equipment?.imageUrl ?? null
 
   return (
     <BottomSheet open={open} onOpenChange={onOpenChange}>
@@ -31,6 +37,21 @@ export function MoveLightbox({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={imageUrl}
+                  alt=""
+                  className="max-h-[50dvh] w-full rounded-xl border bg-muted object-contain"
+                />
+              ) : showBodyHero ? (
+                <div className="flex h-[min(40dvh,20rem)] items-center justify-center rounded-xl border bg-muted/40 p-5">
+                  <MuscleMap
+                    shades={shadesForMove(row.muscles)}
+                    label={`Muscles worked: ${row.muscles.map((m) => m.name).join(', ')}`}
+                    className="size-full justify-center"
+                  />
+                </div>
+              ) : fallbackUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={fallbackUrl}
                   alt=""
                   className="max-h-[50dvh] w-full rounded-xl border bg-muted object-contain"
                 />
@@ -59,6 +80,28 @@ export function MoveLightbox({
                   </span>
                 )}
               </div>
+              {row.muscles.length > 0 && (
+                <div className="flex items-center gap-4 rounded-xl border p-3">
+                  {/* The figure is already the hero when there's no uploaded image. */}
+                  {!showBodyHero && (
+                    <MuscleMap
+                      shades={shadesForMove(row.muscles)}
+                      label={`Muscles worked: ${row.muscles.map((m) => m.name).join(', ')}`}
+                      className="h-24"
+                    />
+                  )}
+                  <div className="min-w-0 space-y-1.5">
+                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Works
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {row.muscles.map((m) => (
+                        <MusclePill key={m.name} name={m.name} primary={m.primary} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
               {row.exercise.tutorialUrl && (
                 <Button
                   size="lg"

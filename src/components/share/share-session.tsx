@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Clock, HeartPulse, TrendingUp } from 'lucide-react'
+import { MuscleSummary } from '@/components/shared/muscle-summary'
 import type { SharedRow, SharedSession } from '@/services/share'
 import { MoveLightbox } from './move-lightbox'
 import { ShareRowCard } from './share-row-card'
@@ -16,6 +17,12 @@ export function ShareSession({ session }: { session: SharedSession }) {
 
   return (
     <div className="space-y-6">
+      <MuscleSummary
+        kicker="Today hits"
+        title={session.label}
+        rows={session.rows.map((row) => ({ muscles: row.muscles, sets: row.sets }))}
+      />
+
       {session.warmupLines.length > 0 && (
         <section className="space-y-3">
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">

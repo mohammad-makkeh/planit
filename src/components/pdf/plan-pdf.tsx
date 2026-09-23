@@ -1,8 +1,12 @@
 import 'server-only'
 import {
-  Document, Image, Page, StyleSheet, Text, View, renderToBuffer,
+  Document, Image, Page, Polygon, StyleSheet, Svg, Text, View, renderToBuffer,
 } from '@react-pdf/renderer'
 import type { Style } from '@react-pdf/stylesheet'
+import {
+  BACK_BODY, BODY_VIEWBOX, FRONT_BODY, busiestSide, focusViewBox, shadeOpacity, shadesForMove,
+  shadesForRows, type RegionShades, type RegionShape,
+} from '@/lib/muscle-map'
 import type { SharedPlan, SharedRow, SharedSession } from '@/services/share'
 import { FONT_BODY, FONT_DISPLAY, FONT_LABEL } from './fonts'
 
@@ -92,7 +96,13 @@ const styles = StyleSheet.create({
     lineHeight: 1.15,
   },
 
-  dayBanner: { marginBottom: mm(7) },
+  // Figures sit on the title's baseline rather than floating mid-banner.
+  dayBanner: { marginBottom: mm(7), flexDirection: 'row', alignItems: 'flex-end' },
+  dayHeading: { flexGrow: 1, flexShrink: 1, paddingRight: mm(6) },
+  bodyMap: { flexDirection: 'row', flexShrink: 0 },
+  // 1:2 like the outlines' 100x200 viewBox.
+  bodyFigure: { width: mm(18), height: mm(36) },
+  bodyFigureGap: { width: mm(3) },
   dayKicker: { fontFamily: FONT_LABEL, fontSize: 11, letterSpacing: 2.2 },
   dayTitle: {
     fontFamily: FONT_DISPLAY,
@@ -197,7 +207,25 @@ const styles = StyleSheet.create({
   // The template's `small-cell`: a cell holding a cue rather than a number sets smaller and
   // bolder so a sentence in the Speed column never outweighs the figures beside it.
   tdSmall: { fontSize: 7, fontWeight: 600, textTransform: 'uppercase', lineHeight: 1.35, color: '#333333' },
-  tdExercise: { paddingVertical: mm(2.6), paddingRight: mm(3) },
+  tdExercise: {
+    paddingVertical: mm(2.6),
+    paddingRight: mm(3),
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  // Same picture rule as the web (`MoveThumbnail`): uploaded image, else the cropped body.
+  exThumb: {
+    width: mm(10),
+    height: mm(10),
+    marginRight: mm(3),
+    borderRadius: mm(1.5),
+    backgroundColor: PANEL,
+    overflow: 'hidden',
+    flexShrink: 0,
+  },
+  exThumbImage: { width: mm(10), height: mm(10), objectFit: 'cover' },
+  exThumbFigure: { width: mm(10), height: mm(10) },
+  exBody: { flexGrow: 1, flexShrink: 1 },
   exName: { flexDirection: 'row' },
   exNum: { fontFamily: FONT_LABEL, fontSize: 9, marginRight: mm(3) },
   exText: {
@@ -269,9 +297,11 @@ function cardioStats(session: SharedSession): { label: string; value: string }[]
   return stats
 }
 
-type Logo = { data: Buffer; format: 'png' | 'jpg' }
+type PdfImage = { data: Buffer; format: 'png' | 'jpg' }
+/** Uploaded move images by URL; a URL that failed to load (or is WebP) is simply absent. */
+type PdfImages = Map<string, PdfImage>
 
-function PageHeader({ plan, brand, logo }: { plan: SharedPlan; brand: string; logo: Logo | null }) {
+function PageHeader({ plan, brand, logo }: { plan: SharedPlan; brand: string; logo: PdfImage | null }) {
   return (
     <View style={[styles.header, { borderBottomColor: brand }]} fixed>
       <View style={styles.coachBlock}>
@@ -362,7 +392,35 @@ function CardioBar({ session, brand }: { session: SharedSession; brand: string }
   )
 }
 
-function WorkoutRow({ row, index, brand }: { row: SharedRow; index: number; brand: string }) {
+function RowThumb({ row, image, brand }: { row: SharedRow; image: PdfImage | undefined; brand: string }) {
+  if (image) {
+    // eslint-disable-next-line jsx-a11y/alt-text
+    return <View style={styles.exThumb}><Image src={image} style={styles.exThumbImage} /></View>
+  }
+  if (row.muscles.length === 0) return <View style={[styles.exThumb, { backgroundColor: WHITE }]} />
+  const shades = shadesForMove(row.muscles)
+  const shapes = busiestSide(shades) === 'back' ? BACK_BODY : FRONT_BODY
+  return (
+    <View style={styles.exThumb}>
+      <BodyFigure
+        shapes={shapes}
+        shades={shades}
+        brand={brand}
+        viewBox={focusViewBox(shapes, shades)}
+        style={styles.exThumbFigure}
+      />
+    </View>
+  )
+}
+
+function WorkoutRow({
+  row, index, brand, image,
+}: {
+  row: SharedRow
+  index: number
+  brand: string
+  image: PdfImage | undefined
+}) {
   const speed = cell(row.speed)
   const cells = [
     { key: 'sets', ...cell(row.sets), style: COL.sets, small: false },
@@ -376,12 +434,15 @@ function WorkoutRow({ row, index, brand }: { row: SharedRow; index: number; bran
   return (
     <View style={styles.tr} wrap={false}>
       <View style={[styles.tdExercise, COL.exercise]}>
-        <View style={styles.exName}>
-          <Text style={[styles.exNum, { color: brand }]}>{String(index + 1).padStart(2, '0')}</Text>
-          <Text style={styles.exText}>{row.exercise.name}</Text>
+        <RowThumb row={row} image={image} brand={brand} />
+        <View style={styles.exBody}>
+          <View style={styles.exName}>
+            <Text style={[styles.exNum, { color: brand }]}>{String(index + 1).padStart(2, '0')}</Text>
+            <Text style={styles.exText}>{row.exercise.name}</Text>
+          </View>
+          <Text style={styles.exMeta}>{movementMeta(row)}</Text>
+          {row.note && <Text style={styles.exNote}>{row.note}</Text>}
         </View>
-        <Text style={styles.exMeta}>{movementMeta(row)}</Text>
-        {row.note && <Text style={styles.exNote}>{row.note}</Text>}
       </View>
       {cells.map((c) => (
         <Text
@@ -400,7 +461,13 @@ function WorkoutRow({ row, index, brand }: { row: SharedRow; index: number; bran
   )
 }
 
-function Workout({ session, brand }: { session: SharedSession; brand: string }) {
+function Workout({
+  session, brand, images,
+}: {
+  session: SharedSession
+  brand: string
+  images: PdfImages
+}) {
   return (
     <View style={[styles.section, styles.sectionLast]}>
       <SectionHead label="Workout" brand={brand} />
@@ -413,45 +480,97 @@ function Workout({ session, brand }: { session: SharedSession; brand: string }) 
         <Text style={[styles.th, COL.oneRm]}>1RM</Text>
       </View>
       {session.rows.map((row, i) => (
-        <WorkoutRow key={i} row={row} index={i} brand={brand} />
+        <WorkoutRow
+          key={i}
+          row={row}
+          index={i}
+          brand={brand}
+          image={row.exercise.imageUrl ? images.get(row.exercise.imageUrl) : undefined}
+        />
       ))}
     </View>
   )
 }
 
+function BodyFigure({
+  shapes, shades, brand, viewBox = BODY_VIEWBOX, style = styles.bodyFigure,
+}: {
+  shapes: RegionShape[]
+  shades: RegionShades
+  brand: string
+  viewBox?: string
+  style?: Style
+}) {
+  return (
+    <Svg viewBox={viewBox} style={style}>
+      {shapes.flatMap(({ region, points }) => {
+        const shade = shades[region]
+        return points.map((p, i) => (
+          <Polygon
+            key={`${region}-${i}`}
+            points={p}
+            fill={shade === undefined ? INK : brand}
+            // A touch darker than on screen so the unworked body survives printing.
+            fillOpacity={shade === undefined ? 0.2 : shadeOpacity(shade)}
+          />
+        ))
+      })}
+    </Svg>
+  )
+}
+
 function SessionPage({
-  plan, session, brand, logo,
+  plan, session, brand, logo, images,
 }: {
   plan: SharedPlan
   session: SharedSession
   brand: string
-  logo: Logo | null
+  logo: PdfImage | null
+  images: PdfImages
 }) {
+  const shades = shadesForRows(session.rows.map((row) => ({ muscles: row.muscles, sets: row.sets })))
+  const hasMuscles = Object.keys(shades).length > 0
+
   return (
     <Page size="A4" style={styles.page}>
       <PageHeader plan={plan} brand={brand} logo={logo} />
       <View style={styles.dayBanner}>
-        {session.weekday && (
-          <Text style={[styles.dayKicker, { color: brand }]}>{session.weekday}</Text>
+        <View style={styles.dayHeading}>
+          {session.weekday && (
+            <Text style={[styles.dayKicker, { color: brand }]}>{session.weekday}</Text>
+          )}
+          <Text style={styles.dayTitle}>{session.label}</Text>
+        </View>
+        {hasMuscles && (
+          <View style={styles.bodyMap}>
+            <BodyFigure shapes={FRONT_BODY} shades={shades} brand={brand} />
+            <View style={styles.bodyFigureGap} />
+            <BodyFigure shapes={BACK_BODY} shades={shades} brand={brand} />
+          </View>
         )}
-        <Text style={styles.dayTitle}>{session.label}</Text>
       </View>
       {session.warmupLines.length > 0 && <WarmUp session={session} brand={brand} />}
       <CardioBar session={session} brand={brand} />
-      {session.rows.length > 0 && <Workout session={session} brand={brand} />}
+      {session.rows.length > 0 && <Workout session={session} brand={brand} images={images} />}
       <PageFooter plan={plan} />
     </Page>
   )
 }
 
-export function PlanPdfDocument({ plan, logo }: { plan: SharedPlan; logo: Logo | null }) {
+export function PlanPdfDocument({
+  plan, logo, images,
+}: {
+  plan: SharedPlan
+  logo: PdfImage | null
+  images: PdfImages
+}) {
   const brand = safeBrand(plan.coach.brandColor)
 
   return (
     <Document title={`${plan.client.name} — ${plan.plan.title}`} author={plan.coach.name}>
       {plan.sessions.length > 0 ? (
         plan.sessions.map((session, i) => (
-          <SessionPage key={i} plan={plan} session={session} brand={brand} logo={logo} />
+          <SessionPage key={i} plan={plan} session={session} brand={brand} logo={logo} images={images} />
         ))
       ) : (
         <Page size="A4" style={styles.page}>
@@ -478,7 +597,7 @@ function planPdfFilename(plan: SharedPlan): string {
  * The timeout keeps a slow/hanging logo host from stalling the render until the platform limit —
  * the abort it raises lands in the same catch as any other fetch failure.
  */
-async function loadLogo(url: string | null): Promise<Logo | null> {
+async function loadImage(url: string | null): Promise<PdfImage | null> {
   if (!url) return null
   try {
     const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(5000) })
@@ -496,8 +615,19 @@ async function loadLogo(url: string | null): Promise<Logo | null> {
 export async function renderPlanPdf(
   plan: SharedPlan,
 ): Promise<{ body: Uint8Array<ArrayBuffer>; filename: string }> {
-  const logo = await loadLogo(plan.coach.logoUrl)
-  const buffer = await renderToBuffer(<PlanPdfDocument plan={plan} logo={logo} />)
+  const imageUrls = [
+    ...new Set(plan.sessions.flatMap((s) => s.rows.flatMap((r) => r.exercise.imageUrl ?? []))),
+  ]
+  const [logo, ...loaded] = await Promise.all([
+    loadImage(plan.coach.logoUrl),
+    ...imageUrls.map((url) => loadImage(url)),
+  ])
+  const images: PdfImages = new Map()
+  imageUrls.forEach((url, i) => {
+    const image = loaded[i]
+    if (image) images.set(url, image)
+  })
+  const buffer = await renderToBuffer(<PlanPdfDocument plan={plan} logo={logo ?? null} images={images} />)
   // Copied into a plain ArrayBuffer-backed view: a Node Buffer can sit on a SharedArrayBuffer,
   // which `BodyInit` does not accept.
   const body = new Uint8Array(buffer.byteLength)

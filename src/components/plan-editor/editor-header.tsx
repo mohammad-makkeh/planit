@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Check, Copy, FileDown, Link2, MoreVertical, Save, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -25,6 +25,7 @@ export function EditorHeader({
   onSave,
   onEnsureSaved,
   onShareChanged,
+  titleAccessory,
 }: {
   plan: EditorPlan
   dirty: boolean
@@ -33,6 +34,8 @@ export function EditorHeader({
   onSave: () => void
   onEnsureSaved: () => Promise<boolean>
   onShareChanged: (slug: string | null) => void
+  /** Rendered at the end of the title row (the week balance button). */
+  titleAccessory?: ReactNode
 }) {
   const router = useRouter()
   const [shareOpen, setShareOpen] = useState(false)
@@ -169,6 +172,7 @@ export function EditorHeader({
           className="min-w-0 flex-1 bg-transparent text-xl font-bold tracking-tight outline-none placeholder:text-muted-foreground"
           placeholder="Plan title"
         />
+        {titleAccessory}
       </div>
 
       <ShareSheet

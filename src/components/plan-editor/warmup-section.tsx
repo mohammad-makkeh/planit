@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { DndContext, MouseSensor, TouchSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -78,6 +78,8 @@ export function WarmupSection({
   onChange: (lines: WarmupLine[]) => void
   onOpenPicker: () => void
 }) {
+  // A stable id keeps dnd-kit's generated aria-describedby ids equal on server and client.
+  const dndId = useId()
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
@@ -113,7 +115,7 @@ export function WarmupSection({
     <section className="space-y-2">
       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Warm-up</p>
       {lines.length > 0 && (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+        <DndContext id={dndId} sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
           <SortableContext items={ids} strategy={verticalListSortingStrategy}>
             <div className="space-y-1.5">
               {lines.map((line, index) => {

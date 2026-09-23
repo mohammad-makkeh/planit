@@ -1,6 +1,7 @@
 'use client'
 
 import { Dumbbell } from 'lucide-react'
+import { MoveThumbnail } from '@/components/shared/move-thumbnail'
 import type { SharedRow } from '@/services/share'
 
 // Same field order and units as the editor (`exercise-row-card.tsx`) and the PDF
@@ -14,7 +15,6 @@ const FIELDS = [
 ] as const
 
 export function ShareRowCard({ row, onOpen }: { row: SharedRow; onOpen: () => void }) {
-  const thumbnailUrl = row.exercise.imageUrl ?? row.equipment?.imageUrl ?? null
   // `!== null` rather than truthiness — rest is an integer and 0 is a real value.
   const values = FIELDS.filter(({ key }) => row[key] !== null && row[key] !== '')
 
@@ -25,18 +25,13 @@ export function ShareRowCard({ row, onOpen }: { row: SharedRow; onOpen: () => vo
       className="w-full space-y-2.5 rounded-2xl border bg-card p-3 text-left transition-colors hover:bg-accent/40"
     >
       <div className="flex items-center gap-2.5">
-        {thumbnailUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={thumbnailUrl}
-            alt=""
-            className="size-11 shrink-0 rounded-lg border object-cover"
-          />
-        ) : (
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-muted">
-            <Dumbbell className="size-5 text-muted-foreground" />
-          </div>
-        )}
+        <MoveThumbnail
+          name={row.exercise.name}
+          imageUrl={row.exercise.imageUrl}
+          muscles={row.muscles}
+          equipmentImageUrl={row.equipment?.imageUrl ?? null}
+          className="size-11 rounded-lg"
+        />
         <div className="min-w-0 flex-1 space-y-1">
           <p className="truncate text-sm font-semibold">{row.exercise.name}</p>
           <div className="flex flex-wrap items-center gap-1">

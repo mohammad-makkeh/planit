@@ -1,5 +1,6 @@
 'use client'
 
+import { useId } from 'react'
 import { DndContext, MouseSensor, TouchSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, arrayMove, horizontalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -55,6 +56,8 @@ export function SessionChips({
   onAdd: () => void
   onReorder: (orderedIds: string[]) => void
 }) {
+  // A stable id keeps dnd-kit's generated aria-describedby ids equal on server and client.
+  const dndId = useId()
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
@@ -70,7 +73,7 @@ export function SessionChips({
 
   return (
     <div className="flex items-center gap-2 overflow-x-auto border-b bg-background/95 px-4 py-3 backdrop-blur md:px-8 [-ms-overflow-style:none] [scrollbar-width:none]">
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+      <DndContext id={dndId} sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={sessions.map((s) => s.id)} strategy={horizontalListSortingStrategy}>
           {sessions.map((s) => (
             <SessionChip

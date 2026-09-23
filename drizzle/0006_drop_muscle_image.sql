@@ -1,0 +1,1 @@
+ALTER TABLE "muscle_targets" DROP COLUMN "image_url";

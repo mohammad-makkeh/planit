@@ -68,7 +68,7 @@ export function ExerciseFormSheet({
         name: exercise?.name ?? initialName ?? '',
         imageUrl: exercise?.imageUrl ?? '',
         tutorialUrl: exercise?.tutorialUrl ?? '',
-        muscleTargetIds: exercise?.muscleTargets.map((m) => m.id) ?? [],
+        muscleTargets: exercise?.muscleTargets.map((m) => ({ id: m.id, primary: m.primary })) ?? [],
         movementType: exercise?.movementType ?? 'static',
         equipmentIds: exercise
           ? [
@@ -82,7 +82,7 @@ export function ExerciseFormSheet({
   }, [open, exercise, equipmentOptions, initialName, reset])
 
   const imageUrl = watch('imageUrl')
-  const muscleTargetIds = watch('muscleTargetIds') ?? []
+  const muscles = watch('muscleTargets') ?? []
   const movementType = watch('movementType')
   const equipmentIds = watch('equipmentIds') ?? []
 
@@ -170,8 +170,21 @@ export function ExerciseFormSheet({
               label="Muscle targets"
               sheetTitle="Add muscle targets"
               options={muscleTargetOptions}
-              value={muscleTargetIds}
-              onChange={(ids) => setValue('muscleTargetIds', ids)}
+              value={muscles.map((m) => m.id)}
+              // New picks start primary; kept picks keep their flag.
+              onChange={(ids) =>
+                setValue(
+                  'muscleTargets',
+                  ids.map((id) => ({ id, primary: muscles.find((m) => m.id === id)?.primary ?? true })),
+                )
+              }
+              secondaryIds={muscles.filter((m) => !m.primary).map((m) => m.id)}
+              onToggleSecondary={(id) =>
+                setValue(
+                  'muscleTargets',
+                  muscles.map((m) => (m.id === id ? { ...m, primary: !m.primary } : m)),
+                )
+              }
             />
             <Button type="submit" className="w-full" disabled={formState.isSubmitting}>
               {formState.isSubmitting ? 'Saving…' : exercise ? 'Save changes' : 'Add move'}

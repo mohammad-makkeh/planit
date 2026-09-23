@@ -9,7 +9,7 @@ import type { ExerciseInput } from '@/lib/validation'
 
 export type Exercise = typeof exercises.$inferSelect
 export type ExerciseWithDetails = Exercise & {
-  muscleTargets: { id: string; name: string }[]
+  muscleTargets: { id: string; name: string; primary: boolean }[]
   equipment: { id: string; name: string; imageUrl: string | null }[]
 }
 export type ExerciseUsage = { rowCount: number; planCount: number }
@@ -28,16 +28,17 @@ export async function listExercises(coachId: string): Promise<ExerciseWithDetail
       exerciseId: exerciseMuscleTargets.exerciseId,
       id: muscleTargets.id,
       name: muscleTargets.name,
+      primary: exerciseMuscleTargets.isPrimary,
     })
     .from(exerciseMuscleTargets)
     .innerJoin(muscleTargets, eq(exerciseMuscleTargets.muscleTargetId, muscleTargets.id))
     .where(inArray(exerciseMuscleTargets.exerciseId, exerciseIds))
     .orderBy(asc(muscleTargets.position), asc(muscleTargets.name))
 
-  const musclesByExercise = new Map<string, { id: string; name: string }[]>()
+  const musclesByExercise = new Map<string, { id: string; name: string; primary: boolean }[]>()
   for (const link of muscleLinks) {
     const list = musclesByExercise.get(link.exerciseId) ?? []
-    list.push({ id: link.id, name: link.name })
+    list.push({ id: link.id, name: link.name, primary: link.primary })
     musclesByExercise.set(link.exerciseId, list)
   }
 
@@ -95,24 +96,27 @@ async function resolveCatalogIds(tx: Tx, input: ExerciseInput) {
     input.equipmentIds,
     await tx.select({ id: equipment.id }).from(equipment).where(inArray(equipment.id, input.equipmentIds)),
   )
-  const muscleTargetIds = input.muscleTargetIds.length > 0
+  const pickedMuscleIds = input.muscleTargets.map((m) => m.id)
+  const knownMuscleIds = pickedMuscleIds.length > 0
     ? inPickedOrder(
-        input.muscleTargetIds,
+        pickedMuscleIds,
         await tx
           .select({ id: muscleTargets.id })
           .from(muscleTargets)
-          .where(inArray(muscleTargets.id, input.muscleTargetIds)),
+          .where(inArray(muscleTargets.id, pickedMuscleIds)),
       )
     : []
+  const primaryById = new Map(input.muscleTargets.map((m) => [m.id, m.primary]))
+  const muscles = knownMuscleIds.map((id) => ({ id, primary: primaryById.get(id) ?? true }))
   const defaultEquipmentId = equipmentIds[0]
   if (!defaultEquipmentId) throw new Error('No known equipment picked')
-  return { equipmentIds, muscleTargetIds, defaultEquipmentId }
+  return { equipmentIds, muscles, defaultEquipmentId }
 }
 
 async function linkCatalogs(
   tx: Tx,
   exerciseId: string,
-  { equipmentIds, muscleTargetIds }: { equipmentIds: string[]; muscleTargetIds: string[] },
+  { equipmentIds, muscles }: { equipmentIds: string[]; muscles: { id: string; primary: boolean }[] },
 ) {
   if (equipmentIds.length > 0) {
     await tx
@@ -120,10 +124,10 @@ async function linkCatalogs(
       .values(equipmentIds.map((equipmentId) => ({ exerciseId, equipmentId })))
       .onConflictDoNothing()
   }
-  if (muscleTargetIds.length > 0) {
+  if (muscles.length > 0) {
     await tx
       .insert(exerciseMuscleTargets)
-      .values(muscleTargetIds.map((muscleTargetId) => ({ exerciseId, muscleTargetId })))
+      .values(muscles.map((m) => ({ exerciseId, muscleTargetId: m.id, isPrimary: m.primary })))
       .onConflictDoNothing()
   }
 }

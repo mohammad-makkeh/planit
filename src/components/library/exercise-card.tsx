@@ -1,14 +1,9 @@
 'use client'
 
-import { Dumbbell } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { MoveThumbnail } from '@/components/shared/move-thumbnail'
 import { Badge } from '@/components/ui/badge'
 import type { ExerciseWithDetails } from '@/services/exercises'
-
-function moveThumbnail(e: ExerciseWithDetails): string | null {
-  if (e.imageUrl) return e.imageUrl
-  return e.equipment.find((eq) => eq.id === e.defaultEquipmentId)?.imageUrl ?? null
-}
 
 export function ExerciseCard({
   exercise,
@@ -17,7 +12,7 @@ export function ExerciseCard({
   exercise: ExerciseWithDetails
   onClick: () => void
 }) {
-  const thumb = moveThumbnail(exercise)
+  const defaultEquipment = exercise.equipment.find((eq) => eq.id === exercise.defaultEquipmentId)
 
   return (
     <button
@@ -25,14 +20,13 @@ export function ExerciseCard({
       onClick={onClick}
       className="flex w-full items-center gap-3 rounded-2xl border bg-card p-3 text-left transition-colors hover:bg-accent/40"
     >
-      {thumb ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={thumb} alt={exercise.name} className="size-12 rounded-xl border object-cover" />
-      ) : (
-        <div className="flex size-12 items-center justify-center rounded-xl bg-muted">
-          <Dumbbell className="size-5 text-muted-foreground" />
-        </div>
-      )}
+      <MoveThumbnail
+        name={exercise.name}
+        imageUrl={exercise.imageUrl}
+        muscles={exercise.muscleTargets}
+        equipmentImageUrl={defaultEquipment?.imageUrl ?? null}
+        className="size-12 rounded-xl"
+      />
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium">{exercise.name}</p>
         {(exercise.muscleTargets.length > 0 || exercise.movementType) && (
@@ -48,7 +42,11 @@ export function ExerciseCard({
               </div>
             )}
             {exercise.muscleTargets.map((m) => (
-              <Badge key={m.id} variant="secondary" className="px-1.5 py-0 text-[10px]">
+              <Badge
+                key={m.id}
+                variant={m.primary ? 'secondary' : 'outline'}
+                className={cn('px-1.5 py-0 text-[10px]', !m.primary && 'text-muted-foreground')}
+              >
                 {m.name}
               </Badge>
             ))}

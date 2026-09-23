@@ -1,13 +1,17 @@
 import 'server-only'
+import type { MuscleWork } from '@/lib/muscle-map'
 import { and, asc, eq, inArray, isNull } from 'drizzle-orm'
 import { db } from '@/db/client'
 import {
-  clients, coaches, equipment, exerciseEquipment, exercises, planRows, planSessions, plans,
+  clients, coaches, equipment, exerciseEquipment, exerciseMuscleTargets, exercises, muscleTargets,
+  planRows, planSessions, plans,
 } from '@/db/schema'
 
 export type SharedRow = {
   exercise: { name: string; imageUrl: string | null; tutorialUrl: string | null }
   movementType: 'push' | 'pull' | 'static'
+  /** Muscle targets in catalog display order. */
+  muscles: MuscleWork[]
   equipment: { name: string; imageUrl: string | null } | null
   sets: number | null
   reps: number | null
@@ -109,6 +113,27 @@ async function buildSharedPlan(planRow: PlanRow | undefined): Promise<SharedPlan
     equipmentByExercise.set(link.exerciseId, list)
   }
 
+  const muscleLinks =
+    exerciseIds.length > 0
+      ? await db
+          .select({
+            exerciseId: exerciseMuscleTargets.exerciseId,
+            name: muscleTargets.name,
+            primary: exerciseMuscleTargets.isPrimary,
+          })
+          .from(exerciseMuscleTargets)
+          .innerJoin(muscleTargets, eq(exerciseMuscleTargets.muscleTargetId, muscleTargets.id))
+          .where(inArray(exerciseMuscleTargets.exerciseId, exerciseIds))
+          .orderBy(asc(muscleTargets.position), asc(muscleTargets.name))
+      : []
+
+  const musclesByExercise = new Map<string, MuscleWork[]>()
+  for (const link of muscleLinks) {
+    const list = musclesByExercise.get(link.exerciseId) ?? []
+    list.push({ name: link.name, primary: link.primary })
+    musclesByExercise.set(link.exerciseId, list)
+  }
+
   const rowsBySession = new Map<string, SharedRow[]>()
   for (const r of rowRecords) {
     const linkedEquipment = equipmentByExercise.get(r.exerciseId) ?? []
@@ -125,6 +150,7 @@ async function buildSharedPlan(planRow: PlanRow | undefined): Promise<SharedPlan
         tutorialUrl: r.exerciseTutorialUrl,
       },
       movementType: r.movementType,
+      muscles: musclesByExercise.get(r.exerciseId) ?? [],
       equipment: resolvedEquipment ? { name: resolvedEquipment.name, imageUrl: resolvedEquipment.imageUrl } : null,
       sets: r.sets,
       reps: r.reps,

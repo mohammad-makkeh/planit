@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { MoveThumbnail } from '@/components/shared/move-thumbnail'
 import { UnitInput } from '@/components/shared/unit-input'
 import { cn } from '@/lib/utils'
 import type { ExerciseWithDetails } from '@/services/exercises'
@@ -52,7 +53,6 @@ export function ExerciseRowCard({
   const resolvedEquipment = move
     ? move.equipment.find((e) => e.id === row.equipmentId) ?? move.equipment.find((e) => e.id === move.defaultEquipmentId)
     : undefined
-  const thumbnailUrl = row.exercise.imageUrl ?? resolvedEquipment?.imageUrl ?? null
 
   return (
     <div
@@ -75,18 +75,13 @@ export function ExerciseRowCard({
           onClick={onSwap}
           className="flex min-w-0 flex-1 items-center gap-2 rounded-lg p-1 text-left hover:bg-accent/40"
         >
-          {thumbnailUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={thumbnailUrl}
-              alt={row.exercise.name}
-              className="size-9 rounded-lg border object-cover"
-            />
-          ) : (
-            <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
-              <Dumbbell className="size-4 text-muted-foreground" />
-            </div>
-          )}
+          <MoveThumbnail
+            name={row.exercise.name}
+            imageUrl={row.exercise.imageUrl}
+            muscles={move?.muscleTargets ?? []}
+            equipmentImageUrl={resolvedEquipment?.imageUrl ?? null}
+            className="size-9 rounded-lg"
+          />
           <span className="min-w-0 flex-1 truncate text-sm font-semibold">{row.exercise.name}</span>
         </button>
         {move && resolvedEquipment && (
