@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Clock, HeartPulse, TrendingUp } from 'lucide-react'
+import { Angle, Clock, HeartPulse } from 'lucide-react'
 import { MuscleSummary } from '@/components/shared/muscle-summary'
 import type { SharedRow, SharedSession } from '@/services/share'
 import { MoveLightbox } from './move-lightbox'
@@ -44,22 +44,24 @@ export function ShareSession({ session }: { session: SharedSession }) {
           <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             Cardio
           </p>
-          <div className="flex flex-col gap-2 rounded-xl border bg-card p-3 sm:flex-row sm:gap-5">
+          {/* One row at every width: equal cells split by full-height dividers; the box has no
+              padding of its own, so the dividers run edge to edge. */}
+          <div className="flex divide-x rounded-xl border bg-card">
             {session.cardioMinutes !== null && (
-              <div className="flex items-center gap-2 text-sm">
+              <div className="flex min-w-0 flex-1 items-center justify-center gap-2 px-2 py-3 text-sm">
                 <Clock className="size-4 shrink-0 text-brand" />
                 {session.cardioMinutes} min
               </div>
             )}
             {session.cardioBpm !== null && (
-              <div className="flex items-center gap-2 text-sm">
+              <div className="flex min-w-0 flex-1 items-center justify-center gap-2 px-2 py-3 text-sm">
                 <HeartPulse className="size-4 shrink-0 text-brand" />
                 {session.cardioBpm} BPM
               </div>
             )}
             {session.cardioIncline !== null && (
-              <div className="flex items-center gap-2 text-sm">
-                <TrendingUp className="size-4 shrink-0 text-brand" />
+              <div className="flex min-w-0 flex-1 items-center justify-center gap-2 px-2 py-3 text-sm">
+                <Angle className="size-4 shrink-0 text-brand" />
                 {session.cardioIncline}%
               </div>
             )}
