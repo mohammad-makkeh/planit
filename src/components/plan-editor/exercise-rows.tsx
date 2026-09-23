@@ -4,10 +4,9 @@ import { useState } from 'react'
 import { DndContext, MouseSensor, TouchSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Plus } from 'lucide-react'
-import type { EquipmentOption } from '@/components/library/equipment-multi-select'
-import type { TagOption } from '@/components/library/tag-multi-select'
+import type { CatalogOption, EquipmentOption } from '@/components/library/catalog-picker-field'
 import { Button } from '@/components/ui/button'
-import type { ExerciseWithTags } from '@/services/exercises'
+import type { ExerciseWithDetails } from '@/services/exercises'
 import type { EditorSession } from '@/services/plans'
 import { ExercisePickerSheet } from './exercise-picker-sheet'
 import { ExerciseRowCard } from './exercise-row-card'
@@ -18,7 +17,7 @@ type PickerMode = { type: 'add' } | { type: 'swap'; rowId: string } | null
 export function ExerciseRows({
   session,
   exercises,
-  tags,
+  muscleTargets,
   equipmentOptions,
   onRowField,
   onAdd,
@@ -29,8 +28,8 @@ export function ExerciseRows({
   onRowEquipment,
 }: {
   session: EditorSession
-  exercises: ExerciseWithTags[]
-  tags: TagOption[]
+  exercises: ExerciseWithDetails[]
+  muscleTargets: CatalogOption[]
   equipmentOptions: EquipmentOption[]
   onRowField: (rowId: string, fields: RowFieldPatch) => void
   onAdd: (exercise: PickedExercise, equipmentId: string | null) => void
@@ -84,7 +83,7 @@ export function ExerciseRows({
           if (!open) setPicker(null)
         }}
         exercises={exercises}
-        tags={tags}
+        muscleTargets={muscleTargets}
         equipmentOptions={equipmentOptions}
         onPick={(exercise, equipmentId) => {
           if (picker?.type === 'swap') onSwap(picker.rowId, exercise, equipmentId)

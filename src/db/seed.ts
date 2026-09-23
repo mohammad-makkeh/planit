@@ -2,9 +2,10 @@ import bcrypt from 'bcryptjs'
 import { eq } from 'drizzle-orm'
 import { db } from './client'
 import {
-  coaches, equipment, exerciseEquipment, exerciseTags, exercises, tags, warmupPresets,
+  coaches, equipment, exerciseEquipment, exerciseMuscleTargets, exercises, muscleTargets,
+  warmupPresets,
 } from './schema'
-import { EQUIPMENT, SEED_EXERCISES, SEED_WARMUPS, TAG_NAMES } from './seed-data'
+import { EQUIPMENT, SEED_EXERCISES, SEED_WARMUPS } from './seed-data'
 
 type SeedCoach = { email: string; password: string; name: string }
 
@@ -16,7 +17,25 @@ function coachFromEnv(n: 1 | 2): SeedCoach {
   return { email: email.toLowerCase(), password, name }
 }
 
-async function seedCoach(input: SeedCoach): Promise<void> {
+type Catalogs = { anyEquipmentId: string; muscleIdByName: Map<string, string> }
+
+/** Equipment and muscle targets are global; muscle targets arrive with migration 0003. */
+async function seedCatalogs(): Promise<Catalogs> {
+  await db
+    .insert(equipment)
+    .values(EQUIPMENT.map((e) => ({ name: e.name, imageUrl: e.imageUrl, isFallback: e.isFallback })))
+    .onConflictDoNothing()
+  const anyEquipment = await db.query.equipment.findFirst({ where: eq(equipment.isFallback, true) })
+  if (!anyEquipment) throw new Error('Missing fallback ("Any") equipment')
+  const muscleRows = await db.select().from(muscleTargets)
+  if (muscleRows.length === 0) throw new Error('No muscle targets — run the migrations first')
+  return {
+    anyEquipmentId: anyEquipment.id,
+    muscleIdByName: new Map(muscleRows.map((m) => [m.name, m.id])),
+  }
+}
+
+async function seedCoach(input: SeedCoach, { anyEquipmentId, muscleIdByName }: Catalogs): Promise<void> {
   let coach = await db.query.coaches.findFirst({ where: eq(coaches.email, input.email) })
   if (!coach) {
     const [created] = await db
@@ -33,26 +52,6 @@ async function seedCoach(input: SeedCoach): Promise<void> {
   const coachId = coach.id
 
   await db
-    .insert(tags)
-    .values(TAG_NAMES.map((name) => ({ coachId, name })))
-    .onConflictDoNothing()
-  const tagRows = await db.query.tags.findMany({ where: eq(tags.coachId, coachId) })
-  const tagIdByName = new Map(tagRows.map((t) => [t.name, t.id]))
-
-  await db
-    .insert(equipment)
-    .values(EQUIPMENT.map((e) => ({
-      coachId, name: e.name, imageUrl: e.imageUrl, isFallback: e.isFallback,
-    })))
-    .onConflictDoNothing()
-  const equipmentRows = await db.query.equipment.findMany({
-    where: eq(equipment.coachId, coachId),
-  })
-  const equipmentIdByName = new Map(equipmentRows.map((e) => [e.name, e.id]))
-  const anyEquipmentId = equipmentIdByName.get('Any')
-  if (!anyEquipmentId) throw new Error(`Missing "Any" equipment for coach ${input.email}`)
-
-  await db
     .insert(exercises)
     .values(SEED_EXERCISES.map((e) => ({
       coachId, name: e.name, movementType: e.movementType, defaultEquipmentId: anyEquipmentId,
@@ -66,12 +65,12 @@ async function seedCoach(input: SeedCoach): Promise<void> {
   const links = SEED_EXERCISES.flatMap((e) => {
     const exerciseId = exerciseIdByName.get(e.name)
     if (!exerciseId) return []
-    return e.tags.flatMap((t) => {
-      const tagId = tagIdByName.get(t)
-      return tagId ? [{ exerciseId, tagId }] : []
+    return e.muscles.flatMap((name) => {
+      const muscleTargetId = muscleIdByName.get(name)
+      return muscleTargetId ? [{ exerciseId, muscleTargetId }] : []
     })
   })
-  if (links.length > 0) await db.insert(exerciseTags).values(links).onConflictDoNothing()
+  if (links.length > 0) await db.insert(exerciseMuscleTargets).values(links).onConflictDoNothing()
 
   const equipmentLinks = SEED_EXERCISES.flatMap((e) => {
     const exerciseId = exerciseIdByName.get(e.name)
@@ -91,15 +90,13 @@ async function seedCoach(input: SeedCoach): Promise<void> {
   }))
   if (missing.length > 0) await db.insert(warmupPresets).values(missing)
 
-  console.log(
-    `Seeded ${input.email}: ${exerciseRows.length} exercises, `
-    + `${tagRows.length} tags, ${equipmentRows.length} equipment`,
-  )
+  console.log(`Seeded ${input.email}: ${exerciseRows.length} exercises`)
 }
 
 async function main(): Promise<void> {
-  await seedCoach(coachFromEnv(1))
-  await seedCoach(coachFromEnv(2))
+  const catalogs = await seedCatalogs()
+  await seedCoach(coachFromEnv(1), catalogs)
+  await seedCoach(coachFromEnv(2), catalogs)
   console.log('Seed complete')
   process.exit(0)
 }

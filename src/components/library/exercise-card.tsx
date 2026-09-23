@@ -3,9 +3,9 @@
 import { Dumbbell } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
-import type { ExerciseWithTags } from '@/services/exercises'
+import type { ExerciseWithDetails } from '@/services/exercises'
 
-function moveThumbnail(e: ExerciseWithTags): string | null {
+function moveThumbnail(e: ExerciseWithDetails): string | null {
   if (e.imageUrl) return e.imageUrl
   return e.equipment.find((eq) => eq.id === e.defaultEquipmentId)?.imageUrl ?? null
 }
@@ -14,7 +14,7 @@ export function ExerciseCard({
   exercise,
   onClick,
 }: {
-  exercise: ExerciseWithTags
+  exercise: ExerciseWithDetails
   onClick: () => void
 }) {
   const thumb = moveThumbnail(exercise)
@@ -35,7 +35,7 @@ export function ExerciseCard({
       )}
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium">{exercise.name}</p>
-        {(exercise.tags.length > 0 || exercise.movementType) && (
+        {(exercise.muscleTargets.length > 0 || exercise.movementType) && (
           <div className="mt-1 flex flex-wrap gap-1">
             {exercise.movementType && (
               <div
@@ -47,9 +47,9 @@ export function ExerciseCard({
                 {exercise.movementType.charAt(0).toUpperCase() + exercise.movementType.slice(1)}
               </div>
             )}
-            {exercise.tags.map((t) => (
-              <Badge key={t.id} variant="secondary" className="px-1.5 py-0 text-[10px]">
-                {t.name}
+            {exercise.muscleTargets.map((m) => (
+              <Badge key={m.id} variant="secondary" className="px-1.5 py-0 text-[10px]">
+                {m.name}
               </Badge>
             ))}
           </div>

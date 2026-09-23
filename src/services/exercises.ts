@@ -2,36 +2,43 @@ import 'server-only'
 import { and, asc, count, countDistinct, eq, inArray, isNull } from 'drizzle-orm'
 import { db } from '@/db/client'
 import {
-  equipment, exerciseEquipment, exerciseTags, exercises, planRows, planSessions, plans, tags,
+  equipment, exerciseEquipment, exerciseMuscleTargets, exercises, muscleTargets, planRows,
+  planSessions, plans,
 } from '@/db/schema'
 import type { ExerciseInput } from '@/lib/validation'
 
 export type Exercise = typeof exercises.$inferSelect
-export type ExerciseWithTags = Exercise & {
-  tags: { id: string; name: string }[]
+export type ExerciseWithDetails = Exercise & {
+  muscleTargets: { id: string; name: string }[]
   equipment: { id: string; name: string; imageUrl: string | null }[]
 }
 export type ExerciseUsage = { rowCount: number; planCount: number }
 
-export async function listExercises(coachId: string): Promise<ExerciseWithTags[]> {
+export async function listExercises(coachId: string): Promise<ExerciseWithDetails[]> {
   const rows = await db
     .select()
     .from(exercises)
     .where(eq(exercises.coachId, coachId))
     .orderBy(asc(exercises.name))
   if (rows.length === 0) return []
+  const exerciseIds = rows.map((r) => r.id)
 
-  const links = await db
-    .select({ exerciseId: exerciseTags.exerciseId, id: tags.id, name: tags.name })
-    .from(exerciseTags)
-    .innerJoin(tags, eq(exerciseTags.tagId, tags.id))
-    .where(and(eq(tags.coachId, coachId), inArray(exerciseTags.exerciseId, rows.map((r) => r.id))))
+  const muscleLinks = await db
+    .select({
+      exerciseId: exerciseMuscleTargets.exerciseId,
+      id: muscleTargets.id,
+      name: muscleTargets.name,
+    })
+    .from(exerciseMuscleTargets)
+    .innerJoin(muscleTargets, eq(exerciseMuscleTargets.muscleTargetId, muscleTargets.id))
+    .where(inArray(exerciseMuscleTargets.exerciseId, exerciseIds))
+    .orderBy(asc(muscleTargets.position), asc(muscleTargets.name))
 
-  const byExercise = new Map<string, { id: string; name: string }[]>()
-  for (const link of links) {
-    const list = byExercise.get(link.exerciseId) ?? []
+  const musclesByExercise = new Map<string, { id: string; name: string }[]>()
+  for (const link of muscleLinks) {
+    const list = musclesByExercise.get(link.exerciseId) ?? []
     list.push({ id: link.id, name: link.name })
-    byExercise.set(link.exerciseId, list)
+    musclesByExercise.set(link.exerciseId, list)
   }
 
   const equipmentLinks = await db
@@ -43,7 +50,7 @@ export async function listExercises(coachId: string): Promise<ExerciseWithTags[]
     })
     .from(exerciseEquipment)
     .innerJoin(equipment, eq(exerciseEquipment.equipmentId, equipment.id))
-    .where(and(eq(equipment.coachId, coachId), inArray(exerciseEquipment.exerciseId, rows.map((r) => r.id))))
+    .where(inArray(exerciseEquipment.exerciseId, exerciseIds))
     .orderBy(asc(equipment.name))
 
   const equipmentByExercise = new Map<string, { id: string; name: string; imageUrl: string | null }[]>()
@@ -55,7 +62,7 @@ export async function listExercises(coachId: string): Promise<ExerciseWithTags[]
 
   return rows.map((r) => ({
     ...r,
-    tags: byExercise.get(r.id) ?? [],
+    muscleTargets: musclesByExercise.get(r.id) ?? [],
     equipment: equipmentByExercise.get(r.id) ?? [],
   }))
 }
@@ -70,46 +77,66 @@ function toRow(input: ExerciseInput, defaultEquipmentId: string) {
   }
 }
 
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0]
+
 /**
- * Keeps the coach-owned ids in the order the coach picked them — the ownership query returns
- * rows in an arbitrary order, so the input drives the order, not the query result. The first
- * entry becomes the exercise's default equipment, which preserves the "default is always an
- * owned, linked equipment" guarantee now that the default is no longer a separate input.
+ * Keeps only ids that exist in a catalog, in the order the coach picked them — the lookup
+ * returns rows in an arbitrary order, so the input drives the order. For equipment the first
+ * entry becomes the exercise's default, which keeps "the default is always a linked
+ * equipment" true.
  */
-function orderedOwned(equipmentIds: string[], ownedRows: { id: string }[]): string[] {
-  const owned = new Set(ownedRows.map((e) => e.id))
-  return equipmentIds.filter((id) => owned.has(id))
+function inPickedOrder(pickedIds: string[], existing: { id: string }[]): string[] {
+  const known = new Set(existing.map((e) => e.id))
+  return pickedIds.filter((id) => known.has(id))
+}
+
+async function resolveCatalogIds(tx: Tx, input: ExerciseInput) {
+  const equipmentIds = inPickedOrder(
+    input.equipmentIds,
+    await tx.select({ id: equipment.id }).from(equipment).where(inArray(equipment.id, input.equipmentIds)),
+  )
+  const muscleTargetIds = input.muscleTargetIds.length > 0
+    ? inPickedOrder(
+        input.muscleTargetIds,
+        await tx
+          .select({ id: muscleTargets.id })
+          .from(muscleTargets)
+          .where(inArray(muscleTargets.id, input.muscleTargetIds)),
+      )
+    : []
+  const defaultEquipmentId = equipmentIds[0]
+  if (!defaultEquipmentId) throw new Error('No known equipment picked')
+  return { equipmentIds, muscleTargetIds, defaultEquipmentId }
+}
+
+async function linkCatalogs(
+  tx: Tx,
+  exerciseId: string,
+  { equipmentIds, muscleTargetIds }: { equipmentIds: string[]; muscleTargetIds: string[] },
+) {
+  if (equipmentIds.length > 0) {
+    await tx
+      .insert(exerciseEquipment)
+      .values(equipmentIds.map((equipmentId) => ({ exerciseId, equipmentId })))
+      .onConflictDoNothing()
+  }
+  if (muscleTargetIds.length > 0) {
+    await tx
+      .insert(exerciseMuscleTargets)
+      .values(muscleTargetIds.map((muscleTargetId) => ({ exerciseId, muscleTargetId })))
+      .onConflictDoNothing()
+  }
 }
 
 export async function createExercise(coachId: string, input: ExerciseInput): Promise<Exercise> {
   return db.transaction(async (tx) => {
-    const ownedEquipment = input.equipmentIds.length > 0
-      ? orderedOwned(input.equipmentIds, await tx.select({ id: equipment.id }).from(equipment)
-          .where(and(eq(equipment.coachId, coachId), inArray(equipment.id, input.equipmentIds))))
-      : []
-    const defaultEquipmentId = ownedEquipment[0]
-    if (!defaultEquipmentId) throw new Error('Default equipment not owned')
+    const resolved = await resolveCatalogIds(tx, input)
     const [created] = await tx
       .insert(exercises)
-      .values({ coachId, ...toRow(input, defaultEquipmentId) })
+      .values({ coachId, ...toRow(input, resolved.defaultEquipmentId) })
       .returning()
     if (!created) throw new Error('Insert returned no row')
-    const ownedTagIds = input.tagIds.length > 0
-      ? (await tx.select({ id: tags.id }).from(tags)
-          .where(and(eq(tags.coachId, coachId), inArray(tags.id, input.tagIds)))).map((t) => t.id)
-      : []
-    if (ownedTagIds.length > 0) {
-      await tx
-        .insert(exerciseTags)
-        .values(ownedTagIds.map((tagId) => ({ exerciseId: created.id, tagId })))
-        .onConflictDoNothing()
-    }
-    if (ownedEquipment.length > 0) {
-      await tx
-        .insert(exerciseEquipment)
-        .values(ownedEquipment.map((equipmentId) => ({ exerciseId: created.id, equipmentId })))
-        .onConflictDoNothing()
-    }
+    await linkCatalogs(tx, created.id, resolved)
     return created
   })
 }
@@ -120,36 +147,16 @@ export async function updateExercise(
   input: ExerciseInput,
 ): Promise<Exercise | undefined> {
   return db.transaction(async (tx) => {
-    const ownedEquipment = input.equipmentIds.length > 0
-      ? orderedOwned(input.equipmentIds, await tx.select({ id: equipment.id }).from(equipment)
-          .where(and(eq(equipment.coachId, coachId), inArray(equipment.id, input.equipmentIds))))
-      : []
-    const defaultEquipmentId = ownedEquipment[0]
-    if (!defaultEquipmentId) throw new Error('Default equipment not owned')
+    const resolved = await resolveCatalogIds(tx, input)
     const [updated] = await tx
       .update(exercises)
-      .set(toRow(input, defaultEquipmentId))
+      .set(toRow(input, resolved.defaultEquipmentId))
       .where(and(eq(exercises.id, exerciseId), eq(exercises.coachId, coachId)))
       .returning()
     if (!updated) return undefined
-    await tx.delete(exerciseTags).where(eq(exerciseTags.exerciseId, exerciseId))
-    const ownedTagIds = input.tagIds.length > 0
-      ? (await tx.select({ id: tags.id }).from(tags)
-          .where(and(eq(tags.coachId, coachId), inArray(tags.id, input.tagIds)))).map((t) => t.id)
-      : []
-    if (ownedTagIds.length > 0) {
-      await tx
-        .insert(exerciseTags)
-        .values(ownedTagIds.map((tagId) => ({ exerciseId, tagId })))
-        .onConflictDoNothing()
-    }
     await tx.delete(exerciseEquipment).where(eq(exerciseEquipment.exerciseId, exerciseId))
-    if (ownedEquipment.length > 0) {
-      await tx
-        .insert(exerciseEquipment)
-        .values(ownedEquipment.map((equipmentId) => ({ exerciseId, equipmentId })))
-        .onConflictDoNothing()
-    }
+    await tx.delete(exerciseMuscleTargets).where(eq(exerciseMuscleTargets.exerciseId, exerciseId))
+    await linkCatalogs(tx, exerciseId, resolved)
     return updated
   })
 }
@@ -164,7 +171,7 @@ export async function getExerciseUsage(coachId: string, exerciseId: string): Pro
   return usage ?? { rowCount: 0, planCount: 0 }
 }
 
-/** HARD delete — FK cascade removes exercise_tags links AND plan_rows (spec sync rule). */
+/** HARD delete — FK cascade removes catalog links AND plan_rows (spec sync rule). */
 export async function deleteExercise(coachId: string, exerciseId: string): Promise<boolean> {
   const [deleted] = await db
     .delete(exercises)

@@ -4,8 +4,8 @@ import { PlanEditor } from '@/components/plan-editor/plan-editor'
 import { requireCoachId } from '@/lib/session'
 import { listEquipment } from '@/services/equipment'
 import { listExercises } from '@/services/exercises'
+import { listMuscleTargets } from '@/services/muscle-targets'
 import { getPlanForEditor } from '@/services/plans'
-import { listTags } from '@/services/tags'
 import { listWarmups } from '@/services/warmups'
 
 export default async function PlanEditorPage({
@@ -17,12 +17,12 @@ export default async function PlanEditorPage({
   const { planId } = await params
   if (!z.string().uuid().safeParse(planId).success) notFound()
 
-  const [plan, exercises, tags, warmups, equipmentOptions] = await Promise.all([
+  const [plan, exercises, muscleTargets, warmups, equipmentOptions] = await Promise.all([
     getPlanForEditor(coachId, planId),
     listExercises(coachId),
-    listTags(coachId),
+    listMuscleTargets(),
     listWarmups(coachId),
-    listEquipment(coachId),
+    listEquipment(),
   ])
   if (!plan) notFound()
 
@@ -30,7 +30,7 @@ export default async function PlanEditorPage({
     <PlanEditor
       initial={plan}
       exercises={exercises}
-      tags={tags}
+      muscleTargets={muscleTargets}
       warmups={warmups}
       equipmentOptions={equipmentOptions}
     />

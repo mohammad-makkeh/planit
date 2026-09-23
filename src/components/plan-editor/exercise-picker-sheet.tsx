@@ -3,13 +3,12 @@
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, Dumbbell, Plus, Search } from 'lucide-react'
-import type { EquipmentOption } from '@/components/library/equipment-multi-select'
+import type { CatalogOption, EquipmentOption } from '@/components/library/catalog-picker-field'
 import { ExerciseFormSheet } from '@/components/library/exercise-form-sheet'
-import { TagFilter } from '@/components/library/tag-filter'
-import type { TagOption } from '@/components/library/tag-multi-select'
+import { MuscleFilter } from '@/components/library/muscle-filter'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import type { ExerciseWithTags } from '@/services/exercises'
+import type { ExerciseWithDetails } from '@/services/exercises'
 import {
   BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle,
 } from '@/components/ui/bottom-sheet'
@@ -19,7 +18,7 @@ function equipmentChipClass(): string {
   return 'inline-flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-input bg-background px-3 text-sm font-medium text-foreground transition-colors outline-none hover:bg-accent focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30'
 }
 
-function moveThumbnail(e: ExerciseWithTags): string | null {
+function moveThumbnail(e: ExerciseWithDetails): string | null {
   if (e.imageUrl) return e.imageUrl
   return e.equipment.find((eq) => eq.id === e.defaultEquipmentId)?.imageUrl ?? null
 }
@@ -28,20 +27,20 @@ export function ExercisePickerSheet({
   open,
   onOpenChange,
   exercises,
-  tags,
+  muscleTargets,
   equipmentOptions,
   onPick,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
-  exercises: ExerciseWithTags[]
-  tags: TagOption[]
+  exercises: ExerciseWithDetails[]
+  muscleTargets: CatalogOption[]
   equipmentOptions: EquipmentOption[]
   onPick: (exercise: PickedExercise, equipmentId: string | null) => void
 }) {
   const router = useRouter()
   const [search, setSearch] = useState('')
-  const [tagId, setTagId] = useState<string | null>(null)
+  const [muscleId, setMuscleId] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
@@ -49,17 +48,17 @@ export function ExercisePickerSheet({
     const q = search.trim().toLowerCase()
     return exercises.filter((e) => {
       if (q && !e.name.toLowerCase().includes(q)) return false
-      if (tagId && !e.tags.some((t) => t.id === tagId)) return false
+      if (muscleId && !e.muscleTargets.some((m) => m.id === muscleId)) return false
       return true
     })
-  }, [exercises, search, tagId])
+  }, [exercises, search, muscleId])
 
   const exactMatch = exercises.some((e) => e.name.toLowerCase() === search.trim().toLowerCase())
 
   function pick(exercise: PickedExercise, equipmentId: string | null) {
     onPick(exercise, equipmentId)
     setSearch('')
-    setTagId(null)
+    setMuscleId(null)
     setExpandedId(null)
     onOpenChange(false)
   }
@@ -86,7 +85,7 @@ export function ExercisePickerSheet({
                   inputMode="search"
                 />
               </div>
-              <TagFilter tags={tags} selected={tagId} onSelect={setTagId} />
+              <MuscleFilter muscles={muscleTargets} selected={muscleId} onSelect={setMuscleId} />
             </div>
           }
         >
@@ -178,7 +177,7 @@ export function ExercisePickerSheet({
       <ExerciseFormSheet
         open={createOpen}
         onOpenChange={setCreateOpen}
-        tagOptions={tags}
+        muscleTargetOptions={muscleTargets}
         equipmentOptions={equipmentOptions}
         initialName={search.trim()}
         onCreated={(exercise) => {

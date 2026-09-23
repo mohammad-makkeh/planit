@@ -16,10 +16,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { exerciseSchema, movementTypes, type MovementType } from '@/lib/validation'
 import { cn } from '@/lib/utils'
-import type { ExerciseWithTags } from '@/services/exercises'
-import { EquipmentMultiSelect, type EquipmentOption } from './equipment-multi-select'
+import type { ExerciseWithDetails } from '@/services/exercises'
+import {
+  CatalogPickerField, type CatalogOption, type EquipmentOption,
+} from './catalog-picker-field'
 import { ExerciseDeleteDialog } from './exercise-delete-dialog'
-import { TagMultiSelect, type TagOption } from './tag-multi-select'
 
 type FormValues = z.input<typeof exerciseSchema>
 
@@ -42,15 +43,15 @@ export function ExerciseFormSheet({
   open,
   onOpenChange,
   exercise,
-  tagOptions,
+  muscleTargetOptions,
   equipmentOptions,
   initialName,
   onCreated,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
-  exercise?: ExerciseWithTags
-  tagOptions: TagOption[]
+  exercise?: ExerciseWithDetails
+  muscleTargetOptions: CatalogOption[]
   equipmentOptions: EquipmentOption[]
   initialName?: string
   onCreated?: (exercise: { id: string; name: string; imageUrl: string | null }) => void
@@ -67,7 +68,7 @@ export function ExerciseFormSheet({
         name: exercise?.name ?? initialName ?? '',
         imageUrl: exercise?.imageUrl ?? '',
         tutorialUrl: exercise?.tutorialUrl ?? '',
-        tagIds: exercise?.tags.map((t) => t.id) ?? [],
+        muscleTargetIds: exercise?.muscleTargets.map((m) => m.id) ?? [],
         movementType: exercise?.movementType ?? 'static',
         equipmentIds: exercise
           ? [
@@ -78,10 +79,10 @@ export function ExerciseFormSheet({
       })
     }
     wasOpen.current = open
-  }, [open, exercise, tagOptions, equipmentOptions, initialName, reset])
+  }, [open, exercise, equipmentOptions, initialName, reset])
 
   const imageUrl = watch('imageUrl')
-  const tagIds = watch('tagIds') ?? []
+  const muscleTargetIds = watch('muscleTargetIds') ?? []
   const movementType = watch('movementType')
   const equipmentIds = watch('equipmentIds') ?? []
 
@@ -156,25 +157,22 @@ export function ExerciseFormSheet({
                 <p className="text-sm text-destructive">{formState.errors.movementType.message}</p>
               )}
             </div>
-            <div className="space-y-2">
-              <Label>Equipment</Label>
-              <EquipmentMultiSelect
-                options={equipmentOptions}
-                value={equipmentIds}
-                onChange={(ids) => setValue('equipmentIds', ids)}
-              />
-              {formState.errors.equipmentIds && (
-                <p className="text-sm text-destructive">{formState.errors.equipmentIds.message}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label>Tags</Label>
-              <TagMultiSelect
-                options={tagOptions}
-                value={tagIds}
-                onChange={(ids) => setValue('tagIds', ids)}
-              />
-            </div>
+            <CatalogPickerField
+              label="Equipment"
+              sheetTitle="Add equipment"
+              options={equipmentOptions}
+              value={equipmentIds}
+              onChange={(ids) => setValue('equipmentIds', ids, { shouldValidate: formState.isSubmitted })}
+              showIcons
+              error={formState.errors.equipmentIds?.message}
+            />
+            <CatalogPickerField
+              label="Muscle targets"
+              sheetTitle="Add muscle targets"
+              options={muscleTargetOptions}
+              value={muscleTargetIds}
+              onChange={(ids) => setValue('muscleTargetIds', ids)}
+            />
             <Button type="submit" className="w-full" disabled={formState.isSubmitting}>
               {formState.isSubmitting ? 'Saving…' : exercise ? 'Save changes' : 'Add move'}
             </Button>

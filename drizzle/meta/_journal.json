@@ -22,6 +22,20 @@
       "when": 1790080551208,
       "tag": "0002_brown_sauron",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790153398479,
+      "tag": "0003_global_catalogs",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790153443740,
+      "tag": "0004_drop_tags",
+      "breakpoints": true
     }
   ]
 }

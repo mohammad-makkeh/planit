@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import type { TagOption } from './tag-multi-select'
+import type { CatalogOption } from './catalog-picker-field'
 
 function chipClass(active: boolean): string {
   return cn(
@@ -12,12 +12,12 @@ function chipClass(active: boolean): string {
   )
 }
 
-export function TagFilter({
-  tags,
+export function MuscleFilter({
+  muscles,
   selected,
   onSelect,
 }: {
-  tags: TagOption[]
+  muscles: CatalogOption[]
   selected: string | null
   onSelect: (id: string | null) => void
 }) {
@@ -26,14 +26,14 @@ export function TagFilter({
       <button type="button" className={chipClass(selected === null)} onClick={() => onSelect(null)}>
         All
       </button>
-      {tags.map((tag) => (
+      {muscles.map((muscle) => (
         <button
-          key={tag.id}
+          key={muscle.id}
           type="button"
-          className={chipClass(selected === tag.id)}
-          onClick={() => onSelect(tag.id === selected ? null : tag.id)}
+          className={chipClass(selected === muscle.id)}
+          onClick={() => onSelect(muscle.id === selected ? null : muscle.id)}
         >
-          {tag.name}
+          {muscle.name}
         </button>
       ))}
     </div>

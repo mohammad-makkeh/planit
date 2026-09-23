@@ -3,10 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { savePlanDocumentAction } from '@/actions/plan-editor'
-import type { EquipmentOption } from '@/components/library/equipment-multi-select'
-import type { TagOption } from '@/components/library/tag-multi-select'
+import type { CatalogOption, EquipmentOption } from '@/components/library/catalog-picker-field'
 import type { PlanDocument } from '@/lib/validation'
-import type { ExerciseWithTags } from '@/services/exercises'
+import type { ExerciseWithDetails } from '@/services/exercises'
 import type { EditorPlan, EditorRow, EditorSession } from '@/services/plans'
 import type { WarmupPreset } from '@/services/warmups'
 import { EditorHeader } from './editor-header'
@@ -54,13 +53,13 @@ function toDocument(plan: EditorPlan): PlanDocument {
 export function PlanEditor({
   initial,
   exercises,
-  tags,
+  muscleTargets,
   warmups,
   equipmentOptions,
 }: {
   initial: EditorPlan
-  exercises: ExerciseWithTags[]
-  tags: TagOption[]
+  exercises: ExerciseWithDetails[]
+  muscleTargets: CatalogOption[]
   warmups: WarmupPreset[]
   equipmentOptions: EquipmentOption[]
 }) {
@@ -370,7 +369,7 @@ export function PlanEditor({
             <ExerciseRows
               session={activeSession}
               exercises={exercises}
-              tags={tags}
+              muscleTargets={muscleTargets}
               equipmentOptions={equipmentOptions}
               onRowField={(rowId, fields) => setRowField(activeSession.id, rowId, fields)}
               onAdd={(exercise, equipmentId) => addRow(activeSession.id, exercise, equipmentId)}

@@ -7,11 +7,10 @@ import { movementTypes, type MovementType } from '@/lib/validation'
 import { EmptyState } from '@/components/shell/empty-state'
 import { Fab } from '@/components/shell/fab'
 import { Input } from '@/components/ui/input'
-import type { ExerciseWithTags } from '@/services/exercises'
-import type { EquipmentOption } from './equipment-multi-select'
+import type { ExerciseWithDetails } from '@/services/exercises'
+import type { CatalogOption, EquipmentOption } from './catalog-picker-field'
 import { ExerciseCard } from './exercise-card'
 import { ExerciseFormSheet } from './exercise-form-sheet'
-import type { TagOption } from './tag-multi-select'
 
 function chipClass(active: boolean): string {
   return cn(
@@ -24,38 +23,38 @@ function chipClass(active: boolean): string {
 
 export function LibraryMovesTab({
   exercises,
-  tags,
+  muscleTargets,
   equipmentOptions,
 }: {
-  exercises: ExerciseWithTags[]
-  tags: TagOption[]
+  exercises: ExerciseWithDetails[]
+  muscleTargets: CatalogOption[]
   equipmentOptions: EquipmentOption[]
 }) {
   const [search, setSearch] = useState('')
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [selectedMuscles, setSelectedMuscles] = useState<string[]>([])
   const [selectedTypes, setSelectedTypes] = useState<MovementType[]>([])
-  const [editing, setEditing] = useState<ExerciseWithTags | null>(null)
+  const [editing, setEditing] = useState<ExerciseWithDetails | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
 
   function toggleType(type: MovementType) {
     setSelectedTypes((prev) => (prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]))
   }
 
-  function toggleTag(id: string) {
-    setSelectedTags((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]))
+  function toggleMuscle(id: string) {
+    setSelectedMuscles((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]))
   }
 
-  const allActive = selectedTypes.length === 0 && selectedTags.length === 0
+  const allActive = selectedTypes.length === 0 && selectedMuscles.length === 0
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     return exercises.filter((e) => {
       if (q && !e.name.toLowerCase().includes(q)) return false
       if (selectedTypes.length && !selectedTypes.includes(e.movementType)) return false
-      if (selectedTags.length && !e.tags.some((t) => selectedTags.includes(t.id))) return false
+      if (selectedMuscles.length && !e.muscleTargets.some((m) => selectedMuscles.includes(m.id))) return false
       return true
     })
-  }, [exercises, search, selectedTags, selectedTypes])
+  }, [exercises, search, selectedMuscles, selectedTypes])
 
   return (
     <div className="space-y-3 pt-3">
@@ -75,7 +74,7 @@ export function LibraryMovesTab({
           className={chipClass(allActive)}
           onClick={() => {
             setSelectedTypes([])
-            setSelectedTags([])
+            setSelectedMuscles([])
           }}
         >
           All
@@ -90,14 +89,14 @@ export function LibraryMovesTab({
             {type.charAt(0).toUpperCase() + type.slice(1)}
           </button>
         ))}
-        {tags.map((tag) => (
+        {muscleTargets.map((muscle) => (
           <button
-            key={tag.id}
+            key={muscle.id}
             type="button"
-            className={chipClass(selectedTags.includes(tag.id))}
-            onClick={() => toggleTag(tag.id)}
+            className={chipClass(selectedMuscles.includes(muscle.id))}
+            onClick={() => toggleMuscle(muscle.id)}
           >
-            {tag.name}
+            {muscle.name}
           </button>
         ))}
       </div>
@@ -105,7 +104,7 @@ export function LibraryMovesTab({
         <EmptyState
           icon={<Dumbbell className="size-8 text-muted-foreground" />}
           title={exercises.length === 0 ? 'No moves yet' : 'No moves match'}
-          description={exercises.length === 0 ? 'Add your first move.' : 'Try another search or tag.'}
+          description={exercises.length === 0 ? 'Add your first move.' : 'Try another search or filter.'}
         />
       ) : (
         <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
@@ -118,7 +117,7 @@ export function LibraryMovesTab({
       <ExerciseFormSheet
         open={createOpen}
         onOpenChange={setCreateOpen}
-        tagOptions={tags}
+        muscleTargetOptions={muscleTargets}
         equipmentOptions={equipmentOptions}
       />
       {editing && (
@@ -128,7 +127,7 @@ export function LibraryMovesTab({
             if (!open) setEditing(null)
           }}
           exercise={editing}
-          tagOptions={tags}
+          muscleTargetOptions={muscleTargets}
           equipmentOptions={equipmentOptions}
         />
       )}

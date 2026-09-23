@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { UnitInput } from '@/components/shared/unit-input'
 import { cn } from '@/lib/utils'
-import type { ExerciseWithTags } from '@/services/exercises'
+import type { ExerciseWithDetails } from '@/services/exercises'
 import type { EditorRow } from '@/services/plans'
 import type { RowFieldPatch } from './plan-editor'
 import { RowEquipmentSheet } from './row-equipment-sheet'
@@ -35,7 +35,7 @@ export function ExerciseRowCard({
   onEquipmentChange,
 }: {
   row: EditorRow
-  exercises: ExerciseWithTags[]
+  exercises: ExerciseWithDetails[]
   onField: (fields: RowFieldPatch) => void
   onSwap: () => void
   onDuplicate: () => void

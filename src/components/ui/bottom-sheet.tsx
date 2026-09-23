@@ -15,6 +15,16 @@ function BottomSheet({
  * scroll between them — and nothing scrolls visibly beneath a pinned footer. The footer owns
  * the bottom safe-area padding whenever it is present.
  */
+/**
+ * A sheet opened from inside another sheet. vaul's nested root keeps the parent from reacting
+ * to drags and outside presses that belong to this one, and scales the parent back behind it.
+ */
+function BottomSheetNested({
+  ...props
+}: React.ComponentProps<typeof DrawerPrimitive.NestedRoot>) {
+  return <DrawerPrimitive.NestedRoot data-slot="bottom-sheet" {...props} />
+}
+
 function BottomSheetContent({
   className,
   children,
@@ -87,4 +97,4 @@ function BottomSheetTitle({
   )
 }
 
-export { BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle }
+export { BottomSheet, BottomSheetNested, BottomSheetContent, BottomSheetHeader, BottomSheetTitle }

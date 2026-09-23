@@ -27,14 +27,25 @@ export const coaches = pgTable('coaches', {
   updatedAt,
 })
 
+/** Global catalog shared by every coach — managed in the database only, never from the app. */
 export const equipment = pgTable('equipment', {
   id,
-  coachId: uuid('coach_id').notNull().references(() => coaches.id),
   name: text('name').notNull(),
   imageUrl: text('image_url'),
   isFallback: boolean('is_fallback').notNull().default(false),
   createdAt,
-}, (t) => [uniqueIndex('equipment_coach_name_uq').on(t.coachId, sql`lower(${t.name})`)])
+}, (t) => [uniqueIndex('equipment_name_uq').on(sql`lower(${t.name})`)])
+
+/**
+ * Global catalog shared by every coach — managed in the database only, never from the app.
+ * `position` is the display order (anatomical, not alphabetical).
+ */
+export const muscleTargets = pgTable('muscle_targets', {
+  id,
+  name: text('name').notNull(),
+  imageUrl: text('image_url'),
+  position: integer('position').notNull().default(0),
+}, (t) => [uniqueIndex('muscle_targets_name_uq').on(sql`lower(${t.name})`)])
 
 export const clients = pgTable('clients', {
   id,
@@ -62,16 +73,11 @@ export const exercises = pgTable('exercises', {
   updatedAt,
 }, (t) => [uniqueIndex('exercises_coach_name_uq').on(t.coachId, sql`lower(${t.name})`)])
 
-export const tags = pgTable('tags', {
-  id,
-  coachId: uuid('coach_id').notNull().references(() => coaches.id),
-  name: text('name').notNull(),
-}, (t) => [uniqueIndex('tags_coach_name_uq').on(t.coachId, sql`lower(${t.name})`)])
-
-export const exerciseTags = pgTable('exercise_tags', {
+export const exerciseMuscleTargets = pgTable('exercise_muscle_targets', {
   exerciseId: uuid('exercise_id').notNull().references(() => exercises.id, { onDelete: 'cascade' }),
-  tagId: uuid('tag_id').notNull().references(() => tags.id, { onDelete: 'cascade' }),
-}, (t) => [primaryKey({ columns: [t.exerciseId, t.tagId] })])
+  muscleTargetId: uuid('muscle_target_id').notNull()
+    .references(() => muscleTargets.id, { onDelete: 'cascade' }),
+}, (t) => [primaryKey({ columns: [t.exerciseId, t.muscleTargetId] })])
 
 export const exerciseEquipment = pgTable('exercise_equipment', {
   exerciseId: uuid('exercise_id').notNull().references(() => exercises.id, { onDelete: 'cascade' }),

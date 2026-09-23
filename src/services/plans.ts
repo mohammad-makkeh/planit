@@ -285,11 +285,11 @@ export async function savePlanDocument(
     ),
   ]
   if (equipmentIds.length > 0) {
-    const ownedEquipment = await db
+    const knownEquipment = await db
       .select({ id: equipment.id })
       .from(equipment)
-      .where(and(eq(equipment.coachId, coachId), inArray(equipment.id, equipmentIds)))
-    if (ownedEquipment.length !== equipmentIds.length) return undefined
+      .where(inArray(equipment.id, equipmentIds))
+    if (knownEquipment.length !== equipmentIds.length) return undefined
   }
 
   await db.transaction(async (tx) => {

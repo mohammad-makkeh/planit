@@ -17,7 +17,7 @@ export async function uploadImageAction(
   if (!(file instanceof File) || file.size === 0) return err('validation', 'Choose an image file.')
   if (file.size > MAX_BYTES) return err('validation', 'Image must be 4MB or smaller.')
   if (!ALLOWED_TYPES.includes(file.type)) return err('validation', 'Use a JPG, PNG, or WebP image.')
-  if (folder !== 'exercises' && folder !== 'logos' && folder !== 'equipment') {
+  if (folder !== 'exercises' && folder !== 'logos') {
     return err('validation', 'Invalid upload folder.')
   }
 
