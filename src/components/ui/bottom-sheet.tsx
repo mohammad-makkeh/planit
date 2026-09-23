@@ -4,10 +4,16 @@ import * as React from 'react'
 import { Drawer as DrawerPrimitive } from 'vaul'
 import { cn } from 'cn'
 
+/**
+ * vaul's input repositioning is off for every sheet: on the first keyboard open it shoves the
+ * sheet up past the top of the screen, taking the focused input with it. The browser's own
+ * scroll-into-view keeps the input visible without it.
+ */
 function BottomSheet({
+  repositionInputs = false,
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Root>) {
-  return <DrawerPrimitive.Root data-slot="bottom-sheet" {...props} />
+  return <DrawerPrimitive.Root data-slot="bottom-sheet" repositionInputs={repositionInputs} {...props} />
 }
 
 /**
@@ -20,9 +26,12 @@ function BottomSheet({
  * to drags and outside presses that belong to this one, and scales the parent back behind it.
  */
 function BottomSheetNested({
+  repositionInputs = false,
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.NestedRoot>) {
-  return <DrawerPrimitive.NestedRoot data-slot="bottom-sheet" {...props} />
+  return (
+    <DrawerPrimitive.NestedRoot data-slot="bottom-sheet" repositionInputs={repositionInputs} {...props} />
+  )
 }
 
 function BottomSheetContent({
