@@ -211,6 +211,7 @@ export function SessionPanel({
         open={pickerOpen}
         onOpenChange={setPickerOpen}
         presets={warmups}
+        addedTexts={session.warmupLines.map((line) => line.text)}
         onAdd={(text) => onField({ warmupLines: [...session.warmupLines, { text, highlighted: false }] })}
       />
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>

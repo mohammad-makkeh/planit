@@ -72,8 +72,6 @@ export function ExerciseRowCard({
         <button
           type="button"
           onClick={onSwap}
-          onMouseDown={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
           className="flex min-w-0 flex-1 items-center gap-2 rounded-lg p-1 text-left hover:bg-accent/40"
         >
           {thumbnailUrl ? (
@@ -94,8 +92,6 @@ export function ExerciseRowCard({
           <button
             type="button"
             onClick={() => setEquipmentSheetOpen(true)}
-            onMouseDown={(e) => e.stopPropagation()}
-            onTouchStart={(e) => e.stopPropagation()}
             className="flex shrink-0 touch-manipulation items-center gap-1 rounded-full border border-input px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-accent"
             aria-label={`Equipment for ${row.exercise.name}`}
           >
@@ -149,36 +145,39 @@ export function ExerciseRowCard({
           </DropdownMenu>
         </div>
       </div>
-      <div
-        className="grid grid-cols-5 gap-1.5"
-        onMouseDown={(e) => e.stopPropagation()}
-        onTouchStart={(e) => e.stopPropagation()}
-      >
+      <div className="grid grid-cols-5 gap-1.5">
         {FIELDS.map((field) => (
           <div key={field.key} className="space-y-0.5">
             <p className="text-center text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
               {field.label}
             </p>
-            {field.kind === 'int' ? (
-              <UnitInput
-                label={`${row.exercise.name} ${field.label}`}
-                unit={field.unit}
-                min={field.min}
-                max={field.max}
-                value={row[field.key]}
-                onChange={(value) => onField({ [field.key]: value })}
-                inputClassName={cn('h-8 px-1 text-center text-xs', field.unit && 'pr-5')}
-                unitClassName="right-1 text-[8px]"
-              />
-            ) : (
-              <Input
-                value={row[field.key] ?? ''}
-                onChange={(e) => onField({ [field.key]: e.target.value })}
-                maxLength={field.maxLength}
-                className="h-8 px-1 text-center text-xs"
-                aria-label={`${row.exercise.name} ${field.label}`}
-              />
-            )}
+            {/* Only the inputs themselves opt out of long-press drag — labels and gaps still
+                pick the card up. */}
+            <div
+              onMouseDown={(e) => e.stopPropagation()}
+              onTouchStart={(e) => e.stopPropagation()}
+            >
+              {field.kind === 'int' ? (
+                <UnitInput
+                  label={`${row.exercise.name} ${field.label}`}
+                  unit={field.unit}
+                  min={field.min}
+                  max={field.max}
+                  value={row[field.key]}
+                  onChange={(value) => onField({ [field.key]: value })}
+                  inputClassName={cn('h-8 px-1 text-center text-xs', field.unit && 'pr-5')}
+                  unitClassName="right-1 text-[8px]"
+                />
+              ) : (
+                <Input
+                  value={row[field.key] ?? ''}
+                  onChange={(e) => onField({ [field.key]: e.target.value })}
+                  maxLength={field.maxLength}
+                  className="h-8 px-1 text-center text-xs"
+                  aria-label={`${row.exercise.name} ${field.label}`}
+                />
+              )}
+            </div>
           </div>
         ))}
       </div>

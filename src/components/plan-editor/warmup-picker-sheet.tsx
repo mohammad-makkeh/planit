@@ -15,28 +15,25 @@ export function WarmupPickerSheet({
   open,
   onOpenChange,
   presets,
+  addedTexts,
   onAdd,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   presets: WarmupPreset[]
+  /** The current day's warm-up lines — "added" is derived from them, never kept locally,
+      so switching days can't carry one day's ticks into another. */
+  addedTexts: string[]
   onAdd: (text: string) => void
 }) {
   const [freeText, setFreeText] = useState('')
   const [saveToPresets, setSaveToPresets] = useState(false)
-  const [addedTexts, setAddedTexts] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
-
-  function addPreset(text: string) {
-    onAdd(text)
-    setAddedTexts((prev) => [...prev, text])
-  }
 
   async function addFreeText() {
     const text = freeText.trim()
     if (!text) return
     onAdd(text)
-    setAddedTexts((prev) => [...prev, text])
     setFreeText('')
     if (saveToPresets) {
       setSaving(true)
@@ -99,7 +96,7 @@ export function WarmupPickerSheet({
                 <button
                   key={p.id}
                   type="button"
-                  onClick={() => addPreset(p.text)}
+                  onClick={() => onAdd(p.text)}
                   className="flex w-full items-center justify-between gap-2 rounded-xl border bg-card p-3 text-left text-sm hover:bg-accent/40"
                 >
                   <span className="min-w-0 flex-1">{p.text}</span>
@@ -113,9 +110,13 @@ export function WarmupPickerSheet({
             })}
           </div>
         )}
-        <Button className="w-full" onClick={() => onOpenChange(false)}>
-          Done
-        </Button>
+        {/* Pinned to the bottom of the sheet's scroll area so a long preset list never
+            pushes it out of reach. */}
+        <div className="sticky bottom-0 -mx-6 bg-popover px-6 pt-3">
+          <Button className="w-full" onClick={() => onOpenChange(false)}>
+            Done
+          </Button>
+        </div>
       </div>
       </BottomSheetContent>
     </BottomSheet>
