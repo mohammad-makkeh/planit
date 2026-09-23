@@ -46,7 +46,13 @@ export function WarmupPickerSheet({
 
   return (
     <BottomSheet open={open} onOpenChange={onOpenChange}>
-      <BottomSheetContent>
+      <BottomSheetContent
+        footer={
+          <Button className="w-full" onClick={() => onOpenChange(false)}>
+            Done
+          </Button>
+        }
+      >
         <BottomSheetHeader>
           <BottomSheetTitle>Add warm-up</BottomSheetTitle>
         </BottomSheetHeader>
@@ -110,13 +116,6 @@ export function WarmupPickerSheet({
             })}
           </div>
         )}
-        {/* Pinned to the bottom of the sheet's scroll area so a long preset list never
-            pushes it out of reach. */}
-        <div className="sticky bottom-0 -mx-6 bg-popover px-6 pt-3">
-          <Button className="w-full" onClick={() => onOpenChange(false)}>
-            Done
-          </Button>
-        </div>
       </div>
       </BottomSheetContent>
     </BottomSheet>

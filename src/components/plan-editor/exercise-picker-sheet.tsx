@@ -67,22 +67,28 @@ export function ExercisePickerSheet({
   return (
     <>
       <BottomSheet open={open} onOpenChange={onOpenChange}>
-        <BottomSheetContent className="h-[85dvh]">
-          <BottomSheetHeader>
-            <BottomSheetTitle>Add move</BottomSheetTitle>
-          </BottomSheetHeader>
-          <div className="space-y-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search moves…"
-                className="pl-9"
-                inputMode="search"
-              />
+        <BottomSheetContent
+          className="h-[85dvh]"
+          header={
+            <div className="space-y-3">
+              <BottomSheetHeader className="pb-1">
+                <BottomSheetTitle>Add move</BottomSheetTitle>
+              </BottomSheetHeader>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search moves…"
+                  className="pl-9"
+                  inputMode="search"
+                />
+              </div>
+              <TagFilter tags={tags} selected={tagId} onSelect={setTagId} />
             </div>
-            <TagFilter tags={tags} selected={tagId} onSelect={setTagId} />
+          }
+        >
+          <div className="space-y-3">
             {search.trim() !== '' && !exactMatch && (
               <button
                 type="button"

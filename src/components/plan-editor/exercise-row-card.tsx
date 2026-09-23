@@ -64,7 +64,8 @@ export function ExerciseRowCard({
       }}
       className={cn(
         'relative touch-manipulation space-y-2 rounded-2xl border bg-card p-3',
-        isDragging && 'border-brand opacity-80',
+        // `rotate` is its own CSS property, so it composes with dnd-kit's inline `transform`.
+        isDragging && 'rotate-2 border-brand bg-white shadow-lg dark:bg-card',
       )}
       {...listeners}
     >

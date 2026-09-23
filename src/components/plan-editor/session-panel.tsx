@@ -162,6 +162,7 @@ export function SessionPanel({
                 value={session.cardioIncline}
                 onChange={(v) => onField({ cardioIncline: v })}
                 className="w-28"
+                inputClassName="h-9"
               />
               <Button
                 type="button"

@@ -10,11 +10,21 @@ function BottomSheet({
   return <DrawerPrimitive.Root data-slot="bottom-sheet" {...props} />
 }
 
+/**
+ * `header` and `footer` render outside the scroll area, so they stay put while `children`
+ * scroll between them — and nothing scrolls visibly beneath a pinned footer. The footer owns
+ * the bottom safe-area padding whenever it is present.
+ */
 function BottomSheetContent({
   className,
   children,
+  header,
+  footer,
   ...props
-}: React.ComponentProps<typeof DrawerPrimitive.Content>) {
+}: React.ComponentProps<typeof DrawerPrimitive.Content> & {
+  header?: React.ReactNode
+  footer?: React.ReactNode
+}) {
   return (
     <DrawerPrimitive.Portal>
       <DrawerPrimitive.Overlay className="fixed inset-0 z-50 bg-black/40" />
@@ -31,9 +41,21 @@ function BottomSheetContent({
           aria-hidden
           className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-muted-foreground/25"
         />
-        <div className="overflow-y-auto px-6 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] pt-4">
+        {header && <div className="shrink-0 px-6 pt-4 pb-3">{header}</div>}
+        <div
+          className={cn(
+            'min-h-0 grow overflow-y-auto px-6',
+            header ? 'pt-1' : 'pt-4',
+            footer ? 'pb-4' : 'pb-[calc(env(safe-area-inset-bottom)+1.5rem)]',
+          )}
+        >
           {children}
         </div>
+        {footer && (
+          <div className="shrink-0 border-t bg-popover px-6 pt-3 pb-[calc(env(safe-area-inset-bottom)+1.5rem)]">
+            {footer}
+          </div>
+        )}
       </DrawerPrimitive.Content>
     </DrawerPrimitive.Portal>
   )
