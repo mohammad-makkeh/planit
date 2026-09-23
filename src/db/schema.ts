@@ -4,7 +4,7 @@ import {
   timestamp, jsonb, primaryKey, uniqueIndex,
 } from 'drizzle-orm/pg-core'
 
-export type WarmupLine = { text: string; highlighted: boolean }
+export type WarmupLine = { text: string }
 
 export const planStatusEnum = pgEnum('plan_status', ['draft', 'active'])
 export const movementTypeEnum = pgEnum('movement_type', ['push', 'pull', 'static'])

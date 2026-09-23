@@ -81,7 +81,7 @@ export const planDocumentSchema = z.object({
         label: z.string().trim().min(1).max(120),
         weekday: z.string().max(20).nullable(),
         warmupLines: z
-          .array(z.object({ text: z.string().min(1).max(300), highlighted: z.boolean() }))
+          .array(z.object({ text: z.string().min(1).max(300) }))
           .max(50),
         cardioMinutes: docInt(1, 999),
         cardioBpm: docInt(1, 250),

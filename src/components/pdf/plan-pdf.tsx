@@ -137,15 +137,6 @@ const styles = StyleSheet.create({
   warmupItemRight: { paddingLeft: mm(4) },
   warmupBullet: { fontFamily: FONT_LABEL, fontSize: 10, marginRight: mm(2.5) },
   warmupText: { fontSize: 9.5, color: '#222222', lineHeight: 1.4, flexShrink: 1 },
-  warmupDo: {
-    backgroundColor: PANEL,
-    borderLeftWidth: mm(1.2),
-    borderLeftStyle: 'solid',
-    paddingVertical: mm(3),
-    paddingHorizontal: mm(4.5),
-    marginTop: mm(1.3),
-  },
-  warmupDoText: { fontSize: 9, fontWeight: 600, letterSpacing: 0.36, textTransform: 'uppercase' },
 
   /* ---------- Cardio ---------- */
   cardioBar: { flexDirection: 'row', alignItems: 'stretch', borderWidth: 1, borderColor: LINE },
@@ -340,30 +331,20 @@ function SectionHead({ label, brand }: { label: string; brand: string }) {
 }
 
 function WarmUp({ session, brand }: { session: SharedSession; brand: string }) {
-  const plain = session.warmupLines.filter((line) => !line.highlighted)
-  const highlighted = session.warmupLines.filter((line) => line.highlighted)
-
   return (
     <View style={styles.section}>
       <SectionHead label="Warm-Up" brand={brand} />
-      {plain.length > 0 && (
-        <View style={styles.warmupGrid}>
-          {plain.map((line, i) => (
-            <View
-              key={i}
-              style={[styles.warmupItem, i % 2 === 0 ? styles.warmupItemLeft : styles.warmupItemRight]}
-            >
-              <Text style={[styles.warmupBullet, { color: brand }]}>+</Text>
-              <Text style={styles.warmupText}>{line.text}</Text>
-            </View>
-          ))}
-        </View>
-      )}
-      {highlighted.map((line, i) => (
-        <View key={i} style={[styles.warmupDo, { borderLeftColor: brand }]}>
-          <Text style={styles.warmupDoText}>{line.text}</Text>
-        </View>
-      ))}
+      <View style={styles.warmupGrid}>
+        {session.warmupLines.map((line, i) => (
+          <View
+            key={i}
+            style={[styles.warmupItem, i % 2 === 0 ? styles.warmupItemLeft : styles.warmupItemRight]}
+          >
+            <Text style={[styles.warmupBullet, { color: brand }]}>+</Text>
+            <Text style={styles.warmupText}>{line.text}</Text>
+          </View>
+        ))}
+      </View>
     </View>
   )
 }

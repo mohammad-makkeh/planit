@@ -213,7 +213,7 @@ export function SessionPanel({
         onOpenChange={setPickerOpen}
         presets={warmups}
         addedTexts={session.warmupLines.map((line) => line.text)}
-        onAdd={(text) => onField({ warmupLines: [...session.warmupLines, { text, highlighted: false }] })}
+        onAdd={(text) => onField({ warmupLines: [...session.warmupLines, { text }] })}
       />
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent className="sm:max-w-sm">

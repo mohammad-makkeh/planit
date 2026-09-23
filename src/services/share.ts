@@ -24,7 +24,7 @@ export type SharedRow = {
 export type SharedSession = {
   label: string
   weekday: string | null
-  warmupLines: { text: string; highlighted: boolean }[]
+  warmupLines: { text: string }[]
   cardioMinutes: number | null
   cardioBpm: number | null
   cardioIncline: number | null
