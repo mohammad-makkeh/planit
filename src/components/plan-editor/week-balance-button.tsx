@@ -4,6 +4,9 @@ import { useState } from 'react'
 import { MuscleMap } from '@/components/shared/muscle-map'
 import { MuscleSummaryDialog } from '@/components/shared/muscle-summary'
 import { shadesForRows, type WorkedRow } from '@/lib/muscle-map'
+import type { ExerciseWithDetails } from '@/services/exercises'
+import { GapSuggestions } from './gap-suggestions'
+import type { PickedExercise } from './plan-editor'
 
 /**
  * Opens the whole plan's muscle balance full-screen. The button itself carries a tiny live
@@ -13,10 +16,16 @@ export function WeekBalanceButton({
   title,
   rows,
   catalog,
+  exercises,
+  days,
+  onAdd,
 }: {
   title: string
   rows: WorkedRow[]
   catalog: string[]
+  exercises: ExerciseWithDetails[]
+  days: { id: string; label: string }[]
+  onAdd: (dayId: string, exercise: PickedExercise) => void
 }) {
   const [open, setOpen] = useState(false)
 
@@ -39,6 +48,20 @@ export function WeekBalanceButton({
         title={title}
         rows={rows}
         catalog={catalog}
+        // Suggestions need a day to add to; a plan with no days just shows the gaps.
+        renderGapFix={
+          days.length > 0
+            ? (muscle, back) => (
+                <GapSuggestions
+                  muscle={muscle}
+                  exercises={exercises}
+                  days={days}
+                  onAdd={onAdd}
+                  onBack={back}
+                />
+              )
+            : undefined
+        }
       />
     </>
   )

@@ -359,6 +359,9 @@ export function PlanEditor({
               title={doc.title}
               rows={weekRows}
               catalog={muscleTargets.map((m) => m.name)}
+              exercises={exercises}
+              days={doc.sessions.map((s) => ({ id: s.id, label: s.label }))}
+              onAdd={(dayId, exercise) => addRow(dayId, exercise, null)}
             />
           }
         />
