@@ -5,13 +5,12 @@ export { BACK_BODY, BODY_VIEWBOX, FRONT_BODY, type BodyRegion, type RegionShape 
 /**
  * Which drawn regions each catalog muscle target lights up. Keyed by lowercased name because the
  * catalog is edited in the database — a renamed or new muscle simply draws nothing until it is
- * added here. The outlines have no upper/middle/lower chest or side-delt split, so those share
- * the nearest drawn region.
+ * added here. The outlines have no side-delt region, so Side Shoulder lights both deltoids.
  */
 const REGIONS_BY_MUSCLE: Record<string, BodyRegion[]> = {
-  'upper chest': ['chest'],
-  'middle chest': ['chest'],
-  'lower chest': ['chest'],
+  'upper chest': ['chest-upper'],
+  'middle chest': ['chest-middle'],
+  'lower chest': ['chest-lower'],
   lats: ['upper-back'],
   'upper back': ['trapezius'],
   'lower back': ['lower-back'],

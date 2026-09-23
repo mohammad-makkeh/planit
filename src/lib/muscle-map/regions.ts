@@ -3,6 +3,11 @@
  * react-body-highlighter 2.0.5 (src/assets/index.ts) so the web page and the react-pdf document
  * draw from one source — the package's own component only renders to the DOM.
  *
+ * One change from the original: its single `chest` region (one polygon per pec) is split into
+ * `chest-upper`, `chest-middle` and `chest-lower` by clipping each pec along two cut lines that
+ * rise slightly toward the shoulder, following the fibres' fan toward the humerus, with a small
+ * gap between bands like the gaps between neighbouring muscles.
+ *
  * MIT License
  *
  * Copyright (c) 2020 GV79
@@ -33,7 +38,9 @@ export type BodyRegion =
   | 'back-deltoids'
   | 'biceps'
   | 'calves'
-  | 'chest'
+  | 'chest-lower'
+  | 'chest-middle'
+  | 'chest-upper'
   | 'forearm'
   | 'front-deltoids'
   | 'gluteal'
@@ -56,10 +63,24 @@ export const BODY_VIEWBOX = '0 0 100 200'
 
 export const FRONT_BODY: RegionShape[] = [
   {
-    region: 'chest',
+    region: 'chest-upper',
     points: [
-      '51.8367347 41.6326531 51.0204082 55.1020408 57.9591837 57.9591837 67.755102 55.5102041 70.6122449 47.3469388 62.0408163 41.6326531',
-      '29.7959184 46.5306122 31.4285714 55.5102041 40.8163265 57.9591837 48.1632653 55.1020408 47.755102 42.0408163 37.5510204 42.0408163',
+      '51.8367 41.6327 51.5089 47.0414 67.3098 45.1453 62.0408 41.6327',
+      '47.9123 47.0699 47.7551 42.0408 37.5510 42.0408 32.1347 45.1766',
+    ],
+  },
+  {
+    region: 'chest-middle',
+    points: [
+      '51.4723 47.6458 51.1915 52.2795 69.6616 50.0631 70.6122 47.3469 68.0725 45.6538',
+      '29.7959 46.5306 30.4586 50.1754 48.0754 52.2895 47.9311 47.6721 31.2763 45.6736',
+    ],
+  },
+  {
+    region: 'chest-lower',
+    points: [
+      '51.1548 52.8839 51.0204 55.1020 57.9592 57.9592 67.7551 55.5102 69.4424 50.6894',
+      '30.5701 50.7888 31.4286 55.5102 40.8163 57.9592 48.1633 55.1020 48.0942 52.8917',
     ],
   },
   {
