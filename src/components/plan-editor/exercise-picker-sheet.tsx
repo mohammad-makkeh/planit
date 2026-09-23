@@ -66,7 +66,9 @@ export function ExercisePickerSheet({
 
   return (
     <>
-      <BottomSheet open={open} onOpenChange={onOpenChange}>
+      {/* vaul's input repositioning shoves this tall sheet up on the first keyboard open
+          (search sits at the top, so the browser's own scroll-into-view is enough). */}
+      <BottomSheet open={open} onOpenChange={onOpenChange} repositionInputs={false}>
         <BottomSheetContent
           className="h-[85dvh]"
           header={
