@@ -51,13 +51,13 @@ export function WeekBalanceButton({
         // Suggestions need a day to add to; a plan with no days just shows the gaps.
         renderGapFix={
           days.length > 0
-            ? (muscle, back) => (
+            ? (muscle, close) => (
                 <GapSuggestions
                   muscle={muscle}
                   exercises={exercises}
                   days={days}
                   onAdd={onAdd}
-                  onBack={back}
+                  onDone={close}
                 />
               )
             : undefined

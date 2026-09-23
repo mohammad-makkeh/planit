@@ -5,6 +5,7 @@ import { Maximize2, Plus, X } from 'lucide-react'
 import { MuscleMap } from '@/components/shared/muscle-map'
 import { MusclePill } from '@/components/shared/muscle-pill'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { DialogSheet } from '@/components/ui/dialog-sheet'
 import { formatSets, musclesForRows, shadesForRows, type WorkedRow } from '@/lib/muscle-map'
 
 type SummaryProps = {
@@ -18,8 +19,8 @@ type SummaryProps = {
 /**
  * The full view: both figures large with the sets behind their shading. Full-screen on phones,
  * a large centred modal from `sm` up. With `renderGapFix`, each "Not trained" muscle becomes a
- * button that swaps the side panel for whatever it renders (the editor's move suggestions);
- * `back` returns to the breakdown.
+ * button that opens a bottom sheet over the view with whatever it renders (the editor's move
+ * suggestions) — the breakdown underneath never changes; `close` dismisses the sheet.
  */
 export function MuscleSummaryDialog({
   open,
@@ -32,7 +33,7 @@ export function MuscleSummaryDialog({
 }: SummaryProps & {
   open: boolean
   onOpenChange: (open: boolean) => void
-  renderGapFix?: (muscle: string, back: () => void) => ReactNode
+  renderGapFix?: (muscle: string, close: () => void) => ReactNode
 }) {
   const [gap, setGap] = useState<string | null>(null)
   const muscles = musclesForRows(rows)
@@ -72,67 +73,72 @@ export function MuscleSummaryDialog({
         <div className="flex min-h-0 flex-1 flex-col gap-6 sm:flex-row sm:items-center">
           <MuscleMap shades={shades} label={label} captions className="min-h-0 flex-1 sm:h-full" />
           <div className="max-h-[45%] shrink-0 space-y-5 overflow-y-auto pr-3 sm:max-h-full sm:w-64">
-            {gap !== null && renderGapFix ? (
-              renderGapFix(gap, () => setGap(null))
+            {muscles.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Add moves with muscle targets to see what this works.
+              </p>
             ) : (
-              <>
-                {muscles.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    Add moves with muscle targets to see what this works.
-                  </p>
-                ) : (
-                  // Sets per muscle — the numbers behind the figure's shading.
-                  <ul className="space-y-2.5">
-                    {muscles.map((m) => (
-                      <li key={m.name} className="space-y-1">
-                        <div className="flex items-baseline justify-between gap-3 text-sm">
-                          <span className="font-medium">{m.name}</span>
-                          <span className="text-muted-foreground tabular-nums">{formatSets(m.sets)}</span>
-                        </div>
-                        <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                          <div
-                            className="h-full rounded-full bg-brand"
-                            style={{ width: `${(m.sets / maxSets) * 100}%` }}
-                          />
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {muscles.length > 0 && untrained.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Not trained
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {untrained.map((name) =>
-                        renderGapFix ? (
-                          <button
-                            key={name}
-                            type="button"
-                            onClick={() => setGap(name)}
-                            className="inline-flex h-8 cursor-pointer items-center gap-1 rounded-full border border-dashed border-input px-3 text-xs font-medium text-muted-foreground outline-none hover:border-brand hover:text-brand focus-visible:ring-2 focus-visible:ring-ring/50"
-                          >
-                            <Plus className="size-3.5" aria-hidden />
-                            {name}
-                          </button>
-                        ) : (
-                          <MusclePill key={name} name={name} primary={false} />
-                        ),
-                      )}
+              // Sets per muscle — the numbers behind the figure's shading.
+              <ul className="space-y-2.5">
+                {muscles.map((m) => (
+                  <li key={m.name} className="space-y-1">
+                    <div className="flex items-baseline justify-between gap-3 text-sm">
+                      <span className="font-medium">{m.name}</span>
+                      <span className="text-muted-foreground tabular-nums">{formatSets(m.sets)}</span>
                     </div>
-                    {renderGapFix && (
-                      <p className="text-xs text-muted-foreground">Tap one to add a move that trains it.</p>
-                    )}
-                  </div>
+                    <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="h-full rounded-full bg-brand"
+                        style={{ width: `${(m.sets / maxSets) * 100}%` }}
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {muscles.length > 0 && untrained.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Not trained
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {untrained.map((name) =>
+                    renderGapFix ? (
+                      <button
+                        key={name}
+                        type="button"
+                        onClick={() => setGap(name)}
+                        className="inline-flex h-8 cursor-pointer items-center gap-1 rounded-full border border-dashed border-input px-3 text-xs font-medium text-muted-foreground outline-none hover:border-brand hover:text-brand focus-visible:ring-2 focus-visible:ring-ring/50"
+                      >
+                        <Plus className="size-3.5" aria-hidden />
+                        {name}
+                      </button>
+                    ) : (
+                      <MusclePill key={name} name={name} primary={false} />
+                    ),
+                  )}
+                </div>
+                {renderGapFix && (
+                  <p className="text-xs text-muted-foreground">Tap one to add a move that trains it.</p>
                 )}
-                {muscles.length > 0 && (
-                  <p className="text-xs text-muted-foreground">Secondary muscles count as half a set.</p>
-                )}
-              </>
+              </div>
+            )}
+            {muscles.length > 0 && (
+              <p className="text-xs text-muted-foreground">Secondary muscles count as half a set.</p>
             )}
           </div>
         </div>
+        {renderGapFix && (
+          <DialogSheet
+            open={gap !== null}
+            onOpenChange={(next) => {
+              if (!next) setGap(null)
+            }}
+            title={`Moves for ${gap ?? ''}`}
+          >
+            {gap !== null && renderGapFix(gap, () => setGap(null))}
+          </DialogSheet>
+        )}
       </DialogContent>
     </Dialog>
   )
