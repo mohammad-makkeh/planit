@@ -6,7 +6,9 @@
  * One change from the original: its single `chest` region (one polygon per pec) is split into
  * `chest-upper`, `chest-middle` and `chest-lower` by clipping each pec along two cut lines that
  * rise slightly toward the shoulder, following the fibres' fan toward the humerus, with a small
- * gap between bands like the gaps between neighbouring muscles.
+ * gap between bands like the gaps between neighbouring muscles. And a `side-deltoids` region is
+ * carved from the outer edge of the front and back deltoids in each view: a wedge cut from the
+ * top of the shoulder cap to the deltoid's insertion point, where all three heads converge.
  *
  * MIT License
  *
@@ -53,6 +55,7 @@ export type BodyRegion =
   | 'obliques'
   | 'quadriceps'
   | 'right-soleus'
+  | 'side-deltoids'
   | 'trapezius'
   | 'triceps'
   | 'upper-back'
@@ -121,8 +124,15 @@ export const FRONT_BODY: RegionShape[] = [
   {
     region: 'front-deltoids',
     points: [
-      '78.3673469 53.0612245 79.5918367 47.755102 79.1836735 41.2244898 75.9183673 37.9591837 71.0204082 36.3265306 72.244898 42.8571429 71.4285714 47.3469388',
-      '28.1632653 47.3469388 21.2244898 53.0612245 20 47.755102 20.4081633 40.8163265 24.4897959 37.1428571 28.5714286 37.1428571 26.9387755 43.2653061',
+      '74.1047 37.3546 71.0204 36.3265 72.2449 42.8571 71.4286 47.3469 77.6073 52.4353',
+      '28.1633 47.3469 21.9946 52.4270 25.5445 37.1429 28.5714 37.1429 26.9388 43.2653',
+    ],
+  },
+  {
+    region: 'side-deltoids',
+    points: [
+      '78.3680 53.0584 79.5918 47.7551 79.1837 41.2245 75.9184 37.9592 74.7724 37.5772',
+      '21.2330 53.0542 21.2245 53.0612 20.0000 47.7551 20.4082 40.8163 24.4898 37.1429 24.9285 37.1429',
     ],
   },
   {
@@ -193,8 +203,15 @@ export const BACK_BODY: RegionShape[] = [
   {
     region: 'back-deltoids',
     points: [
-      '29.3617021 37.0212766 22.9787234 39.1489362 17.4468085 44.2553191 18.2978723 53.6170213 24.2553191 49.3617021 27.2340426 46.3829787',
-      '71.0638298 37.0212766 78.2978723 39.5744681 82.5531915 44.6808511 81.7021277 53.6170213 74.893617 48.9361702 72.3404255 45.106383',
+      '29.3617 37.0213 24.1259 38.7665 19.6623 52.6424 24.2553 49.3617 27.2340 46.3830',
+      '71.0638 37.0213 75.8569 38.7129 80.3528 52.6893 74.8936 48.9362 72.3404 45.1064',
+    ],
+  },
+  {
+    region: 'side-deltoids',
+    points: [
+      '23.4199 39.0019 22.9787 39.1489 17.4468 44.2553 18.2979 53.6170 18.8440 53.2269',
+      '76.5679 38.9639 78.2979 39.5745 82.5532 44.6809 81.7021 53.6170 81.1620 53.2457',
     ],
   },
   {

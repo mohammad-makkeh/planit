@@ -5,7 +5,7 @@ export { BACK_BODY, BODY_VIEWBOX, FRONT_BODY, type BodyRegion, type RegionShape 
 /**
  * Which drawn regions each catalog muscle target lights up. Keyed by lowercased name because the
  * catalog is edited in the database — a renamed or new muscle simply draws nothing until it is
- * added here. The outlines have no side-delt region, so Side Shoulder lights both deltoids.
+ * added here.
  */
 const REGIONS_BY_MUSCLE: Record<string, BodyRegion[]> = {
   'upper chest': ['chest-upper'],
@@ -15,7 +15,7 @@ const REGIONS_BY_MUSCLE: Record<string, BodyRegion[]> = {
   'upper back': ['trapezius'],
   'lower back': ['lower-back'],
   'front shoulder': ['front-deltoids'],
-  'side shoulder': ['front-deltoids', 'back-deltoids'],
+  'side shoulder': ['side-deltoids'],
   'rear shoulder': ['back-deltoids'],
   biceps: ['biceps'],
   triceps: ['triceps'],
@@ -124,31 +124,37 @@ export function busiestSide(shades: RegionShades): 'front' | 'back' {
 /**
  * A square viewBox framing the worked regions of one side, padded so the surrounding body still
  * reads, and never smaller than `MIN_FOCUS` so a single small muscle isn't blown up past
- * recognition. Falls back to the whole figure when nothing on that side is worked.
+ * recognition. When nothing worked comes near the midline (shoulders, arms) both halves mirror
+ * each other, so only the viewer's right half is framed — otherwise a lateral raise would have to
+ * zoom out to both shoulder tips. Falls back to the whole figure when nothing on that side is
+ * worked.
  */
 const MIN_FOCUS = 70
+/** One side frames less body, so it can zoom closer and still read as a shoulder or an arm. */
+const MIN_FOCUS_LATERAL = 48
+const MIDLINE = 50
+const NEAR_MIDLINE = 15
 
 export function focusViewBox(shapes: RegionShape[], shades: RegionShades): string {
-  let minX = Infinity
-  let minY = Infinity
-  let maxX = -Infinity
-  let maxY = -Infinity
-  for (const { region, points } of shapes) {
+  const points: [number, number][] = []
+  for (const { region, points: polygons } of shapes) {
     if (shades[region] === undefined) continue
-    for (const polygon of points) {
+    for (const polygon of polygons) {
       const values = polygon.trim().split(/\s+/).map(Number)
-      for (let i = 0; i + 1 < values.length; i += 2) {
-        const x = values[i]!
-        const y = values[i + 1]!
-        minX = Math.min(minX, x)
-        maxX = Math.max(maxX, x)
-        minY = Math.min(minY, y)
-        maxY = Math.max(maxY, y)
-      }
+      for (let i = 0; i + 1 < values.length; i += 2) points.push([values[i]!, values[i + 1]!])
     }
   }
-  if (minX === Infinity) return BODY_VIEWBOX
-  const size = Math.min(100, Math.max(MIN_FOCUS, (maxX - minX) * 1.3, (maxY - minY) * 1.3))
+  if (points.length === 0) return BODY_VIEWBOX
+  const lateral = points.every(([x]) => Math.abs(x - MIDLINE) > NEAR_MIDLINE)
+  const framed = lateral ? points.filter(([x]) => x > MIDLINE) : points
+  const xs = framed.map(([x]) => x)
+  const ys = framed.map(([, y]) => y)
+  const minX = Math.min(...xs)
+  const maxX = Math.max(...xs)
+  const minY = Math.min(...ys)
+  const maxY = Math.max(...ys)
+  const minSize = lateral ? MIN_FOCUS_LATERAL : MIN_FOCUS
+  const size = Math.min(100, Math.max(minSize, (maxX - minX) * 1.3, (maxY - minY) * 1.3))
   const x = Math.min(100 - size, Math.max(0, (minX + maxX) / 2 - size / 2))
   const y = Math.min(200 - size, Math.max(0, (minY + maxY) / 2 - size / 2))
   return `${x.toFixed(1)} ${y.toFixed(1)} ${size.toFixed(1)} ${size.toFixed(1)}`
