@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Check, Copy, Link2, Link2Off } from 'lucide-react'
+import { Check, Copy, ExternalLink, Link2, Link2Off } from 'lucide-react'
 import { toast } from 'sonner'
 import { generateShareSlugAction, revokeShareSlugAction } from '@/actions/plan-editor'
 import { Button } from '@/components/ui/button'
@@ -86,6 +86,15 @@ export function ShareSheet({
               <Input readOnly value={url} className="text-xs" />
               <Button variant="outline" size="icon" onClick={() => void copy()} aria-label="Copy link">
                 {copied ? <Check className="size-4 text-brand" /> : <Copy className="size-4" />}
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                aria-label="Open link in a new tab"
+                nativeButton={false}
+                render={<a href={url} target="_blank" rel="noopener noreferrer" />}
+              >
+                <ExternalLink className="size-4" />
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">

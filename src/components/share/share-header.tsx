@@ -33,10 +33,11 @@ export function ShareHeader({
 
   return (
     <header className="border-b-4 bg-[#0f0f0f]" style={{ borderBottomColor: 'var(--brand)' }}>
-      <div className="flex items-start justify-between gap-4 px-4 py-4">
-        {/* Logo stacks above the coach's name below `sm` — a wide, non-square logo would
-            otherwise fight the name/title for the little width a 390px viewport has left. */}
-        <div className="flex min-w-0 flex-1 flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
+      {/* Same column as the page content (`ShareView`), so the band's edges line up with it. */}
+      <div className="mx-auto flex max-w-3xl items-start justify-between gap-4 px-4 py-4">
+        {/* Logo always stacks above the coach's name: it balances the client name + PDF button
+            on the right, and a wide logo never fights the name for width on a phone. */}
+        <div className="flex min-w-0 flex-1 flex-col items-start gap-2">
           {coach.logoUrl && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
