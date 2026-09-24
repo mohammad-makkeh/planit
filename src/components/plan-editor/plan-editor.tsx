@@ -220,32 +220,36 @@ export function PlanEditor({
     [mutate],
   )
 
+  // Every way of adding a move (Add move, the Week view's gap suggestions) lands here. A new
+  // row starts with the day's last row's numbers (sets, reps, speed, 1RM, rest), since a day's
+  // moves usually share them; the note is the move's own. The first move in an empty day starts
+  // blank.
   const addRow = useCallback(
     (sessionId: string, exercise: PickedExercise, equipmentId: string | null) => {
       mutate((d) => ({
         ...d,
-        sessions: d.sessions.map((s) =>
-          s.id === sessionId
-            ? {
-                ...s,
-                rows: [
-                  ...s.rows,
-                  {
-                    id: crypto.randomUUID(),
-                    position: s.rows.length + 1,
-                    sets: null,
-                    reps: null,
-                    speed: null,
-                    oneRm: null,
-                    rest: null,
-                    note: null,
-                    exercise,
-                    equipmentId,
-                  },
-                ],
-              }
-            : s,
-        ),
+        sessions: d.sessions.map((s) => {
+          if (s.id !== sessionId) return s
+          const last = s.rows.at(-1)
+          return {
+            ...s,
+            rows: [
+              ...s.rows,
+              {
+                id: crypto.randomUUID(),
+                position: s.rows.length + 1,
+                sets: last?.sets ?? null,
+                reps: last?.reps ?? null,
+                speed: last?.speed ?? null,
+                oneRm: last?.oneRm ?? null,
+                rest: last?.rest ?? null,
+                note: null,
+                exercise,
+                equipmentId,
+              },
+            ],
+          }
+        }),
       }))
     },
     [mutate],
