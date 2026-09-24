@@ -53,8 +53,8 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
           <h2 className="text-lg font-semibold">Plans</h2>
           <PlanList
             plans={clientPlans}
+            client={{ id: client.id, name: client.name, phone: client.phone }}
             clients={allClients.map((c) => ({ id: c.id, name: c.name }))}
-            clientId={client.id}
           />
         </section>
       </div>

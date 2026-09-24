@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Check, Copy, ExternalLink, Link2, Link2Off } from 'lucide-react'
+import { Check, Copy, ExternalLink, Link2, Link2Off, MessageCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { generateShareSlugAction, revokeShareSlugAction } from '@/actions/plan-editor'
 import { Button } from '@/components/ui/button'
@@ -9,17 +9,21 @@ import {
   BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle,
 } from '@/components/ui/bottom-sheet'
 import { Input } from '@/components/ui/input'
+import { planMessage, whatsappLink, whatsappNumber } from '@/lib/whatsapp'
 
 export function ShareSheet({
   open,
   onOpenChange,
   planId,
+  client,
   shareSlug,
   onChanged,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   planId: string
+  /** Who the plan is for — the WhatsApp chat to open and the name in the message. */
+  client: { name: string; phone: string | null }
   shareSlug: string | null
   onChanged: (slug: string | null) => void
 }) {
@@ -29,6 +33,8 @@ export function ShareSheet({
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setOrigin(window.location.origin) }, [])
   const url = shareSlug ? `${origin}/p/${shareSlug}` : null
+  const message = url ? planMessage(client.name, url) : null
+  const whatsapp = whatsappNumber(client.phone)
 
   async function generate() {
     setBusy(true)
@@ -80,26 +86,32 @@ export function ShareSheet({
         <BottomSheetHeader>
           <BottomSheetTitle>Share plan</BottomSheetTitle>
         </BottomSheetHeader>
-        {url ? (
+        {url && message ? (
           <div className="space-y-3">
             <div className="flex gap-2">
               <Input readOnly value={url} className="text-xs" />
-              <Button variant="outline" size="icon" onClick={() => void copy()} aria-label="Copy link">
-                {copied ? <Check className="size-4 text-brand" /> : <Copy className="size-4" />}
+              {/* Only the icon flips to a check, so the label never changes the button's width. */}
+              <Button variant="outline" className="shrink-0" onClick={() => void copy()}>
+                {copied ? <Check className="size-4 text-brand" /> : <Copy className="size-4" />} Copy
               </Button>
               <Button
                 variant="outline"
-                size="icon"
-                aria-label="Open link in a new tab"
+                className="shrink-0"
                 nativeButton={false}
                 render={<a href={url} target="_blank" rel="noopener noreferrer" />}
               >
-                <ExternalLink className="size-4" />
+                <ExternalLink className="size-4" /> Open
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Anyone with this link can view the plan. It always shows the latest saved version.
-            </p>
+            {whatsapp && (
+              <Button
+                className="w-full"
+                nativeButton={false}
+                render={<a href={whatsappLink(whatsapp, message)} target="_blank" rel="noopener noreferrer" />}
+              >
+                <MessageCircle className="size-4" /> Send on WhatsApp
+              </Button>
+            )}
             <Button variant="outline" className="w-full text-destructive" onClick={() => void revoke()} disabled={busy}>
               <Link2Off className="size-4" /> Revoke link
             </Button>

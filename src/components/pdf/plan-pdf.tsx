@@ -7,6 +7,7 @@ import {
   BACK_BODY, BODY_VIEWBOX, FRONT_BODY, busiestSide, focusViewBox, shadeOpacity, shadesForMove,
   shadesForRows, type RegionShades, type RegionShape,
 } from '@/lib/muscle-map'
+import { loadLogo, safeBrand, type LogoImage } from '@/lib/coach-brand'
 import type { SharedPlan, SharedRow, SharedSession } from '@/services/share'
 import { FONT_BODY, FONT_DISPLAY, FONT_LABEL } from './fonts'
 
@@ -26,7 +27,6 @@ const DARK = '#0F0F0F'
 const LINE = '#E8E8E8'
 const PANEL = '#F6F6F6'
 const WHITE = '#FFFFFF'
-const DEFAULT_BRAND = '#FE2E00'
 
 const PAGE_GUTTER = mm(12)
 const HEADER_HEIGHT = mm(27)
@@ -263,11 +263,6 @@ const styles = StyleSheet.create({
   footerPhone: { fontSize: 7.5, letterSpacing: 0.9, color: INK_SOFT, fontWeight: 600 },
 })
 
-/** Only a literal hex colour reaches pdfkit — anything else would throw mid-render. */
-function safeBrand(value: string | null): string {
-  return value && /^#(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(value) ? value : DEFAULT_BRAND
-}
-
 /** `!= null` rather than truthiness — 0 is a real value for every numeric field here. */
 function cell(value: string | number | null, unit = ''): { text: string; empty: boolean } {
   if (value == null || value === '') return { text: '—', empty: true }
@@ -287,9 +282,7 @@ function cardioStats(session: SharedSession): { label: string; value: string }[]
   return stats
 }
 
-type PdfImage = { data: Buffer; format: 'png' | 'jpg' }
-
-function PageHeader({ plan, brand, logo }: { plan: SharedPlan; brand: string; logo: PdfImage | null }) {
+function PageHeader({ plan, brand, logo }: { plan: SharedPlan; brand: string; logo: LogoImage | null }) {
   return (
     <View style={[styles.header, { borderBottomColor: brand }]} fixed>
       <View style={styles.coachBlock}>
@@ -480,7 +473,7 @@ function SessionPage({
   plan: SharedPlan
   session: SharedSession
   brand: string
-  logo: PdfImage | null
+  logo: LogoImage | null
 }) {
   const shades = shadesForRows(session.rows.map((row) => ({ muscles: row.muscles, sets: row.sets })))
   const hasMuscles = Object.keys(shades).length > 0
@@ -511,7 +504,7 @@ function SessionPage({
   )
 }
 
-export function PlanPdfDocument({ plan, logo }: { plan: SharedPlan; logo: PdfImage | null }) {
+export function PlanPdfDocument({ plan, logo }: { plan: SharedPlan; logo: LogoImage | null }) {
   const brand = safeBrand(plan.coach.brandColor)
 
   return (
@@ -539,31 +532,11 @@ function planPdfFilename(plan: SharedPlan): string {
   return `${slug || 'Client'}_Workout_Plan.pdf`
 }
 
-/**
- * react-pdf only decodes PNG and JPEG, and a single unreachable or exotic logo would otherwise
- * fail the whole render. Fetching it here lets a bad logo degrade to "no logo" instead of a 500.
- * The timeout keeps a slow/hanging logo host from stalling the render until the platform limit —
- * the abort it raises lands in the same catch as any other fetch failure.
- */
-async function loadImage(url: string | null): Promise<PdfImage | null> {
-  if (!url) return null
-  try {
-    const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(5000) })
-    if (!response.ok) return null
-    const data = Buffer.from(await response.arrayBuffer())
-    if (data.length > 4 && data[0] === 0x89 && data[1] === 0x50) return { data, format: 'png' }
-    if (data.length > 3 && data[0] === 0xff && data[1] === 0xd8) return { data, format: 'jpg' }
-    return null
-  } catch {
-    return null
-  }
-}
-
 /** The one entry point both download routes share: payload in, PDF bytes + filename out. */
 export async function renderPlanPdf(
   plan: SharedPlan,
 ): Promise<{ body: Uint8Array<ArrayBuffer>; filename: string }> {
-  const logo = await loadImage(plan.coach.logoUrl)
+  const logo = await loadLogo(plan.coach.logoUrl)
   const buffer = await renderToBuffer(<PlanPdfDocument plan={plan} logo={logo} />)
   // Copied into a plain ArrayBuffer-backed view: a Node Buffer can sit on a SharedArrayBuffer,
   // which `BodyInit` does not accept.

@@ -51,7 +51,7 @@ export type EditorPlan = {
   status: Plan['status']
   shareSlug: string | null
   updatedAt: Date
-  client: { id: string; name: string }
+  client: { id: string; name: string; phone: string | null }
   sessions: EditorSession[]
 }
 
@@ -69,7 +69,7 @@ export async function getPlanForEditor(
   if (!plan) return undefined
   const client = await db.query.clients.findFirst({
     where: and(eq(clients.id, plan.clientId), eq(clients.coachId, coachId), isNull(clients.deletedAt)),
-    columns: { id: true, name: true },
+    columns: { id: true, name: true, phone: true },
   })
   if (!client) return undefined
 

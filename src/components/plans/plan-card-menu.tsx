@@ -19,12 +19,13 @@ import { ShareSheet } from './share-sheet'
 
 export function PlanCardMenu({
   plan,
+  client,
   clients,
-  currentClientId,
 }: {
   plan: { id: string; title: string; status: Plan['status']; shareSlug: string | null }
+  /** The plan's client. */
+  client: { id: string; name: string; phone: string | null }
   clients: PickerClient[]
-  currentClientId: string
 }) {
   const router = useRouter()
   const [shareOpen, setShareOpen] = useState(false)
@@ -130,6 +131,7 @@ export function PlanCardMenu({
         open={shareOpen}
         onOpenChange={setShareOpen}
         planId={plan.id}
+        client={client}
         shareSlug={slug}
         onChanged={setSlug}
       />
@@ -137,7 +139,7 @@ export function PlanCardMenu({
         open={pickerOpen}
         onOpenChange={setPickerOpen}
         clients={clients}
-        excludeClientId={currentClientId}
+        excludeClientId={client.id}
         onPick={(clientId) => void duplicateTo(clientId)}
       />
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>

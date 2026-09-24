@@ -9,12 +9,12 @@ import type { Plan } from '@/services/plans'
 
 export function PlanList({
   plans,
+  client,
   clients,
-  clientId,
 }: {
   plans: Plan[]
+  client: { id: string; name: string; phone: string | null }
   clients: PickerClient[]
-  clientId: string
 }) {
   if (plans.length === 0) {
     return (
@@ -29,7 +29,7 @@ export function PlanList({
     <div className="space-y-3">
       {plans.map((plan) => (
         <div key={plan.id} className="flex items-center gap-2 rounded-2xl border bg-card p-2 pl-4">
-          <Link href={`/clients/${clientId}/plans/${plan.id}`} className="min-w-0 flex-1 py-2">
+          <Link href={`/clients/${client.id}/plans/${plan.id}`} className="min-w-0 flex-1 py-2">
             <p className="truncate font-semibold">{plan.title}</p>
             <p className="text-xs text-muted-foreground">
               Created {formatDate(plan.createdAt)} · Updated {formatDate(plan.updatedAt)}
@@ -38,8 +38,8 @@ export function PlanList({
           <PlanStatusSwitch planId={plan.id} status={plan.status} />
           <PlanCardMenu
             plan={{ id: plan.id, title: plan.title, status: plan.status, shareSlug: plan.shareSlug }}
+            client={client}
             clients={clients}
-            currentClientId={clientId}
           />
         </div>
       ))}

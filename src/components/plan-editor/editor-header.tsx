@@ -179,6 +179,7 @@ export function EditorHeader({
         open={shareOpen}
         onOpenChange={setShareOpen}
         planId={plan.id}
+        client={plan.client}
         shareSlug={plan.shareSlug}
         onChanged={onShareChanged}
       />
