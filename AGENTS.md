@@ -351,9 +351,11 @@ suffix).
 
 ### Production
 
-- The Vercel deployment URLs redirect to Vercel's login (deployment protection), and the
-  repo's homepage link is stale, so you can't smoke-test prod anonymously. Ask the owner for
-  the production URL if a check is needed.
+- **Production URL: https://planitlb.vercel.app.** Smoke-test it after deploys, e.g.
+  `curl -s -o /dev/null -w "%{http_code}" https://planitlb.vercel.app/p/ljFXxhEJ_1TM` (the
+  share page and `/p/<slug>/pdf` are public; coach pages redirect to `/login`). The
+  per-deployment `*.vercel.app` URLs redirect to Vercel's login (deployment protection), and
+  the repo's GitHub homepage link is stale.
 - Env vars live in Vercel's dashboard (`DATABASE_URL`, `SUPABASE_URL`,
   `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`), and changes need a redeploy. The Vercel CLI
   isn't installed.
@@ -381,6 +383,3 @@ move-form pickers as pills with nested sheets → global equipment and muscle-ta
 body muscle map (thumbnails, day and week balance, primary/secondary, chest and side-delt
 splits, PDF figures) → removal of move images and warm-up highlighting → Week-view gap
 suggestions → share page polish. Next up: [`BACKLOG.md`](BACKLOG.md).
-
-`some ui ux improvements.md` in the repo root is an old request list that's fully
-implemented — safe to ignore.
