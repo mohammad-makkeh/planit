@@ -4,6 +4,15 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* A light band sweeping across a placeholder while something slow (a story card) renders. */
+@theme {
+  --animate-shimmer: shimmer 1.4s linear infinite;
+  @keyframes shimmer {
+    from { background-position: 150% 0; }
+    to { background-position: -50% 0; }
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
