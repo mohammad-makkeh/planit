@@ -29,7 +29,9 @@ as a **branded share link** (an app-like page) or a **branded PDF**.
 - **Who it's for:** the coach. A feature earns its place if it makes the coach faster or
   makes the coach look better to their clients. Features aimed at the end client (the
   gym-goer) are in scope only when they serve the coach's delivery (the share page, the PDF).
-- **Users today:** two coach accounts, test data only, no real clients yet, zero revenue.
+- **Users today:** there is **one active coach** using Planit for real — a friend of the
+  owner, unpaid, who knows it's still an alpha. His clients and plans are real data. The
+  owner's own coach account ("Mohammad Makkeh") holds test data. Zero revenue.
 - **Money:** everything must run at **zero cost** — Vercel Hobby, Supabase free tier, no paid
   APIs (no LLM calls, no paid services) until there's revenue.
 - **Owner:** Mohammad Makkeh, a frontend engineer with a very high UI bar. He makes the
@@ -70,11 +72,15 @@ These come from direct instructions and corrections. They are not suggestions.
 
 ### Commits and deploys
 
-- Work on `master`. **Pushing to `master` deploys to production** (Vercel, automatic).
-- Default: when a task is done and verified, **commit and push without asking**.
-- He overrides the default per task:
-  - "don't commit until I see it" → leave the changes uncommitted, report, wait for "push".
+- Work on `master`. **Pushing to `master` deploys to production** (Vercel, automatic), and a
+  real coach is using production.
+- **Never push (deploy) until the owner explicitly says so.** Committing locally is fine;
+  the push is the deploy, and it waits for his go-ahead every time.
+- He may also say per task:
+  - "don't commit until I see it" → leave the changes uncommitted, report, wait.
   - "one commit" → a single commit for the whole batch, so it can be reverted in one go.
+- Database migrations touch production immediately (see §7), so they wait for the same
+  go-ahead as a deploy.
 - Commit message: conventional prefix (`feat:`, `fix:`, `docs:`, `chore:`), a short body
   explaining the why, and the co-author trailer on its own line after a blank line:
 
@@ -290,9 +296,11 @@ suffix).
 ### Database and migrations
 
 - **Dev and production share one database** (there's a single Supabase project). Anything you
-  do locally, including test edits in the dev app, changes production data. All data is test
-  data today and the owner has authorized deleting it, but snapshot before destructive changes
-  (into `.superpowers/*.json`, which is git-ignored).
+  do locally, including test edits in the dev app, changes production data — and an active
+  coach's real clients and plans live there. Only touch the owner's test account ("Mohammad
+  Makkeh") when testing. Never delete or bulk-edit data outside it without the owner's
+  explicit OK, and snapshot before any destructive change (into `.superpowers/*.json`, which
+  is git-ignored).
 - Never print `.env.local` or any secret. Read values into scripts with
   `node --env-file=.env.local`.
 - Workflow: edit `src/db/schema.ts` → `npx drizzle-kit generate --name <name> < /dev/null` →
@@ -340,12 +348,13 @@ suffix).
 
   Then run `document.cookie = "planit_session=<token>; path=/"` in the page and reload. Never
   print `JWT_SECRET` itself.
-- Test fixtures (these are production rows):
+- Test fixtures (production rows in the owner's **test** account — safe to use for checks):
   - coach "Mohammad Makkeh": `9108d679-8570-4970-b6de-e19600205881`
   - client Ali Abbas Berro: `/clients/5e7ca94a-df57-419d-bec6-4c1b1236c240`
   - his plan: `/clients/5e7ca94a-df57-419d-bec6-4c1b1236c240/plans/cdc92ec4-5971-4d22-a2c6-86b7d84c8f0e`
   - its share link: `/p/ljFXxhEJ_1TM`
-  - the second coach account is "Mohammad Al Khansa".
+  - the other coach account ("Mohammad Al Khansa") is not a test fixture — don't use it for
+    testing.
 - To eyeball a PDF page: download it with `curl`, split a page out with `pypdf`, then convert
   it with `sips -s format png`.
 
