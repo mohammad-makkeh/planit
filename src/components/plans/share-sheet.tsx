@@ -112,7 +112,7 @@ export function ShareSheet({
                   nativeButton={false}
                   render={<a href={whatsappLink(whatsapp, message)} target="_blank" rel="noopener noreferrer" />}
                 >
-                  <MessageCircle className="size-4" /> Send on WhatsApp
+                  <MessageCircle className="size-4" /> Send on WP
                 </Button>
               )}
             </div>
