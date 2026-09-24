@@ -232,6 +232,9 @@ suffix).
   the back button closes the player. Sheets over the player are `DialogSheet`s (it's a Base UI
   dialog). The player wraps its popup in the `dark` token scope with `--background` set to the
   header band's `#0f0f0f`; anything it portals out (the two sheets) gets the same class and style.
+  **Rollout gate:** the pill and player stay hidden until a phone opens the share link with
+  `?experimental_start=1` once; that visit stores `planit:gym:enabled` in `localStorage` and the
+  feature then shows on that phone without the flag (`use-gym-enabled.ts`).
 - The coach's `brand_color` is applied through the `--brand` CSS variable (Tailwind's `brand`
   colour reads `var(--brand)`), which is what lets the share page use the coach's colour.
 - The PDF (`src/components/pdf/plan-pdf.tsx`) is laid out after

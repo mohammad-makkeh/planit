@@ -346,6 +346,30 @@ export function writeMuted(muted: boolean): void {
   }
 }
 
+/**
+ * Rollout gate: Gym Mode stays hidden until this phone has opened the share link with
+ * `?experimental_start=1` once; that visit flips the switch here for good. Not slug-scoped, so
+ * the daily purge never touches it.
+ */
+export const ENABLED_KEY = 'planit:gym:enabled'
+
+export function readEnabled(): boolean {
+  try {
+    return storage()?.getItem(ENABLED_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+export function writeEnabled(): void {
+  try {
+    storage()?.setItem(ENABLED_KEY, '1')
+  } catch {
+    // Without storage the flag only lasts while the URL carries it.
+  }
+  notify()
+}
+
 /** For `useSyncExternalStore`: re-read progress when this tab writes it or another tab does. */
 export function subscribeProgress(callback: () => void): () => void {
   window.addEventListener(PROGRESS_EVENT, callback)

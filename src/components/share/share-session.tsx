@@ -15,7 +15,8 @@ export function ShareSession({
   session: SharedSession
   /** "Start", or "Continue · 2 of 4" when the phone holds today's progress. */
   startLabel: string
-  onStart: () => void
+  /** Opens Gym Mode. Absent while the feature is gated off — the pill is not rendered. */
+  onStart?: () => void
 }) {
   const [activeRow, setActiveRow] = useState<SharedRow | null>(null)
   const hasCardio =
@@ -85,14 +86,16 @@ export function ShareSession({
               Workout
             </p>
             {/* Opens Gym Mode for this day. Styled like Flex it: a brand-tinted pill, not another chip. */}
-            <button
-              type="button"
-              onClick={onStart}
-              className="inline-flex h-9 shrink-0 touch-manipulation items-center gap-1.5 rounded-full bg-brand/10 px-4 text-sm font-semibold text-brand outline-none transition-colors hover:bg-brand/15 focus-visible:ring-2 focus-visible:ring-brand/50"
-            >
-              <Play className="size-3.5 fill-current" aria-hidden />
-              {startLabel}
-            </button>
+            {onStart && (
+              <button
+                type="button"
+                onClick={onStart}
+                className="inline-flex h-9 shrink-0 touch-manipulation items-center gap-1.5 rounded-full bg-brand/10 px-4 text-sm font-semibold text-brand outline-none transition-colors hover:bg-brand/15 focus-visible:ring-2 focus-visible:ring-brand/50"
+              >
+                <Play className="size-3.5 fill-current" aria-hidden />
+                {startLabel}
+              </button>
+            )}
           </div>
           <div className="space-y-2">
             {session.rows.map((row, i) => (

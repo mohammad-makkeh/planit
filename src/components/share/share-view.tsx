@@ -7,6 +7,7 @@ import { FOCUS_TITLE, dayFocus } from '@/lib/day-focus'
 import { cn } from '@/lib/utils'
 import type { SharedPlan, SharedSession } from '@/services/share'
 import { GymMode } from './gym-mode/gym-mode'
+import { useGymEnabled } from './gym-mode/use-gym-enabled'
 import { usePlayParam } from './gym-mode/use-play-param'
 import { useStoredProgress } from './gym-mode/use-stored-progress'
 import { ShareHeader } from './share-header'
@@ -19,6 +20,9 @@ function dayHeadline(session: SharedSession): string {
 }
 
 export function ShareView({ plan, slug }: { plan: SharedPlan; slug: string }) {
+  // The gate only hides the pill and keeps the player shut; a `?play=` param is left alone so a
+  // phone that has the switch stored still opens its deep link once hydration reads the switch.
+  const gymEnabled = useGymEnabled()
   const { playing, open: openPlayer, close: closePlayer } = usePlayParam(
     (day) => (plan.sessions[day]?.rows.length ?? 0) > 0,
   )
@@ -87,7 +91,7 @@ export function ShareView({ plan, slug }: { plan: SharedPlan; slug: string }) {
               key={selected}
               session={session}
               startLabel={progress ? `Continue · ${progress}` : 'Start'}
-              onStart={() => openPlayer(selected)}
+              onStart={gymEnabled ? () => openPlayer(selected) : undefined}
             />
           ) : (
             <EmptyState
@@ -110,7 +114,7 @@ export function ShareView({ plan, slug }: { plan: SharedPlan; slug: string }) {
       />
 
       <GymMode
-        open={playing !== null}
+        open={gymEnabled && playing !== null}
         slug={slug}
         day={playing ?? selected}
         session={playingSession}
