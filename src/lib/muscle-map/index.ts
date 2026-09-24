@@ -39,7 +39,8 @@ const SECONDARY_SHADE = 0.35
 /** Share of a row's sets credited to a muscle it only works secondarily. */
 const SECONDARY_VOLUME = 0.5
 
-function regionsFor(muscleName: string): BodyRegion[] {
+/** The drawn regions a catalog muscle lights up — none for a muscle the map doesn't know. */
+export function regionsForMuscle(muscleName: string): BodyRegion[] {
   return REGIONS_BY_MUSCLE[muscleName.trim().toLowerCase()] ?? []
 }
 
@@ -48,7 +49,7 @@ export function shadesForMove(muscles: MuscleWork[]): RegionShades {
   const shades: RegionShades = {}
   for (const muscle of muscles) {
     const shade = muscle.primary ? 1 : SECONDARY_SHADE
-    for (const region of regionsFor(muscle.name)) shades[region] = Math.max(shades[region] ?? 0, shade)
+    for (const region of regionsForMuscle(muscle.name)) shades[region] = Math.max(shades[region] ?? 0, shade)
   }
   return shades
 }
@@ -70,7 +71,7 @@ export function shadesForRows(rows: WorkedRow[]): RegionShades {
   for (const row of rows) {
     const rowLoad = new Map<BodyRegion, number>()
     for (const muscle of row.muscles) {
-      for (const region of regionsFor(muscle.name)) {
+      for (const region of regionsForMuscle(muscle.name)) {
         rowLoad.set(region, Math.max(rowLoad.get(region) ?? 0, volume(row, muscle)))
       }
     }

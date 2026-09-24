@@ -1,5 +1,5 @@
 /** The story card designs a client picks from, in picker order. They have no user-facing names. */
-export const STORY_DESIGNS = [{ id: 'tape' }, { id: 'cover' }] as const
+export const STORY_DESIGNS = [{ id: 'chart' }, { id: 'tape' }, { id: 'cover' }] as const
 
 export type StoryDesign = (typeof STORY_DESIGNS)[number]['id']
 

@@ -4,9 +4,12 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { ReactElement } from 'react'
 import type { LogoImage } from '@/lib/coach-brand'
-import { FOCUS_TITLE, dayFocus, featuredMuscles, focusSlogan } from '@/lib/day-focus'
 import {
-  BACK_BODY, BODY_VIEWBOX, FRONT_BODY, shadeOpacity, shadesForRows, type RegionShades, type RegionShape,
+  FOCUS_TITLE, dayFocus, featuredMuscleGroups, featuredMuscles, focusSlogan, type MuscleGroup,
+} from '@/lib/day-focus'
+import {
+  BACK_BODY, BODY_VIEWBOX, FRONT_BODY, busiestSide, regionsForMuscle, shadeOpacity, shadesForRows,
+  type RegionShades, type RegionShape,
 } from '@/lib/muscle-map'
 import type { StoryDesign } from '@/lib/story'
 import type { SharedPlan, SharedSession } from '@/services/share'
@@ -360,7 +363,224 @@ function Cover({ plan, session, brand, logo, date }: StoryInput) {
   )
 }
 
+/* ------------------------------------------------------------------- Chart */
+
+/** Where the hero figure sits on the card, in pixels. Its width follows the 1:2 viewBox. */
+const CHART_FIGURE = { top: 470, height: 940, left: (STORY.width - 470) / 2, width: 470 }
+/** The label columns: pills hang off both card edges, never wider than the margin allows. */
+const CHART_MARGIN = 40
+const PILL_HEIGHT = 64
+const PILL_GAP = 88
+const PILL_FONT = 36
+/** Anton's caps measure about half an em each. */
+const ANTON_EM = 0.5
+
+/** A cardio day has no muscles to point at, so the plate labels the engine instead. */
+const CARDIO_GROUPS: (MuscleGroup & { side: 'left' | 'right' })[] = [
+  { name: 'Lungs', muscles: ['upper chest'], side: 'left' },
+  { name: 'Heart', muscles: ['middle chest'], side: 'right' },
+]
+
+type Callout = { name: string; side: 'left' | 'right'; target: [number, number]; y: number; width: number }
+
+function centroid(polygons: string[]): [number, number] {
+  let x = 0
+  let y = 0
+  let n = 0
+  for (const polygon of polygons) {
+    const values = polygon.trim().split(/\s+/).map(Number)
+    for (let i = 0; i + 1 < values.length; i += 2) {
+      x += values[i]!
+      y += values[i + 1]!
+      n++
+    }
+  }
+  return [x / n, y / n]
+}
+
+/**
+ * Pushes label centres apart to at least `gap`, inside [min, max]. Inputs come sorted; the first
+ * pass shoves overlaps down, the second lifts the column back up if its tail ran past the end.
+ */
+function spread(ys: number[], gap: number, min: number, max: number): number[] {
+  const out = ys.map((y) => Math.max(min, Math.min(max, y)))
+  for (let i = 1; i < out.length; i++) out[i] = Math.max(out[i]!, out[i - 1]! + gap)
+  for (let i = out.length - 1; i >= 0; i--) {
+    const ceiling = i === out.length - 1 ? max : out[i + 1]! - gap
+    out[i] = Math.min(out[i]!, ceiling)
+  }
+  return out
+}
+
+/**
+ * Anatomical-plate callouts: each featured muscle gets a pill in the left or right margin and a
+ * leader line to where it sits on the shown figure. Bilateral muscles offer both halves of the
+ * body; a label takes the emptier margin so the columns stay balanced and lines never cross the
+ * torso. A muscle the shown side doesn't draw (triceps on a chest day) is left out — the figure
+ * can't point at what it doesn't show.
+ */
+function layoutCallouts(
+  groups: (MuscleGroup & { side?: 'left' | 'right' })[],
+  shapes: RegionShape[],
+  limit: number,
+): Callout[] {
+  const { top, height, left, width } = CHART_FIGURE
+  const count = { left: 0, right: 0 }
+  const placed: Omit<Callout, 'y'>[] = []
+  for (const group of groups) {
+    if (placed.length === limit) break
+    const regions = new Set(group.muscles.flatMap(regionsForMuscle))
+    const halves = { left: [] as string[], right: [] as string[] }
+    for (const shape of shapes) {
+      if (!regions.has(shape.region)) continue
+      for (const polygon of shape.points) {
+        const [x] = centroid([polygon])
+        // A polygon straddling the midline (abs, lower back) can be pointed at from either side.
+        if (x <= 51) halves.left.push(polygon)
+        if (x >= 49) halves.right.push(polygon)
+      }
+    }
+    const open = (['left', 'right'] as const).filter((s) => halves[s].length > 0)
+    if (open.length === 0) continue
+    const side =
+      group.side && open.includes(group.side)
+        ? group.side
+        : open.length === 1 || count.left <= count.right ? open[0]! : 'right'
+    count[side]++
+    const [x, y] = centroid(halves[side])
+    const text = group.name.toUpperCase()
+    placed.push({
+      name: text,
+      side,
+      target: [left + (x / 100) * width, top + (y / 200) * height],
+      width: Math.round(text.length * ANTON_EM * PILL_FONT + 44),
+    })
+  }
+  const out: Callout[] = []
+  for (const side of ['left', 'right'] as const) {
+    const column = placed.filter((c) => c.side === side).sort((a, b) => a.target[1] - b.target[1])
+    const ys = spread(column.map((c) => c.target[1]), PILL_GAP, top + PILL_HEIGHT, top + height - PILL_HEIGHT)
+    column.forEach((c, i) => out.push({ ...c, y: ys[i]! }))
+  }
+  return out
+}
+
+function Chart({ plan, session, brand, logo, date }: StoryInput) {
+  const shades = shadesForRows(session.rows)
+  const { headline, slogan } = copy(session)
+  const cardio = session.rows.length === 0 && session.cardioMinutes
+  const side = busiestSide(shades)
+  const shapes = side === 'back' ? BACK_BODY : FRONT_BODY
+  const callouts = layoutCallouts(cardio ? CARDIO_GROUPS : featuredMuscleGroups(session.rows, 6), shapes, 4)
+  const headlineSize = Math.min(170, Math.floor(2000 / headline.length))
+  const INK = '#111111'
+  const figure = CHART_FIGURE
+  return (
+    <div
+      style={{
+        width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center',
+        position: 'relative', overflow: 'hidden', backgroundColor: brand, color: INK, fontFamily: 'Anton',
+        backgroundImage: 'linear-gradient(160deg, rgba(255,255,255,0.14) 0%, rgba(0,0,0,0) 45%, rgba(0,0,0,0.18) 100%)',
+        paddingTop: SAFE_TOP,
+      }}
+    >
+      <div style={{ display: 'flex', fontFamily: 'Marker', fontSize: 56, transform: 'rotate(-3deg)' }}>
+        today&apos;s workout
+      </div>
+      <div
+        style={{
+          display: 'flex', fontSize: headlineSize, lineHeight: 1, marginTop: 4, color: '#FFFFFF',
+          textShadow: `8px 8px 0 ${INK}`,
+        }}
+      >
+        {headline.toUpperCase()}
+      </div>
+
+      <div style={{ position: 'absolute', top: figure.top, left: figure.left, display: 'flex' }}>
+        <Figure shapes={shapes} shades={shades} worked="#FFFFFF" rest={INK} restOpacity={0.92} height={figure.height} />
+      </div>
+      <div
+        style={{
+          position: 'absolute', top: figure.top + figure.height + 4, display: 'flex',
+          fontFamily: 'Inter', fontWeight: 800, fontSize: 20, letterSpacing: 6, color: rgba(INK, 0.7),
+        }}
+      >
+        {side === 'back' ? 'BACK VIEW' : 'FRONT VIEW'}
+      </div>
+
+      {/* Leader lines under the pills, so a pill's estimated width can be off without a gap. */}
+      <svg
+        width={STORY.width}
+        height={STORY.height}
+        viewBox={`0 0 ${STORY.width} ${STORY.height}`}
+        style={{ position: 'absolute', top: 0, left: 0 }}
+      >
+        {callouts.map((c) => {
+          const x1 = c.side === 'left' ? CHART_MARGIN + c.width / 2 : STORY.width - CHART_MARGIN - c.width / 2
+          return (
+            <g key={c.name}>
+              <line x1={x1} y1={c.y} x2={c.target[0]} y2={c.target[1]} stroke={INK} strokeWidth={9} strokeLinecap="round" />
+              <line x1={x1} y1={c.y} x2={c.target[0]} y2={c.target[1]} stroke="#FFFFFF" strokeWidth={4} strokeLinecap="round" />
+              <circle cx={c.target[0]} cy={c.target[1]} r={11} fill={INK} stroke="#FFFFFF" strokeWidth={4} />
+            </g>
+          )
+        })}
+      </svg>
+      {callouts.map((c) => (
+        <div
+          key={c.name}
+          style={{
+            position: 'absolute', top: c.y - PILL_HEIGHT / 2, height: PILL_HEIGHT,
+            ...(c.side === 'left' ? { left: CHART_MARGIN } : { right: CHART_MARGIN }),
+            display: 'flex', alignItems: 'center', padding: '0 22px 4px', borderRadius: 999,
+            backgroundColor: INK, color: '#FFFFFF', fontSize: PILL_FONT, letterSpacing: 1,
+          }}
+        >
+          {c.name}
+        </div>
+      ))}
+
+      <div
+        style={{
+          position: 'absolute', top: 1446, left: 60, right: 60, display: 'flex', justifyContent: 'center',
+          fontFamily: 'Marker', fontSize: 54, transform: 'rotate(-2deg)',
+        }}
+      >
+        {`“${slogan}”`}
+      </div>
+      {/* Credit and date as black pills like the callouts — and a dark ground for a logo that
+          would otherwise vanish into its own brand colour. */}
+      <div
+        style={{
+          position: 'absolute', top: 1532, left: CHART_MARGIN, right: CHART_MARGIN, display: 'flex',
+          alignItems: 'center', justifyContent: 'space-between', gap: 16,
+          fontFamily: 'Inter', fontWeight: 800, fontSize: 22, letterSpacing: 4, color: '#FFFFFF',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex', alignItems: 'center', gap: 16, minWidth: 0, height: 52, padding: '0 22px 0 18px',
+            borderRadius: 999, backgroundColor: INK,
+          }}
+        >
+          {logo && <img alt="" src={logoSrc(logo)} style={{ height: 32 }} />}
+          <div style={{ display: 'block', lineClamp: 1 }}>{`COACHED BY ${plan.coach.name.toUpperCase()}`}</div>
+        </div>
+        <div
+          style={{
+            display: 'flex', alignItems: 'center', flexShrink: 0, height: 52, padding: '0 22px',
+            borderRadius: 999, backgroundColor: INK,
+          }}
+        >
+          {date}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export const STORY_CARDS: Record<StoryDesign, (input: StoryInput) => ReactElement> = {
+  chart: (input) => <Chart {...input} />,
   tape: (input) => <Tape {...input} />,
   cover: (input) => <Cover {...input} />,
 }

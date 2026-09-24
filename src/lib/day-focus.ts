@@ -193,23 +193,36 @@ const COLLAPSE: Record<string, string> = {
   'front shoulder': 'Shoulders', 'side shoulder': 'Shoulders', 'rear shoulder': 'Shoulders',
 }
 
+export type MuscleGroup = {
+  /** The name to show. */
+  name: string
+  /** The catalog muscles behind it — one, or the parts folded into it. */
+  muscles: string[]
+}
+
 /**
  * The day's muscles to name on the card, busiest first. Chest and shoulder parts fold into
  * "Chest" / "Shoulders" when the day works two or more of them; a lone part keeps its own name
  * ("Rear Shoulder" on a pull day says more than "Shoulders").
  */
-export function featuredMuscles(rows: FocusRow[], count: number): string[] {
+export function featuredMuscleGroups(rows: FocusRow[], count: number): MuscleGroup[] {
   const load = musclesForRows(rows)
   const parts = new Map<string, number>()
   for (const { name } of load) {
     const whole = COLLAPSE[key(name)]
     if (whole) parts.set(whole, (parts.get(whole) ?? 0) + 1)
   }
-  const names: string[] = []
+  const groups: MuscleGroup[] = []
   for (const { name } of load) {
     const whole = COLLAPSE[key(name)]
     const shown = whole && (parts.get(whole) ?? 0) >= 2 ? whole : name
-    if (!names.includes(shown)) names.push(shown)
+    const group = groups.find((g) => g.name === shown)
+    if (group) group.muscles.push(name)
+    else groups.push({ name: shown, muscles: [name] })
   }
-  return names.slice(0, count)
+  return groups.slice(0, count)
+}
+
+export function featuredMuscles(rows: FocusRow[], count: number): string[] {
+  return featuredMuscleGroups(rows, count).map((g) => g.name)
 }
