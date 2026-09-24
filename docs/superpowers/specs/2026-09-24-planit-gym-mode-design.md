@@ -130,7 +130,7 @@ The existing lightbox content (figure, chips, muscles, `Watch tutorial`) is extr
 Replaces the move screen after the last move: the day's figure (`MuscleMap` of
 `shadesForRows(session.rows)`, both sides, large), **`Workout done`**, a summary line
 `Push day · 4 moves · 13 sets · 48 min` (day headline from `dayFocus`, row count, **ticked**
-sets, minutes since Start was tapped, rounded), then two buttons: **`Flex it`** (brand) and
+sets, minutes from the first ticked set to the finish, rounded, at least 1 when anything was ticked), then two buttons: **`Flex it`** (brand) and
 **`Done`** (outline). Both clear the saved progress and close the player; Flex it additionally
 opens the share page's existing `StorySheet` for this day. The story sheet is vaul and opens
 *after* the dialog has closed, so the two never overlap. The finish screen can also be reached
@@ -181,7 +181,8 @@ clear it. No confirm dialog: nothing is lost by closing.
 
 ```ts
 type GymState = {
-  startedAt: number            // epoch ms when Start was tapped (for the finish summary)
+  startedAt: number | null     // epoch ms of the first ticked set (for the finish summary)
+  finishedAt: number | null    // epoch ms when the finish screen was reached
   move: number                 // index of the move on screen
   ticks: boolean[][]           // ticks[move][set]; a row with sets null has one entry
   rest: { move: number; set: number; endsAt: number } | null
