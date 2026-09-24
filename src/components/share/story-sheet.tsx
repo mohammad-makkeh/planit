@@ -14,6 +14,36 @@ type Card = { url: string; file: File }
 type Cards = Partial<Record<StoryDesign, Card | 'error'>>
 
 /**
+ * Cards fetched during this visit, by URL, so reopening the sheet or going back to a day never
+ * re-downloads. The object URLs are never revoked: a handful of ~300 KB images for the life of
+ * the page. A failed load is dropped so the next opening retries it.
+ */
+const pendingCards = new Map<string, Promise<Card>>()
+const loadedCards = new Map<string, Card>()
+
+function loadCard(src: string, fileName: string): Promise<Card> {
+  let card = pendingCards.get(src)
+  if (!card) {
+    card = (async () => {
+      const response = await fetch(src)
+      if (!response.ok) throw new Error(String(response.status))
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      // Decoded before it's shown, so the card appears whole instead of painting top-down.
+      const image = new Image()
+      image.src = url
+      await image.decode()
+      const loaded = { url, file: new File([blob], fileName, { type: 'image/png' }) }
+      loadedCards.set(src, loaded)
+      return loaded
+    })()
+    card.catch(() => pendingCards.delete(src))
+    pendingCards.set(src, card)
+  }
+  return card
+}
+
+/**
  * Picks a story card design for the selected day and hands the PNG to the phone's share sheet
  * (straight into Instagram), or downloads it where files can't be shared. The sheet portals out
  * of the share page, so it carries the coach's `--brand` itself.
@@ -26,6 +56,7 @@ export function StorySheet({
   headline,
   clientName,
   brand,
+  version,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -35,13 +66,15 @@ export function StorySheet({
   headline: string
   clientName: string
   brand: string
+  /** Changes whenever the plan or coach profile is saved — busts the cached cards. */
+  version: string
 }) {
   return (
     <BottomSheet open={open} onOpenChange={onOpenChange}>
       {/* Wider than a form sheet: the cards are the content here. */}
       <BottomSheetContent className="md:max-w-xl" style={{ '--brand': brand } as CSSProperties}>
         {/* Mounted only while open, and remounted per day, so each opening starts fresh. */}
-        {open && <StoryPicker key={dayIndex} slug={slug} dayIndex={dayIndex} headline={headline} clientName={clientName} />}
+        {open && <StoryPicker key={dayIndex} slug={slug} dayIndex={dayIndex} headline={headline} clientName={clientName} version={version} />}
       </BottomSheetContent>
     </BottomSheet>
   )
@@ -52,46 +85,42 @@ function StoryPicker({
   dayIndex,
   headline,
   clientName,
+  version,
 }: {
   slug: string
   dayIndex: number
   headline: string
   clientName: string
+  version: string
 }) {
-  const [cards, setCards] = useState<Cards>({})
+  const date = localDateParam()
+  const baseName = `${clientName.trim().replace(/[^a-zA-Z0-9]+/g, '_') || 'My'}_${headline.replace(/\s+/g, '_')}`
+  const srcFor = (id: StoryDesign) => `/p/${slug}/story/${id}/${dayIndex}?date=${date}&v=${version}`
+  // Cards this visit already loaded show at once, with no shimmer flash on reopening.
+  const [cards, setCards] = useState<Cards>(() =>
+    Object.fromEntries(STORY_DESIGNS.flatMap(({ id }) => {
+      const card = loadedCards.get(srcFor(id))
+      return card ? [[id, card]] : []
+    })),
+  )
   const [selected, setSelected] = useState<StoryDesign>(STORY_DESIGNS[0].id)
 
-  // Both cards are fetched up front: the previews need them anyway, and having the file ready
-  // means the share call runs straight from the tap — iOS drops the share sheet if the tap's
-  // user activation expires while a download is still in flight.
+  // Both cards load up front: the previews need them anyway, and having the file ready means
+  // the share call runs straight from the tap — iOS drops the share sheet if the tap's user
+  // activation expires while a download is still in flight.
   useEffect(() => {
-    const controller = new AbortController()
-    const urls: string[] = []
-    const date = localDateParam()
-    const baseName = `${clientName.trim().replace(/[^a-zA-Z0-9]+/g, '_') || 'My'}_${headline.replace(/\s+/g, '_')}`
+    let active = true
     for (const { id } of STORY_DESIGNS) {
-      fetch(`/p/${slug}/story/${id}/${dayIndex}?date=${date}`, { signal: controller.signal })
-        .then(async (response) => {
-          if (!response.ok) throw new Error(String(response.status))
-          const blob = await response.blob()
-          const url = URL.createObjectURL(blob)
-          urls.push(url)
-          // Decoded before it's shown, so the card appears whole instead of painting top-down.
-          const image = new Image()
-          image.src = url
-          await image.decode()
-          const file = new File([blob], `${baseName}_${id}.png`, { type: 'image/png' })
-          setCards((current) => ({ ...current, [id]: { url, file } }))
-        })
-        .catch(() => {
-          if (!controller.signal.aborted) setCards((current) => ({ ...current, [id]: 'error' }))
-        })
+      loadCard(srcFor(id), `${baseName}_${id}.png`)
+        .then((card) => active && setCards((current) => ({ ...current, [id]: card })))
+        .catch(() => active && setCards((current) => ({ ...current, [id]: 'error' })))
     }
     return () => {
-      controller.abort()
-      urls.forEach((url) => URL.revokeObjectURL(url))
+      active = false
     }
-  }, [slug, dayIndex, headline, clientName])
+    // srcFor is derived from these; listing it would refetch on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug, dayIndex, date, version, baseName])
 
   const card = cards[selected]
   const ready = card !== undefined && card !== 'error'

@@ -82,6 +82,7 @@ export function ShareView({ plan, slug }: { plan: SharedPlan; slug: string }) {
         headline={headline}
         clientName={plan.client.name}
         brand={brand}
+        version={String(Math.max(plan.plan.updatedAt.getTime(), plan.coach.updatedAt.getTime()))}
       />
     </div>
   )

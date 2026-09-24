@@ -32,7 +32,11 @@ export type SharedSession = {
 }
 
 export type SharedPlan = {
-  coach: { name: string; title: string | null; phone: string | null; logoUrl: string | null; brandColor: string | null }
+  coach: {
+    name: string; title: string | null; phone: string | null; logoUrl: string | null; brandColor: string | null
+    /** Last profile save — a new logo or colour has to reach the cached story cards. */
+    updatedAt: Date
+  }
   client: { name: string }
   plan: { title: string; updatedAt: Date }
   sessions: SharedSession[]
@@ -46,7 +50,7 @@ async function buildSharedPlan(planRow: PlanRow | undefined): Promise<SharedPlan
 
   const coach = await db.query.coaches.findFirst({
     where: eq(coaches.id, planRow.coachId),
-    columns: { name: true, title: true, phone: true, logoUrl: true, brandColor: true },
+    columns: { name: true, title: true, phone: true, logoUrl: true, brandColor: true, updatedAt: true },
   })
   if (!coach) return null
 
@@ -167,6 +171,7 @@ async function buildSharedPlan(planRow: PlanRow | undefined): Promise<SharedPlan
       phone: coach.phone,
       logoUrl: coach.logoUrl,
       brandColor: coach.brandColor,
+      updatedAt: coach.updatedAt,
     },
     client: { name: client.name },
     plan: { title: planRow.title, updatedAt: planRow.updatedAt },
