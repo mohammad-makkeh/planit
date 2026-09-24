@@ -125,7 +125,9 @@ function Player({
   )
   const [muted, setMuted] = useState(readMuted)
   const [listOpen, setListOpen] = useState(false)
+  // The row stays set while the details sheet slides away, so it never animates out empty.
   const [details, setDetails] = useState<SharedRow | null>(null)
+  const [detailsOpen, setDetailsOpen] = useState(false)
   const advanceTimer = useRef<number | null>(null)
 
   // Yesterday's progress for this plan is dropped once per opening; today's is written on every change.
@@ -200,7 +202,10 @@ function Player({
           onToggleMute={toggleMute}
           onClose={onClose}
           onOpenList={() => setListOpen(true)}
-          onOpenDetails={setDetails}
+          onOpenDetails={(row) => {
+            setDetails(row)
+            setDetailsOpen(true)
+          }}
         />
       )}
       <MoveListSheet
@@ -216,9 +221,9 @@ function Player({
         style={theme}
       />
       <DialogSheet
-        open={details !== null}
+        open={detailsOpen}
         onOpenChange={(next) => {
-          if (!next) setDetails(null)
+          if (!next) setDetailsOpen(false)
         }}
         title={details?.exercise.name ?? ''}
         className="dark"

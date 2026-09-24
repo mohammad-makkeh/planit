@@ -2,14 +2,18 @@
 
 import { useEffect, useRef, useState } from 'react'
 
+type Snapshot = { endsAt: number; ms: number }
+
 /**
  * The remaining rest, recomputed from the end timestamp on each animation frame so a tab that
  * was backgrounded (music app, lock screen) never drifts. Returns whole seconds as ms — one
  * state update per second, not sixty. `onEnd` fires exactly once when the rest runs out; if it
- * ran out while the tab was hidden, it fires when the tab is visible again. 0 when no rest runs.
+ * ran out while the tab was hidden, it fires when the tab is visible again. 0 when no rest runs,
+ * and 0 for a rest whose first frame hasn't run yet — the caller shows the full rest for that,
+ * never the previous rest's last value.
  */
 export function useRestClock(endsAt: number | null, onEnd: (now: number) => void): number {
-  const [remaining, setRemaining] = useState(0)
+  const [snapshot, setSnapshot] = useState<Snapshot | null>(null)
   const onEndRef = useRef(onEnd)
   useEffect(() => {
     onEndRef.current = onEnd
@@ -26,12 +30,15 @@ export function useRestClock(endsAt: number | null, onEnd: (now: number) => void
       if (left <= 0) {
         if (!ended) {
           ended = true
-          setRemaining(0)
+          setSnapshot({ endsAt, ms: 0 })
           onEndRef.current(now)
         }
         return
       }
-      setRemaining(Math.ceil(left / 1000) * 1000)
+      setSnapshot((current) => {
+        const ms = Math.ceil(left / 1000) * 1000
+        return current?.endsAt === endsAt && current.ms === ms ? current : { endsAt, ms }
+      })
       frame = requestAnimationFrame(tick)
     }
     const onVisibility = () => {
@@ -48,5 +55,6 @@ export function useRestClock(endsAt: number | null, onEnd: (now: number) => void
     }
   }, [endsAt])
 
-  return endsAt === null ? 0 : remaining
+  // A snapshot belongs to one rest: a new rest reads 0 until its own first frame lands.
+  return endsAt !== null && snapshot?.endsAt === endsAt ? snapshot.ms : 0
 }

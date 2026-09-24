@@ -32,7 +32,9 @@ export function ShareView({ plan, slug }: { plan: SharedPlan; slug: string }) {
   const headline = session ? dayHeadline(session) : ''
   const planUpdatedAt = plan.plan.updatedAt.getTime()
   const progress = useStoredProgress(slug, selected, planUpdatedAt, session?.rows ?? [])
-  const playingSession = playing !== null ? plan.sessions[playing] : undefined
+  // Falls back to the selected day (always the day that was played) so the player keeps its
+  // content through the close animation instead of fading out as an empty dark rectangle.
+  const playingSession = plan.sessions[playing ?? selected]
 
   return (
     <div
@@ -112,7 +114,7 @@ export function ShareView({ plan, slug }: { plan: SharedPlan; slug: string }) {
         slug={slug}
         day={playing ?? selected}
         session={playingSession}
-        headline={playingSession ? dayHeadline(playingSession) : headline}
+        headline={playingSession ? dayHeadline(playingSession) : ''}
         planUpdatedAt={planUpdatedAt}
         brand={brand}
         onClose={closePlayer}

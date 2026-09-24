@@ -12,8 +12,9 @@ export function SetTicks({ ticks, onToggle }: { ticks: boolean[]; onToggle: (set
   const next = ticks.indexOf(false)
   const single = ticks.length === 1
 
+  // gap-3 + px-4: five 60px circles (a 5×5) fit one row at 390px; six wrap.
   return (
-    <div className="flex flex-wrap items-center justify-center gap-3.5 px-5">
+    <div className="flex flex-wrap items-center justify-center gap-3 px-4">
       {ticks.map((done, i) => (
         <button
           key={i}
