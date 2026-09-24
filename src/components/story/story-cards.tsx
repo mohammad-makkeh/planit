@@ -552,7 +552,7 @@ function Chart({ plan, session, brand, logo, date }: StoryInput) {
           would otherwise vanish into its own brand colour. */}
       <div
         style={{
-          position: 'absolute', top: 1532, left: CHART_MARGIN, right: CHART_MARGIN, display: 'flex',
+          position: 'absolute', top: 1544, left: CHART_MARGIN, right: CHART_MARGIN, display: 'flex',
           alignItems: 'center', justifyContent: 'space-between', gap: 16,
           fontFamily: 'Inter', fontWeight: 800, fontSize: 22, letterSpacing: 4, color: '#FFFFFF',
         }}
