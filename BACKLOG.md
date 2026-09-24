@@ -27,11 +27,3 @@ Worked top to bottom, one item at a time. Everything here must stay zero-cost to
 - Opens the phone's native share sheet (Web Share API) with the image; download as a
   fallback.
 - One image route rendered server-side; the body figure is already polygons it can draw.
-
-## 4. Gym Mode on the share page
-
-- "Start workout" opens a full-screen player, one move at a time: body figure, sets × reps,
-  big tappable set checkmarks.
-- After a set, an automatic rest countdown from the plan's rest seconds, with vibration.
-- Keeps the screen awake (Wake Lock API) and always shows "Next up".
-- No login and no logging: set ticks live only on the phone for that session.

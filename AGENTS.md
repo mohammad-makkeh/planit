@@ -223,6 +223,15 @@ suffix).
   stacked over their name and title on the left, the client name and a PDF button on the
   right. Content is capped at `max-w-3xl`. Below: day tabs, the "Today hits" card, the
   warm-up `+` grid, cardio on one row with dividers, workout cards and a move lightbox.
+- **Gym Mode** (`src/components/share/gym-mode/`): a `Start` pill in the day's Workout header
+  opens a full-screen dark player — one move at a time, tappable set circles, an automatic rest
+  countdown (Web Audio chime + vibration, one mute toggle), wake lock, a move list to jump around,
+  and a finish screen that hands off to the story cards. Pure rules live in `src/lib/gym-mode.ts`.
+  Progress is kept in `localStorage` for the plan + day + local date + plan `updatedAt` only;
+  nothing is sent to the server. The open state is `?play=<day>` pushed with the history API, so
+  the back button closes the player. Sheets over the player are `DialogSheet`s (it's a Base UI
+  dialog). The player wraps its popup in the `dark` token scope with `--background` set to the
+  header band's `#0f0f0f`; anything it portals out (the two sheets) gets the same class and style.
 - The coach's `brand_color` is applied through the `--brand` CSS variable (Tailwind's `brand`
   colour reads `var(--brand)`), which is what lets the share page use the coach's colour.
 - The PDF (`src/components/pdf/plan-pdf.tsx`) is laid out after
@@ -394,4 +403,5 @@ server-rendered PDF → typed numeric fields, cardio inputs, long-press drag, st
 move-form pickers as pills with nested sheets → global equipment and muscle-target catalogs →
 body muscle map (thumbnails, day and week balance, primary/secondary, chest and side-delt
 splits, PDF figures) → removal of move images and warm-up highlighting → Week-view gap
-suggestions → share page polish. Next up: [`BACKLOG.md`](BACKLOG.md).
+suggestions → share page polish → WhatsApp send + link preview → story cards → smart row
+defaults → Gym Mode on the share page. Next up: [`BACKLOG.md`](BACKLOG.md).
