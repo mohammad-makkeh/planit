@@ -1,13 +1,22 @@
 'use client'
 
 import { useState } from 'react'
-import { Angle, Clock, HeartPulse } from 'lucide-react'
+import { Angle, Clock, HeartPulse, Play } from 'lucide-react'
 import { MuscleSummary } from '@/components/shared/muscle-summary'
 import type { SharedRow, SharedSession } from '@/services/share'
 import { MoveLightbox } from './move-lightbox'
 import { ShareRowCard } from './share-row-card'
 
-export function ShareSession({ session }: { session: SharedSession }) {
+export function ShareSession({
+  session,
+  startLabel,
+  onStart,
+}: {
+  session: SharedSession
+  /** "Start", or "Continue · 2 of 4" when the phone holds today's progress. */
+  startLabel: string
+  onStart: () => void
+}) {
   const [activeRow, setActiveRow] = useState<SharedRow | null>(null)
   const hasCardio =
     session.cardioMinutes !== null || session.cardioBpm !== null || session.cardioIncline !== null
@@ -71,9 +80,20 @@ export function ShareSession({ session }: { session: SharedSession }) {
 
       {session.rows.length > 0 && (
         <section className="space-y-2">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Workout
-          </p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Workout
+            </p>
+            {/* Opens Gym Mode for this day. Styled like Flex it: a brand-tinted pill, not another chip. */}
+            <button
+              type="button"
+              onClick={onStart}
+              className="inline-flex h-9 shrink-0 touch-manipulation items-center gap-1.5 rounded-full bg-brand/10 px-4 text-sm font-semibold text-brand outline-none transition-colors hover:bg-brand/15 focus-visible:ring-2 focus-visible:ring-brand/50"
+            >
+              <Play className="size-3.5 fill-current" aria-hidden />
+              {startLabel}
+            </button>
+          </div>
           <div className="space-y-2">
             {session.rows.map((row, i) => (
               <ShareRowCard key={i} row={row} onOpen={() => setActiveRow(row)} />

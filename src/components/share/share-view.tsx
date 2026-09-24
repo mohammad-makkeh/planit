@@ -1,21 +1,38 @@
 'use client'
 
-import { useState, type CSSProperties } from 'react'
+import { useRef, useState, type CSSProperties } from 'react'
 import { Flame } from 'lucide-react'
 import { EmptyState } from '@/components/shell/empty-state'
 import { FOCUS_TITLE, dayFocus } from '@/lib/day-focus'
 import { cn } from '@/lib/utils'
-import type { SharedPlan } from '@/services/share'
+import type { SharedPlan, SharedSession } from '@/services/share'
+import { GymMode } from './gym-mode/gym-mode'
+import { usePlayParam } from './gym-mode/use-play-param'
+import { useStoredProgress } from './gym-mode/use-stored-progress'
 import { ShareHeader } from './share-header'
 import { ShareSession } from './share-session'
 import { StorySheet } from './story-sheet'
 
+/** "Push day" — the story cards' and the finish screen's title for a day. */
+function dayHeadline(session: SharedSession): string {
+  return `${FOCUS_TITLE[dayFocus(session.rows, session.cardioMinutes)]} day`
+}
+
 export function ShareView({ plan, slug }: { plan: SharedPlan; slug: string }) {
-  const [selected, setSelected] = useState(0)
+  const { playing, open: openPlayer, close: closePlayer } = usePlayParam(
+    (day) => (plan.sessions[day]?.rows.length ?? 0) > 0,
+  )
+  // A link straight into the player also selects its day chip.
+  const [selected, setSelected] = useState(playing ?? 0)
   const [storyOpen, setStoryOpen] = useState(false)
+  // Flex it on the finish screen: the vaul story sheet opens once the player's dialog has closed.
+  const flexAfterClose = useRef(false)
   const session = plan.sessions[selected]
   const brand = plan.coach.brandColor || '#FE2E00'
-  const headline = session ? `${FOCUS_TITLE[dayFocus(session.rows, session.cardioMinutes)]} day` : ''
+  const headline = session ? dayHeadline(session) : ''
+  const planUpdatedAt = plan.plan.updatedAt.getTime()
+  const progress = useStoredProgress(slug, selected, planUpdatedAt, session?.rows ?? [])
+  const playingSession = playing !== null ? plan.sessions[playing] : undefined
 
   return (
     <div
@@ -64,7 +81,12 @@ export function ShareView({ plan, slug }: { plan: SharedPlan; slug: string }) {
 
         <main className="px-4 pt-2 pb-10">
           {session ? (
-            <ShareSession key={selected} session={session} />
+            <ShareSession
+              key={selected}
+              session={session}
+              startLabel={progress ? `Continue · ${progress}` : 'Start'}
+              onStart={() => openPlayer(selected)}
+            />
           ) : (
             <EmptyState
               title="No sessions yet"
@@ -83,6 +105,26 @@ export function ShareView({ plan, slug }: { plan: SharedPlan; slug: string }) {
         clientName={plan.client.name}
         brand={brand}
         version={String(Math.max(plan.plan.updatedAt.getTime(), plan.coach.updatedAt.getTime()))}
+      />
+
+      <GymMode
+        open={playing !== null}
+        slug={slug}
+        day={playing ?? selected}
+        session={playingSession}
+        headline={playingSession ? dayHeadline(playingSession) : headline}
+        planUpdatedAt={planUpdatedAt}
+        brand={brand}
+        onClose={closePlayer}
+        onClosed={() => {
+          if (!flexAfterClose.current) return
+          flexAfterClose.current = false
+          setStoryOpen(true)
+        }}
+        onFlexIt={() => {
+          flexAfterClose.current = true
+          closePlayer()
+        }}
       />
     </div>
   )
