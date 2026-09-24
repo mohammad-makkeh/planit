@@ -88,31 +88,35 @@ export function ShareSheet({
         </BottomSheetHeader>
         {url && message ? (
           <div className="space-y-3">
+            <Input readOnly value={url} className="h-9 text-xs" />
+            {/* WhatsApp keeps its full label; Copy and Open split what's left (or the whole row). */}
             <div className="flex gap-2">
-              <Input readOnly value={url} className="text-xs" />
               {/* Only the icon flips to a check, so the label never changes the button's width. */}
-              <Button variant="outline" className="shrink-0" onClick={() => void copy()}>
+              <Button variant="outline" size="lg" className="min-w-0 flex-1" onClick={() => void copy()}>
                 {copied ? <Check className="size-4 text-brand" /> : <Copy className="size-4" />} Copy
               </Button>
               <Button
                 variant="outline"
-                className="shrink-0"
+                size="lg"
+                className="min-w-0 flex-1"
                 nativeButton={false}
                 render={<a href={url} target="_blank" rel="noopener noreferrer" />}
               >
                 <ExternalLink className="size-4" /> Open
               </Button>
+              {whatsapp && (
+                <Button
+                  size="lg"
+                  // WhatsApp's own green, so the button reads as "opens WhatsApp" at a glance.
+                  className="shrink-0 bg-[#25D366] font-semibold text-white hover:bg-[#1FB855]"
+                  nativeButton={false}
+                  render={<a href={whatsappLink(whatsapp, message)} target="_blank" rel="noopener noreferrer" />}
+                >
+                  <MessageCircle className="size-4" /> Send on WhatsApp
+                </Button>
+              )}
             </div>
-            {whatsapp && (
-              <Button
-                className="w-full"
-                nativeButton={false}
-                render={<a href={whatsappLink(whatsapp, message)} target="_blank" rel="noopener noreferrer" />}
-              >
-                <MessageCircle className="size-4" /> Send on WhatsApp
-              </Button>
-            )}
-            <Button variant="outline" className="w-full text-destructive" onClick={() => void revoke()} disabled={busy}>
+            <Button variant="outline" size="lg" className="w-full text-destructive" onClick={() => void revoke()} disabled={busy}>
               <Link2Off className="size-4" /> Revoke link
             </Button>
           </div>
