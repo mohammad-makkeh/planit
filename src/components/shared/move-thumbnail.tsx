@@ -1,6 +1,6 @@
-import { Dumbbell } from 'lucide-react'
 import { shadesForMove, type MuscleWork } from '@/lib/muscle-map'
 import { cn } from '@/lib/utils'
+import { EquipmentIcon } from './equipment-icon'
 import { MuscleMap } from './muscle-map'
 
 /**
@@ -34,13 +34,13 @@ export function MoveThumbnail({
       </div>
     )
   }
-  if (equipmentImageUrl) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={equipmentImageUrl} alt={name} className={cn(frame, 'object-cover')} />
-  }
   return (
-    <div className={cn(frame, 'flex items-center justify-center border-transparent bg-muted')}>
-      <Dumbbell className="size-1/2 max-h-5 max-w-5 text-muted-foreground" />
+    <div
+      role="img"
+      aria-label={name}
+      className={cn(frame, 'flex items-center justify-center bg-muted/40 text-muted-foreground')}
+    >
+      <EquipmentIcon src={equipmentImageUrl} className="size-3/5" />
     </div>
   )
 }

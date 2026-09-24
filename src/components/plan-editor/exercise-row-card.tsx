@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Copy, Dumbbell, MoreVertical, StickyNote, Trash2 } from 'lucide-react'
+import { Copy, MoreVertical, StickyNote, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -11,6 +11,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { MoveThumbnail } from '@/components/shared/move-thumbnail'
+import { EquipmentIcon } from '@/components/shared/equipment-icon'
 import { UnitInput } from '@/components/shared/unit-input'
 import { cn } from '@/lib/utils'
 import type { ExerciseWithDetails } from '@/services/exercises'
@@ -90,16 +91,7 @@ export function ExerciseRowCard({
             className="flex shrink-0 touch-manipulation items-center gap-1 rounded-full border border-input px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-accent"
             aria-label={`Equipment for ${row.exercise.name}`}
           >
-            {resolvedEquipment.imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={resolvedEquipment.imageUrl}
-                alt=""
-                className="size-3.5 shrink-0 rounded-sm object-cover"
-              />
-            ) : (
-              <Dumbbell className="size-3.5 shrink-0" />
-            )}
+            <EquipmentIcon src={resolvedEquipment.imageUrl} className="size-3.5" />
             <span className="max-w-20 truncate">{resolvedEquipment.name}</span>
           </button>
         )}

@@ -250,6 +250,9 @@ suffix).
   (brand tint) and secondary (grey) on tap.
 - Filter chips are `h-9` and rounded-full; primary actions are `h-9` or taller; icon buttons
   tapped on phones are at least `size-9`.
+- Equipment icons are SVG files in `public/equipment/` (lucide style: 24px grid, round caps)
+  drawn through `EquipmentIcon`, a CSS mask filled with `currentColor` — so an icon always
+  matches its label's colour. Never render them as `<img>`, and never recolour with filters.
 - Avatars are blobatar. No edge-to-edge containers; consistent gutters (`px-4`, `md:px-8`).
 - Brand orange `#FE2E00` is the app default; coaches can override it.
 - Copy is sentence case ("Add note", "Duplicate").

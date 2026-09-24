@@ -1,7 +1,7 @@
 'use client'
 
-import { Dumbbell } from 'lucide-react'
 import { MuscleMap } from '@/components/shared/muscle-map'
+import { EquipmentIcon } from '@/components/shared/equipment-icon'
 import { MusclePill } from '@/components/shared/muscle-pill'
 import { Button } from '@/components/ui/button'
 import {
@@ -40,16 +40,9 @@ export function MoveLightbox({
                     className="size-full justify-center"
                   />
                 </div>
-              ) : fallbackUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={fallbackUrl}
-                  alt=""
-                  className="max-h-[50dvh] w-full rounded-xl border bg-muted object-contain"
-                />
               ) : (
-                <div className="flex h-40 items-center justify-center rounded-xl bg-muted">
-                  <Dumbbell className="size-10 text-muted-foreground" />
+                <div className="flex h-40 items-center justify-center rounded-xl border bg-muted/40 text-muted-foreground">
+                  <EquipmentIcon src={fallbackUrl} className="size-16" />
                 </div>
               )}
               <div className="flex flex-wrap items-center gap-1.5">
@@ -58,16 +51,7 @@ export function MoveLightbox({
                 </span>
                 {row.equipment && (
                   <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-input px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                    {row.equipment.imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={row.equipment.imageUrl}
-                        alt=""
-                        className="size-3.5 shrink-0 rounded-sm object-cover"
-                      />
-                    ) : (
-                      <Dumbbell className="size-3.5 shrink-0" />
-                    )}
+                    <EquipmentIcon src={row.equipment.imageUrl} className="size-3.5" />
                     {row.equipment.name}
                   </span>
                 )}

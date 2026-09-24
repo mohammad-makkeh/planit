@@ -2,11 +2,12 @@
 
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, Dumbbell, Plus, Search } from 'lucide-react'
+import { ChevronDown, Plus, Search } from 'lucide-react'
 import type { CatalogOption, EquipmentOption } from '@/components/library/catalog-picker-field'
 import { ExerciseFormSheet } from '@/components/library/exercise-form-sheet'
 import { MoveThumbnail } from '@/components/shared/move-thumbnail'
 import { MuscleFilter } from '@/components/library/muscle-filter'
+import { EquipmentIcon } from '@/components/shared/equipment-icon'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import type { ExerciseWithDetails } from '@/services/exercises'
@@ -142,12 +143,7 @@ export function ExercisePickerSheet({
                                 onClick={() => pick({ id: e.id, name: e.name }, eq.id)}
                                 className={equipmentChipClass()}
                               >
-                                {eq.imageUrl ? (
-                                  // eslint-disable-next-line @next/next/no-img-element
-                                  <img src={eq.imageUrl} alt="" className="size-4 shrink-0 rounded-sm object-cover" />
-                                ) : (
-                                  <Dumbbell className="size-4 shrink-0 text-muted-foreground" />
-                                )}
+                                <EquipmentIcon src={eq.imageUrl} className="size-4" />
                                 {eq.name}
                               </button>
                             ))}

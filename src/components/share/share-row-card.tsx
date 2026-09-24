@@ -1,7 +1,7 @@
 'use client'
 
-import { Dumbbell } from 'lucide-react'
 import { MoveThumbnail } from '@/components/shared/move-thumbnail'
+import { EquipmentIcon } from '@/components/shared/equipment-icon'
 import type { SharedRow } from '@/services/share'
 
 // Same field order and units as the editor (`exercise-row-card.tsx`) and the PDF
@@ -39,16 +39,7 @@ export function ShareRowCard({ row, onOpen }: { row: SharedRow; onOpen: () => vo
             </span>
             {row.equipment && (
               <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-input px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                {row.equipment.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={row.equipment.imageUrl}
-                    alt=""
-                    className="size-3.5 shrink-0 rounded-sm object-cover"
-                  />
-                ) : (
-                  <Dumbbell className="size-3.5 shrink-0" />
-                )}
+                <EquipmentIcon src={row.equipment.imageUrl} className="size-3.5" />
                 <span className="max-w-24 truncate">{row.equipment.name}</span>
               </span>
             )}

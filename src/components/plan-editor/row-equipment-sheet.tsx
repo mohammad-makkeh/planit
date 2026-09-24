@@ -1,6 +1,7 @@
 'use client'
 
-import { Check, Dumbbell } from 'lucide-react'
+import { Check } from 'lucide-react'
+import { EquipmentIcon } from '@/components/shared/equipment-icon'
 import {
   BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle,
 } from '@/components/ui/bottom-sheet'
@@ -44,14 +45,9 @@ export function RowEquipmentSheet({
                 }}
                 className="flex w-full items-center gap-3 rounded-xl border bg-card p-2.5 text-left hover:bg-accent/40"
               >
-                {item.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.imageUrl} alt="" className="size-9 rounded-lg border object-cover" />
-                ) : (
-                  <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
-                    <Dumbbell className="size-4 text-muted-foreground" />
-                  </div>
-                )}
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border">
+                  <EquipmentIcon src={item.imageUrl} className="size-5" />
+                </span>
                 <span className="min-w-0 flex-1 truncate text-sm font-medium">
                   {item.name}
                   {isDefault && <span className="text-muted-foreground"> · default</span>}

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Check, Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { EquipmentIcon } from '@/components/shared/equipment-icon'
 import {
   BottomSheetContent, BottomSheetHeader, BottomSheetNested, BottomSheetTitle,
 } from '@/components/ui/bottom-sheet'
@@ -15,8 +16,7 @@ export type EquipmentOption = CatalogOption & { isFallback: boolean }
 
 function OptionIcon({ option }: { option: CatalogOption }) {
   if (!option.imageUrl) return null
-  // eslint-disable-next-line @next/next/no-img-element
-  return <img src={option.imageUrl} alt="" className="size-4 shrink-0 rounded-sm object-contain" />
+  return <EquipmentIcon src={option.imageUrl} className="size-4" />
 }
 
 /**
